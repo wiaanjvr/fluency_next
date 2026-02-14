@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "@/styles/globals.css";
+import { PaddleProvider } from "@/lib/paddle";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,10 +32,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Set Paddle environment based on NODE_ENV
+  const paddleEnvironment =
+    process.env.NODE_ENV === "production" ? "production" : "sandbox";
+
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-serif antialiased bg-background text-foreground min-h-screen">
-        {children}
+        <PaddleProvider environment={paddleEnvironment}>
+          {children}
+        </PaddleProvider>
       </body>
     </html>
   );

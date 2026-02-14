@@ -77,7 +77,16 @@ export default function Home() {
               <span className="text-lg font-light">Lingua</span>
             </Link>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              <Link href="/pricing">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="font-light text-muted-foreground hover:text-foreground"
+                >
+                  Pricing
+                </Button>
+              </Link>
               <Link href="/auth/login">
                 <Button
                   variant="ghost"
