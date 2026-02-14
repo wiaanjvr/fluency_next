@@ -5,19 +5,30 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import {
+  StatCard,
+  ProgressBar,
+  LessonPreviewCard,
+  SectionHeader,
+  EmptyState,
+} from "@/components/ui/premium-components";
 import {
   Play,
   Settings,
   TrendingUp,
   Calendar,
   Clock,
-  ChevronRight,
+  ArrowRight,
   BookOpen,
   Star,
   Sparkles,
   Brain,
   ChevronDown,
   ChevronUp,
+  Volume2,
+  Target,
+  Flame,
 } from "lucide-react";
 import { getLevelLabel } from "@/lib/placement/scoring";
 import { ProficiencyLevel, WordStatus } from "@/types";
@@ -88,20 +99,15 @@ export default function DashboardPage() {
           return;
         }
 
-        // Check if user just completed onboarding (prevents redirect loop)
         const justCompletedOnboarding =
           typeof window !== "undefined" &&
           sessionStorage.getItem("onboarding_completed") === "true";
 
         if (justCompletedOnboarding) {
-          console.log("Dashboard: User just completed onboarding, clearing flag");
           sessionStorage.removeItem("onboarding_completed");
-          // Skip the interests check this time, let the user through
           setAuthChecked(true);
         }
 
-        // Fetch profile with metrics AND interests to check onboarding status
-        // Force fresh data to avoid cache issues after onboarding
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select(
@@ -110,14 +116,8 @@ export default function DashboardPage() {
           .eq("id", user.id)
           .single();
 
-        console.log("Dashboard: Profile query result:", { profile, profileError });
-
         if (profileError) {
-          console.error("Error fetching profile:", profileError);
-
-          // Handle missing profile - create one and redirect to onboarding
           if (profileError.code === "PGRST116") {
-            // Profile doesn't exist, create it
             const { error: insertError } = await supabase
               .from("profiles")
               .insert({
@@ -134,11 +134,9 @@ export default function DashboardPage() {
               });
 
             if (insertError) {
-              console.error("Error creating profile:", insertError);
               setDbError(`Profile creation failed: ${insertError.message}`);
               setAuthChecked(true);
             } else {
-              // Profile created, redirect to onboarding immediately
               router.replace("/onboarding");
               return;
             }
@@ -155,26 +153,16 @@ export default function DashboardPage() {
             setAuthChecked(true);
           }
         } else {
-          // Profile exists - check if onboarding was completed (unless we just came from there)
           if (!justCompletedOnboarding) {
-            // Onboarding requires 3+ interests, so check for that
             const interests = profile?.interests || [];
-            console.log("Dashboard: Loaded profile interests:", interests);
-            
             if (!interests || interests.length < 3) {
-              // User hasn't completed onboarding (placement test + interests)
-              console.log(
-                "Dashboard: Interests incomplete, redirecting to onboarding",
-              );
               router.replace("/onboarding");
               return;
             }
           }
-          console.log("Dashboard: Onboarding complete, loading dashboard");
           setAuthChecked(true);
         }
 
-        // Count sessions completed today
         const today = new Date().toISOString().split("T")[0];
         const { count: todayCount, error: lessonsError } = await supabase
           .from("lessons")
@@ -189,7 +177,6 @@ export default function DashboardPage() {
           );
         }
 
-        // Calculate average comprehension from completed lessons
         let avgComprehension = 0;
         const { data: completedLessons } = await supabase
           .from("lessons")
@@ -211,8 +198,7 @@ export default function DashboardPage() {
           }
         }
 
-        // Get words encountered count from user_words table
-        const { data: allWords, error: wordsError } = await supabase
+        const { data: allWords } = await supabase
           .from("user_words")
           .select("id, word, lemma, status, rating, next_review")
           .eq("user_id", user.id)
@@ -221,7 +207,6 @@ export default function DashboardPage() {
 
         const wordsCount = allWords?.length || 0;
 
-        // Calculate vocabulary stats by status
         const vocabStats: VocabularyStats = {
           new: 0,
           learning: 0,
@@ -242,7 +227,6 @@ export default function DashboardPage() {
 
         setVocabularyStats(vocabStats);
 
-        // Check if proficiency level should be updated based on vocabulary
         const currentLevel = (profile?.proficiency_level ||
           "A1") as ProficiencyLevel;
         const newLevel = checkProficiencyUpdate(
@@ -251,7 +235,6 @@ export default function DashboardPage() {
           vocabStats.mastered,
         );
 
-        // If proficiency should be updated, update it in the database
         let finalLevel = currentLevel;
         if (newLevel) {
           await supabase
@@ -261,7 +244,6 @@ export default function DashboardPage() {
           finalLevel = newLevel;
         }
 
-        // Get progress to next level (using the actual profile level)
         const progress = getProficiencyProgress(
           finalLevel,
           vocabStats.known,
@@ -295,12 +277,14 @@ export default function DashboardPage() {
     fetchUserStats();
   }, [supabase, router]);
 
-  // Show loading state until auth and onboarding status are checked
+  // Premium loading state
   if (!authChecked || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-12 h-12 rounded-xl bg-library-forest/20 flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-library-forest/30 border-t-library-forest rounded-full animate-spin" />
+          </div>
           <p className="text-muted-foreground font-light">
             Loading your dashboard...
           </p>
@@ -309,27 +293,33 @@ export default function DashboardPage() {
     );
   }
 
+  const canStartLesson = sessionsToday < maxSessionsFree;
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Luxury Navigation */}
-      <nav className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <main className="min-h-screen bg-background text-foreground">
+      {/* ========== NAVIGATION ========== */}
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-library-forest/20">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
-            <Link href="/dashboard" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center">
-                <span className="text-background font-serif font-bold text-lg">
+            <Link href="/dashboard" className="flex items-center gap-3 group">
+              <div className="w-9 h-9 bg-library-forest rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-library-brass">
+                <span className="text-foreground font-serif font-semibold text-lg">
                   L
                 </span>
               </div>
-              <span className="text-xl font-light tracking-tight">Lingua</span>
+              <span className="text-lg font-light">Lingua</span>
             </Link>
 
-            <div className="flex items-center gap-6">
-              <span className="text-sm text-muted-foreground font-light">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground font-light hidden sm:block">
                 Free Plan
               </span>
               <Link href="/settings">
-                <Button variant="ghost" size="icon" className="rounded-xl">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-xl text-muted-foreground hover:text-foreground"
+                >
                   <Settings className="h-5 w-5" />
                 </Button>
               </Link>
@@ -338,399 +328,436 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-        {/* Database Error Banner */}
-        {dbError && (
-          <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400">
-            <p className="font-medium mb-1">Database Setup Required</p>
-            <p className="text-sm">{dbError}</p>
-            <p className="text-sm mt-2">
-              Visit{" "}
-              <code className="bg-amber-500/20 px-1 rounded">
-                /api/debug/database
-              </code>{" "}
-              to see detailed diagnostics.
-            </p>
-          </div>
-        )}
+      <div className="pt-24 pb-16 px-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Database Error Banner */}
+          {dbError && (
+            <ScrollReveal>
+              <div className="mb-8 p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                <p className="font-medium text-amber-700 dark:text-amber-400 mb-1">
+                  Database Setup Required
+                </p>
+                <p className="text-sm text-amber-600 dark:text-amber-500">
+                  {dbError}
+                </p>
+              </div>
+            </ScrollReveal>
+          )}
 
-        {/* Welcome Section */}
-        <div className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-light mb-3 tracking-tight">
-            Welcome back
-          </h1>
-          <p className="text-lg text-muted-foreground font-light">
-            Ready to embrace the struggle?
-          </p>
-        </div>
+          {/* ========== HERO SECTION ========== */}
+          <section className="mb-16">
+            <ScrollReveal>
+              <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-4">
+                Welcome back
+              </p>
+            </ScrollReveal>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Session Card */}
-          <div className="lg:col-span-2">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 dark:from-zinc-800 dark:via-zinc-900 dark:to-black text-white shadow-luxury-lg p-10 min-h-[420px]">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24" />
+            <ScrollReveal delay={100}>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-light tracking-tight mb-4">
+                Ready to{" "}
+                <span className="font-serif italic text-library-brass">
+                  learn?
+                </span>
+              </h1>
+            </ScrollReveal>
 
-              <div className="relative z-10 space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span className="text-xs font-light">Today's Session</span>
-                </div>
+            <ScrollReveal delay={200}>
+              <p className="text-lg text-muted-foreground font-light">
+                Embrace the productive discomfort. Progress awaits.
+              </p>
+            </ScrollReveal>
+          </section>
 
-                <div>
-                  <h2 className="text-3xl font-light mb-2">
-                    {sessionsToday >= maxSessionsFree
-                      ? "Daily session complete"
-                      : "Begin your lesson"}
-                  </h2>
-                  <p className="text-white/70 font-light">
-                    {sessionsToday >= maxSessionsFree
-                      ? "Upgrade to Premium for unlimited daily sessions and advanced features."
-                      : "Listen without text. Speak before reading. Embrace the productive discomfort."}
-                  </p>
-                </div>
+          {/* ========== MAIN CONTENT GRID ========== */}
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* ========== TODAY'S LESSON CARD ========== */}
+            <ScrollReveal delay={300} className="lg:col-span-2">
+              <div className="relative overflow-hidden rounded-3xl bg-card border border-border p-8 md:p-10 min-h-[400px]">
+                {/* Ambient glow */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-library-forest/[0.04] rounded-full blur-3xl -mr-32 -mt-32" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-luxury-bronze/[0.02] rounded-full blur-2xl -ml-24 -mb-24" />
 
-                <div className="pt-4 flex items-center gap-4">
-                  {sessionsToday >= maxSessionsFree ? (
-                    <>
-                      <Button
-                        disabled
-                        className="bg-white/20 text-white border border-white/20 hover:bg-white/20 rounded-xl h-12 px-6 font-light"
-                      >
-                        <Play className="h-4 w-4 mr-2" />
-                        Session Complete
-                      </Button>
-                      <Button className="bg-white text-zinc-900 hover:bg-white/90 rounded-xl h-12 px-6 font-light">
-                        Upgrade to Premium
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      onClick={() => router.push("/lesson")}
-                      className="bg-white text-zinc-900 hover:bg-white/90 rounded-xl h-12 px-6 font-light"
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Start Lesson
-                    </Button>
-                  )}
-                </div>
-
-                <div className="pt-4 border-t border-white/10">
-                  <div className="flex items-center gap-2 text-sm text-white/60">
-                    <span className="font-light">
-                      Free tier: {sessionsToday}/{maxSessionsFree} sessions used
-                      today
+                <div className="relative z-10 h-full flex flex-col">
+                  <div className="flex items-center gap-2 mb-8">
+                    <div className="w-2 h-2 rounded-full bg-library-forest" />
+                    <span className="text-sm font-light tracking-wider uppercase text-muted-foreground">
+                      Today's Session
                     </span>
                   </div>
+
+                  <div className="flex-1 flex flex-col justify-center">
+                    <h2 className="text-3xl md:text-4xl font-light mb-4 leading-tight">
+                      {canStartLesson ? (
+                        <>
+                          Begin your
+                          <br />
+                          <span className="font-serif italic text-library-brass">
+                            daily lesson
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          Session
+                          <br />
+                          <span className="font-serif italic text-library-brass">
+                            complete
+                          </span>
+                        </>
+                      )}
+                    </h2>
+
+                    <p className="text-muted-foreground font-light mb-8 max-w-md">
+                      {canStartLesson
+                        ? "Listen without text. Speak before reading. Embrace the productive discomfort."
+                        : "Great work today. Upgrade to Premium for unlimited daily sessions."}
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                      {canStartLesson ? (
+                        <Link href="/lesson">
+                          <Button
+                            size="lg"
+                            className="bg-library-brass text-background hover:bg-library-brass/90 h-14 px-8 text-base font-light rounded-full group"
+                          >
+                            <Play className="mr-2 h-4 w-4" />
+                            Start Lesson
+                            <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                          </Button>
+                        </Link>
+                      ) : (
+                        <>
+                          <Button
+                            disabled
+                            size="lg"
+                            className="bg-muted text-muted-foreground h-14 px-8 font-light rounded-full"
+                          >
+                            <Play className="mr-2 h-4 w-4" />
+                            Session Complete
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className="h-14 px-8 font-light rounded-full border-library-brass/30 text-library-brass hover:bg-library-brass/10"
+                          >
+                            Upgrade to Premium
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-border/50 mt-8">
+                    <p className="text-sm text-muted-foreground font-light">
+                      Free tier:{" "}
+                      <span className="text-foreground">
+                        {sessionsToday}/{maxSessionsFree}
+                      </span>{" "}
+                      sessions used today
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </ScrollReveal>
 
-          {/* Stats Sidebar */}
-          <div className="flex flex-col gap-3">
-            <div className="card-luxury p-5 transition-all duration-300 hover:shadow-luxury-lg hover:-translate-y-0.5">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
-                  Current Level
-                </span>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="text-3xl font-light mb-1">
-                {stats.currentLevel}
-              </div>
-              <p className="text-xs text-muted-foreground font-light">
-                {getLevelLabel(stats.currentLevel as ProficiencyLevel)}
-              </p>
-            </div>
-
-            <div className="card-luxury p-5 transition-all duration-300 hover:shadow-luxury-lg hover:-translate-y-0.5">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
-                  Learning Streak
-                </span>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="text-3xl font-light mb-1">{stats.streak}</div>
-              <p className="text-xs text-muted-foreground font-light">
-                days consecutive
-              </p>
-            </div>
-
-            <div className="card-luxury p-5 transition-all duration-300 hover:shadow-luxury-lg hover:-translate-y-0.5">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
-                  Total Time
-                </span>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="text-3xl font-light mb-1">{stats.totalTime}</div>
-              <p className="text-xs text-muted-foreground font-light">
-                minutes practiced
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Section */}
-        <div className="mt-12">
-          <h3 className="text-2xl font-light mb-6 tracking-tight">
-            Your Progress
-          </h3>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="card-luxury p-6">
-              <div className="mb-4">
-                <span className="text-sm text-muted-foreground font-light">
-                  Total Sessions
-                </span>
-              </div>
-              <div className="text-3xl font-light mb-2">
-                {stats.totalSessions}
-              </div>
-              <p className="text-sm text-muted-foreground font-light">
-                {stats.totalSessions === 0
-                  ? "The struggle begins today"
-                  : "Keep up the momentum"}
-              </p>
-            </div>
-
-            <div className="card-luxury p-6">
-              <div className="mb-4">
-                <span className="text-sm text-muted-foreground font-light">
-                  Comprehension
-                </span>
-              </div>
-              <div className="text-3xl font-light mb-2">
-                {stats.avgComprehension}%
-              </div>
-              <p className="text-sm text-muted-foreground font-light">
-                {stats.avgComprehension === 0
-                  ? "Track your understanding"
-                  : "Average accuracy"}
-              </p>
-            </div>
-
-            <div className="card-luxury p-6">
-              <div className="mb-4">
-                <span className="text-sm text-muted-foreground font-light">
-                  Vocabulary
-                </span>
-              </div>
-              <div className="text-3xl font-light mb-2">
-                {stats.wordsEncountered}
-              </div>
-              <p className="text-sm text-muted-foreground font-light">
-                Words encountered
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Vocabulary Section */}
-        <div className="mt-12">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-light tracking-tight">
-              Your Vocabulary
-            </h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowVocabulary(!showVocabulary)}
-              className="gap-2"
-            >
-              {showVocabulary ? (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  Hide Words
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  Show All Words
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* Vocabulary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <button
-              onClick={() =>
-                setVocabFilter(vocabFilter === "mastered" ? "all" : "mastered")
-              }
-              className={cn(
-                "card-luxury p-4 transition-all duration-300 hover:shadow-luxury-lg text-left",
-                vocabFilter === "mastered" && "ring-2 ring-primary",
-              )}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Star className="h-4 w-4 text-yellow-500" />
-                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
-                  Mastered
-                </span>
-              </div>
-              <div className="text-2xl font-light">
-                {vocabularyStats.mastered}
-              </div>
-            </button>
-
-            <button
-              onClick={() =>
-                setVocabFilter(vocabFilter === "known" ? "all" : "known")
-              }
-              className={cn(
-                "card-luxury p-4 transition-all duration-300 hover:shadow-luxury-lg text-left",
-                vocabFilter === "known" && "ring-2 ring-primary",
-              )}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="h-4 w-4 text-green-500" />
-                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
-                  Known
-                </span>
-              </div>
-              <div className="text-2xl font-light">{vocabularyStats.known}</div>
-            </button>
-
-            <button
-              onClick={() =>
-                setVocabFilter(vocabFilter === "learning" ? "all" : "learning")
-              }
-              className={cn(
-                "card-luxury p-4 transition-all duration-300 hover:shadow-luxury-lg text-left",
-                vocabFilter === "learning" && "ring-2 ring-primary",
-              )}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Brain className="h-4 w-4 text-blue-500" />
-                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
-                  Learning
-                </span>
-              </div>
-              <div className="text-2xl font-light">
-                {vocabularyStats.learning}
-              </div>
-            </button>
-
-            <button
-              onClick={() =>
-                setVocabFilter(vocabFilter === "new" ? "all" : "new")
-              }
-              className={cn(
-                "card-luxury p-4 transition-all duration-300 hover:shadow-luxury-lg text-left",
-                vocabFilter === "new" && "ring-2 ring-primary",
-              )}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <BookOpen className="h-4 w-4 text-gray-500" />
-                <span className="text-xs uppercase tracking-wide text-muted-foreground font-light">
-                  New
-                </span>
-              </div>
-              <div className="text-2xl font-light">{vocabularyStats.new}</div>
-            </button>
-          </div>
-
-          {/* Progress to Next Level */}
-          {proficiencyProgress?.nextLevel && (
-            <div className="card-luxury p-6 mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-light">
-                  Progress to {proficiencyProgress.nextLevel}
-                </span>
-                <span className="text-sm text-muted-foreground font-light">
-                  {proficiencyProgress.wordsNeeded} words needed
-                </span>
-              </div>
-              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-500"
-                  style={{ width: `${proficiencyProgress.progress}%` }}
+            {/* ========== STATS SIDEBAR ========== */}
+            <div className="space-y-4">
+              <ScrollReveal delay={400}>
+                <StatCard
+                  label="Current Level"
+                  value={stats.currentLevel}
+                  subtext={getLevelLabel(
+                    stats.currentLevel as ProficiencyLevel,
+                  )}
+                  icon={<TrendingUp className="h-4 w-4" />}
+                  accent
                 />
-              </div>
-            </div>
-          )}
+              </ScrollReveal>
 
-          {/* Word List */}
-          {showVocabulary && (
-            <div className="card-luxury p-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-muted-foreground font-light">
-                  {vocabFilter === "all"
-                    ? "All Words"
-                    : `${vocabFilter.charAt(0).toUpperCase() + vocabFilter.slice(1)} Words`}
-                </span>
-                {vocabFilter !== "all" && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setVocabFilter("all")}
-                  >
-                    Clear Filter
-                  </Button>
-                )}
-              </div>
-              <div className="max-h-96 overflow-y-auto">
-                {vocabularyWords.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 font-light">
-                    No words yet. Start a lesson to build your vocabulary!
-                  </p>
-                ) : (
-                  <div className="grid gap-2">
-                    {vocabularyWords
-                      .filter(
-                        (word) =>
-                          vocabFilter === "all" || word.status === vocabFilter,
-                      )
-                      .map((word) => (
-                        <div
-                          key={word.id}
-                          className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span
-                              className={cn(
-                                "w-2 h-2 rounded-full",
-                                word.status === "mastered" && "bg-yellow-500",
-                                word.status === "known" && "bg-green-500",
-                                word.status === "learning" && "bg-blue-500",
-                                word.status === "new" && "bg-gray-400",
-                              )}
-                            />
-                            <span className="font-medium">{word.word}</span>
-                            {word.lemma && word.lemma !== word.word && (
-                              <span className="text-xs text-muted-foreground">
-                                ({word.lemma})
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={cn(
-                                "text-xs px-2 py-1 rounded-full",
-                                word.status === "mastered" &&
-                                  "bg-yellow-500/10 text-yellow-600",
-                                word.status === "known" &&
-                                  "bg-green-500/10 text-green-600",
-                                word.status === "learning" &&
-                                  "bg-blue-500/10 text-blue-600",
-                                word.status === "new" &&
-                                  "bg-gray-500/10 text-gray-600",
-                              )}
-                            >
-                              {word.status}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
+              <ScrollReveal delay={500}>
+                <StatCard
+                  label="Learning Streak"
+                  value={stats.streak}
+                  subtext="days consecutive"
+                  icon={<Flame className="h-4 w-4" />}
+                />
+              </ScrollReveal>
+
+              <ScrollReveal delay={600}>
+                <StatCard
+                  label="Total Time"
+                  value={`${stats.totalTime}`}
+                  subtext="minutes practiced"
+                  icon={<Clock className="h-4 w-4" />}
+                />
+              </ScrollReveal>
             </div>
-          )}
+          </div>
+
+          {/* ========== PROGRESS SECTION ========== */}
+          <section className="mt-20">
+            <ScrollReveal>
+              <SectionHeader
+                eyebrow="Your Progress"
+                title="Track your journey"
+              />
+            </ScrollReveal>
+
+            <div className="grid md:grid-cols-3 gap-6 mt-10">
+              <ScrollReveal delay={100}>
+                <div className="bg-card border border-border rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-xl bg-library-forest/10 flex items-center justify-center">
+                      <Target className="h-5 w-5 text-library-forest" />
+                    </div>
+                    <span className="text-sm text-muted-foreground font-light">
+                      Sessions
+                    </span>
+                  </div>
+                  <div className="text-4xl font-light mb-2">
+                    {stats.totalSessions}
+                  </div>
+                  <p className="text-sm text-muted-foreground font-light">
+                    {stats.totalSessions === 0
+                      ? "The journey begins"
+                      : "Keep the momentum"}
+                  </p>
+                </div>
+              </ScrollReveal>
+
+              <ScrollReveal delay={200}>
+                <div className="bg-card border border-border rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
+                      <Brain className="h-5 w-5 text-library-brass" />
+                    </div>
+                    <span className="text-sm text-muted-foreground font-light">
+                      Comprehension
+                    </span>
+                  </div>
+                  <div className="text-4xl font-light mb-2">
+                    {stats.avgComprehension}
+                    <span className="text-2xl text-muted-foreground">%</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground font-light">
+                    Average accuracy
+                  </p>
+                </div>
+              </ScrollReveal>
+
+              <ScrollReveal delay={300}>
+                <div className="bg-card border border-border rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-xl bg-library-forest/10 flex items-center justify-center">
+                      <BookOpen className="h-5 w-5 text-library-forest" />
+                    </div>
+                    <span className="text-sm text-muted-foreground font-light">
+                      Vocabulary
+                    </span>
+                  </div>
+                  <div className="text-4xl font-light mb-2">
+                    {stats.wordsEncountered}
+                  </div>
+                  <p className="text-sm text-muted-foreground font-light">
+                    Words encountered
+                  </p>
+                </div>
+              </ScrollReveal>
+            </div>
+          </section>
+
+          {/* ========== VOCABULARY SECTION ========== */}
+          <section className="mt-20">
+            <ScrollReveal>
+              <div className="flex items-center justify-between mb-10">
+                <SectionHeader
+                  eyebrow="Vocabulary"
+                  title="Your word collection"
+                />
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowVocabulary(!showVocabulary)}
+                  className="gap-2 text-muted-foreground hover:text-foreground"
+                >
+                  {showVocabulary ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      Hide words
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      Show all
+                    </>
+                  )}
+                </Button>
+              </div>
+            </ScrollReveal>
+
+            {/* Vocabulary Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              {[
+                {
+                  status: "mastered" as WordStatus,
+                  icon: Star,
+                  color: "text-yellow-500",
+                  bgColor: "bg-yellow-500/10",
+                  count: vocabularyStats.mastered,
+                },
+                {
+                  status: "known" as WordStatus,
+                  icon: Sparkles,
+                  color: "text-emerald-500",
+                  bgColor: "bg-emerald-500/10",
+                  count: vocabularyStats.known,
+                },
+                {
+                  status: "learning" as WordStatus,
+                  icon: Brain,
+                  color: "text-blue-500",
+                  bgColor: "bg-blue-500/10",
+                  count: vocabularyStats.learning,
+                },
+                {
+                  status: "new" as WordStatus,
+                  icon: BookOpen,
+                  color: "text-muted-foreground",
+                  bgColor: "bg-muted",
+                  count: vocabularyStats.new,
+                },
+              ].map((item, i) => (
+                <ScrollReveal key={item.status} delay={100 + i * 50}>
+                  <button
+                    onClick={() =>
+                      setVocabFilter(
+                        vocabFilter === item.status ? "all" : item.status,
+                      )
+                    }
+                    className={cn(
+                      "w-full bg-card border rounded-2xl p-5 text-left transition-all duration-300 hover:shadow-luxury hover:-translate-y-0.5",
+                      vocabFilter === item.status
+                        ? "border-library-brass"
+                        : "border-border",
+                    )}
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <div
+                        className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center",
+                          item.bgColor,
+                        )}
+                      >
+                        <item.icon className={cn("h-4 w-4", item.color)} />
+                      </div>
+                      <span className="text-xs font-light tracking-wider uppercase text-muted-foreground">
+                        {item.status}
+                      </span>
+                    </div>
+                    <div className="text-2xl font-light">{item.count}</div>
+                  </button>
+                </ScrollReveal>
+              ))}
+            </div>
+
+            {/* Progress to Next Level */}
+            {proficiencyProgress?.nextLevel && (
+              <ScrollReveal>
+                <div className="bg-card border border-border rounded-2xl p-6 mb-8">
+                  <ProgressBar
+                    value={proficiencyProgress.progress}
+                    label={`Progress to ${proficiencyProgress.nextLevel}`}
+                    valueLabel={`${proficiencyProgress.wordsNeeded} words needed`}
+                  />
+                </div>
+              </ScrollReveal>
+            )}
+
+            {/* Word List */}
+            {showVocabulary && (
+              <ScrollReveal>
+                <div className="bg-card border border-border rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="text-sm text-muted-foreground font-light">
+                      {vocabFilter === "all"
+                        ? "All Words"
+                        : `${vocabFilter.charAt(0).toUpperCase() + vocabFilter.slice(1)} Words`}
+                    </span>
+                    {vocabFilter !== "all" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setVocabFilter("all")}
+                        className="text-muted-foreground"
+                      >
+                        Clear filter
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="max-h-96 overflow-y-auto">
+                    {vocabularyWords.length === 0 ? (
+                      <EmptyState
+                        icon={<BookOpen className="h-8 w-8" />}
+                        title="No words yet"
+                        description="Start a lesson to build your vocabulary collection."
+                      />
+                    ) : (
+                      <div className="space-y-2">
+                        {vocabularyWords
+                          .filter(
+                            (word) =>
+                              vocabFilter === "all" ||
+                              word.status === vocabFilter,
+                          )
+                          .map((word) => (
+                            <div
+                              key={word.id}
+                              className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+                            >
+                              <div className="flex items-center gap-3">
+                                <span
+                                  className={cn(
+                                    "w-2 h-2 rounded-full",
+                                    word.status === "mastered" &&
+                                      "bg-yellow-500",
+                                    word.status === "known" && "bg-emerald-500",
+                                    word.status === "learning" && "bg-blue-500",
+                                    word.status === "new" &&
+                                      "bg-muted-foreground",
+                                  )}
+                                />
+                                <span className="font-medium">{word.word}</span>
+                                {word.lemma && word.lemma !== word.word && (
+                                  <span className="text-xs text-muted-foreground">
+                                    ({word.lemma})
+                                  </span>
+                                )}
+                              </div>
+                              <span
+                                className={cn(
+                                  "text-xs px-3 py-1 rounded-full font-light",
+                                  word.status === "mastered" &&
+                                    "bg-yellow-500/10 text-yellow-600",
+                                  word.status === "known" &&
+                                    "bg-emerald-500/10 text-emerald-600",
+                                  word.status === "learning" &&
+                                    "bg-blue-500/10 text-blue-600",
+                                  word.status === "new" &&
+                                    "bg-muted text-muted-foreground",
+                                )}
+                              >
+                                {word.status}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </ScrollReveal>
+            )}
+          </section>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

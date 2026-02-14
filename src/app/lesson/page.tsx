@@ -517,37 +517,52 @@ export default function LessonPage() {
   // No lesson - show generation screen
   if (!lesson && !completed) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-light tracking-tight">
-              Ready to <span className="font-serif italic">Learn</span>?
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="max-w-lg w-full text-center space-y-10">
+          {/* Icon */}
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-library-brass/10 flex items-center justify-center">
+            <RefreshCw className="h-10 w-10 text-library-brass" />
+          </div>
+
+          {/* Heading */}
+          <div className="space-y-4">
+            <h1 className="text-4xl sm:text-5xl font-light tracking-tight">
+              Ready to{" "}
+              <span className="font-serif italic text-library-brass">
+                learn
+              </span>
+              ?
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-lg text-muted-foreground font-light max-w-sm mx-auto">
               Generate a personalized lesson based on your vocabulary and
               progress.
             </p>
           </div>
 
-          <Button
-            size="lg"
-            onClick={handleGenerateLesson}
-            disabled={generating}
-            className="w-full h-14 text-lg"
-          >
-            {generating ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Generating Your Lesson...
-              </>
-            ) : (
-              <>Start New Lesson</>
-            )}
-          </Button>
+          {/* Actions */}
+          <div className="space-y-4">
+            <button
+              onClick={handleGenerateLesson}
+              disabled={generating}
+              className="w-full py-4 px-8 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generating ? (
+                <span className="flex items-center justify-center gap-3">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Generating Your Lesson...
+                </span>
+              ) : (
+                "Start New Lesson"
+              )}
+            </button>
 
-          <Button variant="outline" onClick={handleExit} className="w-full">
-            Back to Dashboard
-          </Button>
+            <button
+              onClick={handleExit}
+              className="w-full py-4 px-8 bg-transparent border border-border hover:bg-card text-foreground font-light rounded-xl transition-all duration-300"
+            >
+              Back to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -578,7 +593,7 @@ export default function LessonPage() {
         onExit={handleExit}
       />
 
-      <main className="container max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <main className="container max-w-3xl mx-auto px-6 pt-32 pb-12">
         {/* ===== NEW 10-PHASE LESSON FLOW ===== */}
 
         {/* Phase 1: Spaced Retrieval Warmup */}

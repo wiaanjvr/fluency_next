@@ -6,8 +6,6 @@ import {
   ComprehensionResponse,
   ComprehensionEvaluation,
 } from "@/types/lesson";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Mic,
   Square,
@@ -175,73 +173,74 @@ export function VerbalCheckPhase({
   return (
     <div className="space-y-6">
       {/* Phase Header */}
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
           <MessageCircle className="h-4 w-4" />
           <span className="text-sm font-medium">
             Phase 2: Comprehension Check
           </span>
         </div>
-        <h1 className="text-2xl font-light">What did you understand?</h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
+          What did you{" "}
+          <span className="font-serif italic text-library-brass">
+            understand
+          </span>
+          ?
+        </h1>
+        <p className="text-muted-foreground font-light max-w-md mx-auto">
           Describe what's happening in the audio. Use any language you're
           comfortable with. French is encouraged but not required.
         </p>
       </div>
 
       {/* Question Prompt */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Lightbulb className="h-5 w-5 text-primary" />
-            </div>
-            <div className="space-y-2">
-              <p className="text-lg font-medium">
-                "What is happening in the audio?"
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Try to describe the main idea, characters, or situation you
-                heard. Any details you remember are valuable!
-              </p>
-            </div>
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center shrink-0">
+            <Lightbulb className="h-5 w-5 text-library-brass" />
           </div>
-        </CardContent>
-      </Card>
+          <div className="space-y-2">
+            <p className="text-lg font-medium">
+              "What is happening in the audio?"
+            </p>
+            <p className="text-sm text-muted-foreground font-light">
+              Try to describe the main idea, characters, or situation you heard.
+              Any details you remember are valuable!
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Recording Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Your Response</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="bg-card border border-border rounded-2xl">
+        <div className="p-6 border-b border-border">
+          <h2 className="text-lg font-light">Your Response</h2>
+        </div>
+        <div className="p-6 space-y-6">
           {/* Recording Controls */}
           <div className="flex flex-col items-center gap-4">
             {!isRecording && !audioBlob && (
-              <Button
-                size="lg"
+              <button
                 onClick={startRecording}
-                className="h-14 w-14 sm:h-16 sm:w-16 rounded-full"
+                className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-library-brass hover:bg-library-brass/90 text-background flex items-center justify-center transition-colors"
               >
                 <Mic className="h-5 w-5 sm:h-6 sm:w-6" />
-              </Button>
+              </button>
             )}
 
             {isRecording && (
               <div className="flex flex-col items-center gap-4">
-                <Button
-                  size="lg"
-                  variant="destructive"
+                <button
                   onClick={stopRecording}
-                  className="h-14 w-14 sm:h-16 sm:w-16 rounded-full animate-pulse"
+                  className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center animate-pulse transition-colors"
                 >
                   <Square className="h-5 w-5 sm:h-6 sm:w-6" />
-                </Button>
+                </button>
 
                 {/* Recording indicator */}
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-muted-foreground font-light">
                     Recording...
                   </span>
                 </div>
@@ -263,7 +262,7 @@ export function VerbalCheckPhase({
             )}
 
             {!isRecording && !audioBlob && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground font-light">
                 Tap to start recording
               </p>
             )}
@@ -272,113 +271,112 @@ export function VerbalCheckPhase({
           {/* Audio Playback */}
           {audioBlob && audioUrl && (
             <div className="space-y-4">
-              <div className="bg-muted/50 rounded-lg p-4">
+              <div className="bg-background/50 rounded-xl p-4">
                 <audio src={audioUrl} controls className="w-full" />
               </div>
 
               {/* Transcript */}
               {isTranscribing ? (
                 <div className="flex items-center justify-center gap-2 py-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-library-brass" />
+                  <span className="text-sm text-muted-foreground font-light">
                     Analyzing your response...
                   </span>
                 </div>
               ) : (
                 transcript && (
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <p className="text-sm text-muted-foreground mb-1">
+                  <div className="bg-background/30 rounded-xl p-4">
+                    <p className="text-sm text-muted-foreground font-light mb-1">
                       Transcript:
                     </p>
-                    <p className="text-sm">{transcript}</p>
+                    <p className="text-sm font-light">{transcript}</p>
                   </div>
                 )
               )}
 
               {/* Feedback - Silence or Irrelevant */}
               {feedback && !feedback.isValid && (
-                <Card className="border-orange-500/50 bg-orange-500/5">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
-                      <div className="space-y-2 flex-1">
-                        <p className="font-medium text-orange-700 dark:text-orange-400">
-                          {feedback.isSilence
-                            ? "No Speech Detected"
-                            : "Please Try Again"}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {feedback.message}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Remember: Try to answer completely in French, but it's
-                          okay to use some English words if needed.
-                        </p>
-                      </div>
+                <div className="bg-card border border-orange-500/50 rounded-2xl p-6">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
+                      <AlertCircle className="h-5 w-5 text-orange-500" />
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="space-y-2 flex-1">
+                      <p className="font-medium text-orange-500">
+                        {feedback.isSilence
+                          ? "No Speech Detected"
+                          : "Please Try Again"}
+                      </p>
+                      <p className="text-sm text-muted-foreground font-light">
+                        {feedback.message}
+                      </p>
+                      <p className="text-sm text-muted-foreground font-light">
+                        Remember: Try to answer completely in French, but it's
+                        okay to use some English words if needed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {/* Feedback - English Words Detected */}
               {feedback &&
                 feedback.isValid &&
                 feedback.englishWords.length > 0 && (
-                  <Card className="border-blue-500/50 bg-blue-500/5">
-                    <CardContent className="pt-6">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-5 w-5 text-blue-500" />
-                          <p className="font-medium text-blue-700 dark:text-blue-400">
-                            {feedback.message ||
-                              "Great effort! Here are some French words to help you:"}
-                          </p>
+                  <div className="bg-card border border-library-brass/50 rounded-2xl p-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
+                          <BookOpen className="h-5 w-5 text-library-brass" />
                         </div>
-                        <div className="space-y-2">
-                          {feedback.englishWords.map((word, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center justify-between bg-white/50 dark:bg-black/20 rounded-lg px-4 py-3"
-                            >
-                              <span className="text-sm font-medium">
-                                {word.english}
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                →
-                              </span>
-                              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                                {word.translation}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Try using these French words in your next response!
+                        <p className="font-medium text-library-brass">
+                          {feedback.message ||
+                            "Great effort! Here are some French words to help you:"}
                         </p>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <div className="space-y-2">
+                        {feedback.englishWords.map((word, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between bg-background/50 rounded-xl px-4 py-3"
+                          >
+                            <span className="text-sm font-medium">
+                              {word.english}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              →
+                            </span>
+                            <span className="text-sm font-medium text-library-brass">
+                              {word.translation}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground font-light">
+                        Try using these French words in your next response!
+                      </p>
+                    </div>
+                  </div>
                 )}
 
               {/* Actions */}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
+              <div className="flex gap-3">
+                <button
                   onClick={deleteRecording}
-                  className="flex-1"
+                  className="flex-1 bg-transparent border border-border hover:bg-card text-foreground font-light rounded-xl py-4 px-6 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                   disabled={hasSubmitted}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="h-4 w-4" />
                   {needsReRecord ? "Try Again" : "Re-record"}
-                </Button>
-                <Button
+                </button>
+                <button
                   onClick={handleSubmit}
-                  className="flex-1"
+                  className="flex-1 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-xl py-4 px-6 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                   disabled={!canSubmit}
                 >
                   {hasSubmitted ? (
                     <>
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      <CheckCircle2 className="h-4 w-4" />
                       Submitted
                     </>
                   ) : needsReRecord ? (
@@ -386,17 +384,17 @@ export function VerbalCheckPhase({
                   ) : (
                     "Submit Response"
                   )}
-                </Button>
+                </button>
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Tips */}
-      <div className="bg-muted/50 rounded-lg p-4">
-        <h3 className="font-medium mb-2">Tips for your response:</h3>
-        <ul className="text-sm text-muted-foreground space-y-1">
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <h3 className="font-medium mb-3">Tips for your response:</h3>
+        <ul className="text-sm text-muted-foreground font-light space-y-2">
           <li>• Try to answer completely in French</li>
           <li>
             • Using a few English words is okay - we'll help you learn them
@@ -407,21 +405,25 @@ export function VerbalCheckPhase({
       </div>
 
       {/* Continue Button */}
-      <Button
-        size="lg"
-        className="w-full h-14"
+      <button
         onClick={onPhaseComplete}
         disabled={!hasSubmitted}
+        className={cn(
+          "w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors",
+          hasSubmitted
+            ? "bg-library-brass hover:bg-library-brass/90 text-background"
+            : "bg-card border border-border text-muted-foreground cursor-not-allowed",
+        )}
       >
         {hasSubmitted ? (
           <>
             Continue to Conversation
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="h-5 w-5" />
           </>
         ) : (
           "Record and submit your response first"
         )}
-      </Button>
+      </button>
     </div>
   );
 }

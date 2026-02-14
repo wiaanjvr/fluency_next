@@ -6,8 +6,6 @@ import {
   ComprehensionResponse,
   ComprehensionEvaluation,
 } from "@/types/lesson";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Mic,
   Square,
@@ -141,26 +139,27 @@ export function FinalAssessmentPhase({
   return (
     <div className="space-y-6">
       {/* Phase Header */}
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
           <GraduationCap className="h-4 w-4" />
           <span className="text-sm font-medium">Phase 6: Final Assessment</span>
         </div>
-        <h1 className="text-2xl font-light">Show What You Learned</h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
+          Show What You{" "}
+          <span className="font-serif italic text-library-brass">Learned</span>
+        </h1>
+        <p className="text-muted-foreground font-light max-w-md mx-auto">
           Listen to the audio one more time, then summarize everything you
           learned: the content, the new vocabulary, and key ideas.
         </p>
       </div>
 
       {/* Listen Again Card */}
-      <Card className="border-primary/20">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            Step 1: Listen Again
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="bg-card border border-library-brass/20 rounded-2xl">
+        <div className="p-6 border-b border-border">
+          <h2 className="text-lg font-light">Step 1: Listen Again</h2>
+        </div>
+        <div className="p-6 space-y-4">
           <audio
             ref={lessonAudioRef}
             src={lesson.audioUrl}
@@ -168,79 +167,79 @@ export function FinalAssessmentPhase({
           />
 
           <div className="flex items-center gap-4">
-            <Button
-              variant={hasListened ? "outline" : "default"}
-              size="lg"
+            <button
               onClick={toggleLessonAudio}
-              className="h-14 px-8"
+              className={cn(
+                "h-14 px-8 rounded-xl flex items-center justify-center gap-2 transition-colors",
+                hasListened
+                  ? "bg-transparent border border-border hover:bg-card text-foreground font-light"
+                  : "bg-library-brass hover:bg-library-brass/90 text-background font-medium",
+              )}
             >
               {isPlaying ? (
                 <>
-                  <Pause className="h-5 w-5 mr-2" />
+                  <Pause className="h-5 w-5" />
                   Pause
                 </>
               ) : (
                 <>
-                  <Play className="h-5 w-5 mr-2" />
+                  <Play className="h-5 w-5" />
                   {hasListened ? "Play Again" : "Play Audio"}
                 </>
               )}
-            </Button>
+            </button>
 
             {hasListened && (
               <div className="flex items-center gap-2 text-green-600">
                 <CheckCircle2 className="h-5 w-5" />
-                <span className="text-sm">Listened</span>
+                <span className="text-sm font-light">Listened</span>
               </div>
             )}
           </div>
 
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground font-light">
             Notice how much more you understand now compared to the beginning!
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Question Prompt */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-2">
-            <p className="text-lg font-medium">
-              "What is happening in this audio? What did we learn and discuss?"
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Try to include: main topic, key vocabulary, and important details.
-              Use French as much as you can!
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <div className="text-center space-y-2">
+          <p className="text-lg font-medium">
+            "What is happening in this audio? What did we learn and discuss?"
+          </p>
+          <p className="text-sm text-muted-foreground font-light">
+            Try to include: main topic, key vocabulary, and important details.
+            Use French as much as you can!
+          </p>
+        </div>
+      </div>
 
       {/* Recording Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            Step 2: Record Your Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="bg-card border border-border rounded-2xl">
+        <div className="p-6 border-b border-border">
+          <h2 className="text-lg font-light">Step 2: Record Your Summary</h2>
+        </div>
+        <div className="p-6 space-y-6">
           {/* Recording Controls */}
           <div className="flex flex-col items-center gap-4">
             {!isRecording && !audioBlob && (
               <>
-                <Button
-                  size="lg"
+                <button
                   onClick={startRecording}
                   disabled={!hasListened}
                   className={cn(
-                    "h-16 w-16 sm:h-20 sm:w-20 rounded-full",
-                    !hasListened && "opacity-50",
+                    "h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center transition-colors",
+                    hasListened
+                      ? "bg-library-brass hover:bg-library-brass/90 text-background"
+                      : "bg-card border border-border text-muted-foreground opacity-50 cursor-not-allowed",
                   )}
                 >
                   <Mic className="h-6 w-6 sm:h-8 sm:w-8" />
-                </Button>
+                </button>
                 {!hasListened && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground font-light">
                     Listen to the audio first
                   </p>
                 )}
@@ -249,14 +248,12 @@ export function FinalAssessmentPhase({
 
             {isRecording && (
               <div className="flex flex-col items-center gap-4">
-                <Button
-                  size="lg"
-                  variant="destructive"
+                <button
                   onClick={stopRecording}
-                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-full animate-pulse"
+                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center animate-pulse transition-colors"
                 >
                   <Square className="h-6 w-6 sm:h-8 sm:w-8" />
-                </Button>
+                </button>
 
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
@@ -285,8 +282,8 @@ export function FinalAssessmentPhase({
           {/* Audio Playback */}
           {audioBlob && audioUrl && (
             <div className="space-y-4">
-              <div className="bg-muted/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground mb-2">
+              <div className="bg-background/50 rounded-xl p-4">
+                <p className="text-sm text-muted-foreground font-light mb-2">
                   Your recording:
                 </p>
                 <audio src={audioUrl} controls className="w-full" />
@@ -295,61 +292,60 @@ export function FinalAssessmentPhase({
               {/* Transcript */}
               {isTranscribing && (
                 <div className="flex items-center justify-center gap-2 py-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-library-brass" />
+                  <span className="text-sm text-muted-foreground font-light">
                     Processing...
                   </span>
                 </div>
               )}
 
               {!isTranscribing && transcript && (
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground mb-1">
+                <div className="bg-background/30 rounded-xl p-4">
+                  <p className="text-sm text-muted-foreground font-light mb-1">
                     Your summary:
                   </p>
-                  <p className="text-sm">{transcript}</p>
+                  <p className="text-sm font-light">{transcript}</p>
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
+              <div className="flex gap-3">
+                <button
                   onClick={deleteRecording}
-                  className="flex-1"
                   disabled={hasSubmitted}
+                  className="flex-1 bg-transparent border border-border hover:bg-card text-foreground font-light rounded-xl py-4 px-6 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                 >
-                  <RotateCcw className="h-4 w-4 mr-2" />
+                  <RotateCcw className="h-4 w-4" />
                   Re-record
-                </Button>
-                <Button
+                </button>
+                <button
                   onClick={handleSubmit}
-                  className="flex-1"
                   disabled={hasSubmitted || isTranscribing}
+                  className="flex-1 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-xl py-4 px-6 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                 >
                   {hasSubmitted ? (
                     <>
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      <CheckCircle2 className="h-4 w-4" />
                       Submitted
                     </>
                   ) : (
                     "Submit Final Summary"
                   )}
-                </Button>
+                </button>
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Tips */}
-      <div className="bg-muted/50 rounded-lg p-4">
-        <h3 className="font-medium mb-2">For your summary, try to include:</h3>
-        <ul className="text-sm text-muted-foreground space-y-1">
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <h3 className="font-medium mb-3">For your summary, try to include:</h3>
+        <ul className="text-sm text-muted-foreground font-light space-y-2">
           <li>• The main topic or situation from the audio</li>
           <li>
             • New vocabulary words you learned:{" "}
-            <span className="font-medium text-primary">
+            <span className="font-medium text-library-brass">
               {lesson.words
                 .filter((w) => w.isNew)
                 .slice(0, 3)
@@ -363,21 +359,25 @@ export function FinalAssessmentPhase({
       </div>
 
       {/* Continue Button */}
-      <Button
-        size="lg"
-        className="w-full h-14"
+      <button
         onClick={onPhaseComplete}
         disabled={!hasSubmitted}
+        className={cn(
+          "w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors",
+          hasSubmitted
+            ? "bg-library-brass hover:bg-library-brass/90 text-background"
+            : "bg-card border border-border text-muted-foreground cursor-not-allowed",
+        )}
       >
         {hasSubmitted ? (
           <>
             Complete Lesson
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="h-5 w-5" />
           </>
         ) : (
           "Record and submit your summary first"
         )}
-      </Button>
+      </button>
     </div>
   );
 }

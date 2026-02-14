@@ -6,8 +6,6 @@ import {
   ComprehensionEvaluation,
   ConversationTurn,
 } from "@/types/lesson";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   MessageCircle,
   Mic,
@@ -280,15 +278,19 @@ export function ConversationFeedbackPhase({
   return (
     <div className="space-y-6">
       {/* Phase Header */}
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400">
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
           <MessageCircle className="h-4 w-4" />
           <span className="text-sm font-medium">
             Phase 3: Teacher Conversation
           </span>
         </div>
-        <h1 className="text-2xl font-light">Let's Discuss What You Heard</h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
+          Let's{" "}
+          <span className="font-serif italic text-library-brass">Discuss</span>{" "}
+          What You Heard
+        </h1>
+        <p className="text-muted-foreground font-light max-w-md mx-auto">
           Have a guided conversation with your teacher. Speak naturally — I'll
           help with vocabulary along the way.
         </p>
@@ -308,10 +310,10 @@ export function ConversationFeedbackPhase({
               className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all",
                 userTurnCount >= turn
-                  ? "bg-violet-500 text-white"
+                  ? "bg-library-brass text-background"
                   : userTurnCount === turn - 1
-                    ? "bg-violet-500/20 text-violet-600 ring-2 ring-violet-500 ring-offset-2"
-                    : "bg-muted text-muted-foreground",
+                    ? "bg-library-brass/20 text-library-brass ring-2 ring-library-brass ring-offset-2"
+                    : "bg-card border border-border text-muted-foreground",
               )}
             >
               {userTurnCount >= turn ? (
@@ -324,28 +326,28 @@ export function ConversationFeedbackPhase({
               <div
                 className={cn(
                   "w-8 h-0.5",
-                  userTurnCount >= turn ? "bg-violet-500" : "bg-muted",
+                  userTurnCount >= turn ? "bg-library-brass" : "bg-border",
                 )}
               />
             )}
           </div>
         ))}
       </div>
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm text-muted-foreground font-light">
         {conversationComplete
           ? "Conversation complete!"
           : `Response ${currentTurnNumber} of ${MAX_TURNS}`}
       </p>
 
       {/* Chat Area */}
-      <Card className="min-h-[300px] sm:min-h-[400px] max-h-[55vh] sm:max-h-[450px] flex flex-col">
-        <CardHeader className="pb-2 shrink-0">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Bot className="h-5 w-5 text-violet-500" />
-            <span>Your French Teacher</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex-1 overflow-y-auto space-y-4 pb-4">
+      <div className="bg-card border border-border rounded-2xl min-h-[300px] sm:min-h-[400px] max-h-[55vh] sm:max-h-[450px] flex flex-col">
+        <div className="p-6 border-b border-border shrink-0 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
+            <Bot className="h-5 w-5 text-library-brass" />
+          </div>
+          <span className="font-light">Your French Teacher</span>
+        </div>
+        <div className="flex-1 overflow-y-auto space-y-4 p-6">
           {turns.map((turn) => (
             <div
               key={turn.id}
@@ -355,8 +357,8 @@ export function ConversationFeedbackPhase({
               )}
             >
               {turn.role === "assistant" && (
-                <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center shrink-0">
-                  <Bot className="h-4 w-4 text-violet-500" />
+                <div className="w-8 h-8 rounded-xl bg-library-brass/10 flex items-center justify-center shrink-0">
+                  <Bot className="h-4 w-4 text-library-brass" />
                 </div>
               )}
 
@@ -364,17 +366,19 @@ export function ConversationFeedbackPhase({
                 className={cn(
                   "max-w-[80%] rounded-2xl px-4 py-3",
                   turn.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted",
+                    ? "bg-library-brass text-background"
+                    : "bg-background border border-border",
                   turn.questionType === "scenario" &&
                     turn.role === "assistant" &&
-                    "border-l-4 border-violet-400",
+                    "border-l-4 border-library-brass",
                   turn.questionType === "wrap-up" &&
                     turn.role === "assistant" &&
                     "border-l-4 border-green-400 bg-green-50 dark:bg-green-950/30",
                 )}
               >
-                <p className="text-sm leading-relaxed">{turn.text}</p>
+                <p className="text-sm leading-relaxed font-light">
+                  {turn.text}
+                </p>
 
                 {turn.audioUrl && (
                   <audio src={turn.audioUrl} controls className="w-full mt-2" />
@@ -382,36 +386,36 @@ export function ConversationFeedbackPhase({
               </div>
 
               {turn.role === "user" && (
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-                  <User className="h-4 w-4 text-primary-foreground" />
+                <div className="w-8 h-8 rounded-xl bg-library-brass flex items-center justify-center shrink-0">
+                  <User className="h-4 w-4 text-background" />
                 </div>
               )}
             </div>
           ))}
           <div ref={chatEndRef} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* English Words Learned Panel */}
       {englishCorrections.length > 0 && (
-        <Card className="border-amber-400/50 bg-amber-50/50 dark:bg-amber-950/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+        <div className="bg-card border border-amber-400/50 rounded-2xl">
+          <div className="p-6 border-b border-border flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
               <BookOpen className="h-4 w-4 text-amber-600" />
-              <span className="text-amber-800 dark:text-amber-200">
-                Vocabulary You Learned
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
+            </div>
+            <span className="text-amber-800 dark:text-amber-200 font-medium">
+              Vocabulary You Learned
+            </span>
+          </div>
+          <div className="p-6">
             <div className="grid gap-2">
               {englishCorrections.map((correction, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-2 rounded-lg bg-white/50 dark:bg-black/20"
+                  className="flex items-center justify-between p-3 rounded-xl bg-background"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground line-through">
+                    <span className="text-sm text-muted-foreground line-through font-light">
                       {correction.english}
                     </span>
                     <ArrowRight className="h-3 w-3 text-muted-foreground" />
@@ -420,130 +424,131 @@ export function ConversationFeedbackPhase({
                     </span>
                   </div>
                   {correction.example && (
-                    <span className="text-xs text-muted-foreground italic hidden sm:block">
+                    <span className="text-xs text-muted-foreground italic hidden sm:block font-light">
                       {correction.example}
                     </span>
                   )}
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Feedback Warning */}
       {showFeedbackWarning && lastFeedback && !lastFeedback.isValid && (
-        <Card className="border-orange-500/50 bg-orange-500/5">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
-              <div className="space-y-2 flex-1">
-                <p className="font-medium text-orange-700 dark:text-orange-400">
-                  {lastFeedback.isSilence
-                    ? "No Speech Detected"
-                    : "Please Try Again"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {lastFeedback.message ||
-                    "I couldn't hear that clearly. Please try speaking again."}
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setShowFeedbackWarning(false);
-                    setLastFeedback(null);
-                  }}
-                >
-                  Try Recording Again
-                </Button>
-              </div>
+        <div className="bg-card border border-orange-500/50 rounded-2xl p-6">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="space-y-2 flex-1">
+              <p className="font-medium text-orange-500">
+                {lastFeedback.isSilence
+                  ? "No Speech Detected"
+                  : "Please Try Again"}
+              </p>
+              <p className="text-sm text-muted-foreground font-light">
+                {lastFeedback.message ||
+                  "I couldn't hear that clearly. Please try speaking again."}
+              </p>
+              <button
+                className="bg-transparent border border-border hover:bg-card text-foreground font-light rounded-xl py-2 px-4 text-sm transition-colors"
+                onClick={() => {
+                  setShowFeedbackWarning(false);
+                  setLastFeedback(null);
+                }}
+              >
+                Try Recording Again
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Input Area - Only show if conversation not complete */}
       {!conversationComplete && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              {/* Record Button */}
-              <Button
-                size="lg"
-                variant={isRecording ? "destructive" : "default"}
-                onClick={isRecording ? stopRecording : startRecording}
-                className={cn(
-                  "h-14 w-14 rounded-full shrink-0",
-                  isRecording && "animate-pulse",
-                )}
-                disabled={isProcessing}
-              >
-                {isRecording ? (
-                  <Square className="h-5 w-5" />
-                ) : (
-                  <Mic className="h-5 w-5" />
-                )}
-              </Button>
+        <div className="bg-card border border-border rounded-2xl p-6">
+          <div className="flex items-center gap-4">
+            {/* Record Button */}
+            <button
+              onClick={isRecording ? stopRecording : startRecording}
+              className={cn(
+                "h-14 w-14 rounded-full shrink-0 flex items-center justify-center transition-colors",
+                isRecording
+                  ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                  : "bg-library-brass hover:bg-library-brass/90 text-background",
+                isProcessing && "opacity-50 cursor-not-allowed",
+              )}
+              disabled={isProcessing}
+            >
+              {isRecording ? (
+                <Square className="h-5 w-5" />
+              ) : (
+                <Mic className="h-5 w-5" />
+              )}
+            </button>
 
-              <div className="flex-1">
-                {isProcessing ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">
-                      Processing your response...
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Your teacher is listening
-                    </p>
-                  </div>
-                ) : isRecording ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-red-600">
-                      Recording... Tap to stop
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Speak naturally in French or English
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">Tap to respond</p>
-                    <p className="text-xs text-muted-foreground">
-                      {currentTurnNumber === 1 &&
-                        "Share what you understood from the audio"}
-                      {currentTurnNumber === 2 &&
-                        "Answer your teacher's follow-up question"}
-                      {currentTurnNumber === 3 &&
-                        "One final response to wrap up"}
-                    </p>
-                  </div>
-                )}
-              </div>
+            <div className="flex-1">
+              {isProcessing ? (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">
+                    Processing your response...
+                  </p>
+                  <p className="text-xs text-muted-foreground font-light">
+                    Your teacher is listening
+                  </p>
+                </div>
+              ) : isRecording ? (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-red-500">
+                    Recording... Tap to stop
+                  </p>
+                  <p className="text-xs text-muted-foreground font-light">
+                    Speak naturally in French or English
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Tap to respond</p>
+                  <p className="text-xs text-muted-foreground font-light">
+                    {currentTurnNumber === 1 &&
+                      "Share what you understood from the audio"}
+                    {currentTurnNumber === 2 &&
+                      "Answer your teacher's follow-up question"}
+                    {currentTurnNumber === 3 && "One final response to wrap up"}
+                  </p>
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Continue Button */}
-      <Button
-        size="lg"
-        className="w-full h-14"
+      <button
         onClick={onPhaseComplete}
         disabled={!conversationComplete}
+        className={cn(
+          "w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors",
+          conversationComplete
+            ? "bg-library-brass hover:bg-library-brass/90 text-background"
+            : "bg-card border border-border text-muted-foreground cursor-not-allowed",
+        )}
       >
         {conversationComplete ? (
           <>
             Continue to Text Reveal
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="h-5 w-5" />
           </>
         ) : (
           <>
-            <Lightbulb className="mr-2 h-5 w-5" />
+            <Lightbulb className="h-5 w-5" />
             Complete {MAX_TURNS - userTurnCount} more response
             {MAX_TURNS - userTurnCount !== 1 ? "s" : ""}
           </>
         )}
-      </Button>
+      </button>
     </div>
   );
 }

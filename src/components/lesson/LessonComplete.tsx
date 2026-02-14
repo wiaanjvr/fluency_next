@@ -7,13 +7,10 @@ import {
   ExerciseAttempt,
   ComprehensionResponse,
 } from "@/types/lesson";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Trophy,
   BookOpen,
   Brain,
-  Target,
   ArrowRight,
   Home,
   Sparkles,
@@ -62,176 +59,163 @@ export function LessonComplete({
   );
 
   const getScoreMessage = (score: number) => {
-    if (score >= 90) return "Outstanding performance!";
-    if (score >= 80) return "Excellent work!";
-    if (score >= 70) return "Great progress!";
-    if (score >= 60) return "Good effort!";
-    return "Keep practicing!";
-  };
-
-  const getScoreEmoji = (score: number) => {
-    if (score >= 90) return "🌟";
-    if (score >= 80) return "🎉";
-    if (score >= 70) return "👏";
-    if (score >= 60) return "💪";
-    return "📚";
+    if (score >= 90) return "Outstanding performance";
+    if (score >= 80) return "Excellent work";
+    if (score >= 70) return "Great progress";
+    if (score >= 60) return "Good effort";
+    return "Keep practicing";
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-2xl mx-auto px-4 py-12 space-y-8">
+      <div className="container max-w-2xl mx-auto px-6 py-16 space-y-10">
         {/* Celebration Header */}
-        <div className="text-center space-y-4">
-          <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-            <Trophy className="h-10 w-10 text-primary" />
+        <div className="text-center space-y-6">
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-library-brass/10 flex items-center justify-center">
+            <Trophy className="h-10 w-10 text-library-brass" />
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl font-light">
-              Lesson <span className="font-serif italic">Complete!</span>
+          <div className="space-y-3">
+            <h1 className="text-4xl sm:text-5xl font-light tracking-tight">
+              Lesson{" "}
+              <span className="font-serif italic text-library-brass">
+                complete
+              </span>
             </h1>
-            <p className="text-xl text-muted-foreground">
-              {getScoreMessage(overallScore)} {getScoreEmoji(overallScore)}
+            <p className="text-xl text-muted-foreground font-light">
+              {getScoreMessage(overallScore)}
             </p>
           </div>
         </div>
 
         {/* Overall Score Card */}
-        <Card className="bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 border-primary/20">
-          <CardContent className="pt-8 pb-8">
-            <div className="text-center space-y-2">
-              <div className="text-6xl font-bold text-primary">
-                {overallScore}%
-              </div>
-              <p className="text-lg text-muted-foreground">
-                Overall Performance
-              </p>
+        <div className="bg-card border border-border rounded-2xl p-8 text-center relative overflow-hidden">
+          {/* Ambient glow */}
+          <div className="absolute inset-0 bg-gradient-to-br from-library-brass/5 via-transparent to-luxury-bronze/5" />
+
+          <div className="relative space-y-2">
+            <div className="text-7xl font-light text-library-brass">
+              {overallScore}
+              <span className="text-3xl">%</span>
             </div>
-          </CardContent>
-        </Card>
+            <p className="text-lg text-muted-foreground font-light">
+              Overall Performance
+            </p>
+          </div>
+        </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           {/* Vocabulary Stats */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Vocabulary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{wordsLearned}</div>
-              <p className="text-sm text-muted-foreground">words practiced</p>
-              <div className="mt-2 text-sm">
-                <span className="text-green-600 font-medium">
-                  {wordsKnownWell}
-                </span>
-                <span className="text-muted-foreground"> marked as known</span>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <div className="flex items-center gap-2 text-muted-foreground mb-4">
+              <BookOpen className="h-4 w-4" />
+              <span className="text-sm">Vocabulary</span>
+            </div>
+            <div className="text-4xl font-light text-library-brass mb-1">
+              {wordsLearned}
+            </div>
+            <p className="text-sm text-muted-foreground font-light">
+              words practiced
+            </p>
+            <div className="mt-3 text-sm font-light">
+              <span className="text-green-500">{wordsKnownWell}</span>
+              <span className="text-muted-foreground"> marked as known</span>
+            </div>
+          </div>
 
           {/* Exercises Stats */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                <Brain className="h-4 w-4" />
-                Exercises
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{exerciseScore}%</div>
-              <p className="text-sm text-muted-foreground">accuracy score</p>
-              <div className="mt-2 text-sm">
-                <span className="text-green-600 font-medium">
-                  {exerciseAttempts.filter((a) => a.isCorrect).length}
-                </span>
-                <span className="text-muted-foreground">
-                  {" "}
-                  / {exerciseAttempts.length} correct
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <div className="flex items-center gap-2 text-muted-foreground mb-4">
+              <Brain className="h-4 w-4" />
+              <span className="text-sm">Exercises</span>
+            </div>
+            <div className="text-4xl font-light text-library-brass mb-1">
+              {exerciseScore}%
+            </div>
+            <p className="text-sm text-muted-foreground font-light">
+              accuracy score
+            </p>
+            <div className="mt-3 text-sm font-light">
+              <span className="text-green-500">
+                {exerciseAttempts.filter((a) => a.isCorrect).length}
+              </span>
+              <span className="text-muted-foreground">
+                {" "}
+                / {exerciseAttempts.length} correct
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Words Learned Section */}
         {vocabularyRatings.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
                 <Star className="h-5 w-5 text-amber-500" />
-                Words Practiced
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {vocabularyRatings.map((rating, index) => (
-                  <span
-                    key={index}
-                    className={cn(
-                      "px-3 py-1 rounded-full text-sm font-medium",
-                      rating.rating >= 4 &&
-                        "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200",
-                      rating.rating === 3 &&
-                        "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-200",
-                      rating.rating === 2 &&
-                        "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200",
-                      rating.rating <= 1 &&
-                        "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200",
-                    )}
-                  >
-                    {rating.word}
-                  </span>
-                ))}
               </div>
-            </CardContent>
-          </Card>
+              <h3 className="text-lg font-medium">Words Practiced</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {vocabularyRatings.map((rating, index) => (
+                <span
+                  key={index}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-sm font-light",
+                    rating.rating >= 4 && "bg-green-500/10 text-green-400",
+                    rating.rating === 3 && "bg-lime-500/10 text-lime-400",
+                    rating.rating === 2 && "bg-amber-500/10 text-amber-400",
+                    rating.rating <= 1 && "bg-red-500/10 text-red-400",
+                  )}
+                >
+                  {rating.word}
+                </span>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Next Steps */}
-        <Card className="bg-muted/30">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <TrendingUp className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-medium mb-1">Keep the momentum!</h3>
-                <p className="text-sm text-muted-foreground">
-                  Your vocabulary is growing. New words will be reviewed
-                  according to the spaced repetition schedule for optimal
-                  retention.
-                </p>
-              </div>
+        <div className="bg-card border border-border rounded-2xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="h-5 w-5 text-library-brass" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <h3 className="font-medium mb-2">Keep the momentum</h3>
+              <p className="text-sm text-muted-foreground font-light">
+                Your vocabulary is growing. New words will be reviewed according
+                to the spaced repetition schedule for optimal retention.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button size="lg" className="w-full h-14" onClick={onStartNewLesson}>
-            <Sparkles className="h-5 w-5 mr-2" />
-            Start Another Lesson
-          </Button>
-
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full"
-            onClick={onExit}
+        <div className="space-y-4">
+          <button
+            onClick={onStartNewLesson}
+            className="w-full py-4 px-8 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-3"
           >
-            <Home className="h-4 w-4 mr-2" />
+            <Sparkles className="h-5 w-5" />
+            Start Another Lesson
+          </button>
+
+          <button
+            onClick={onExit}
+            className="w-full py-4 px-8 bg-transparent border border-border hover:bg-card text-foreground font-light rounded-xl transition-all duration-300 flex items-center justify-center gap-3"
+          >
+            <Home className="h-5 w-5" />
             Return to Dashboard
-          </Button>
+          </button>
         </div>
 
         {/* Motivation Footer */}
-        <div className="text-center text-sm text-muted-foreground pt-4 border-t">
+        <div className="text-center text-sm text-muted-foreground font-light pt-6 border-t border-border">
           <p className="flex items-center justify-center gap-2">
             <Calendar className="h-4 w-4" />
-            Consistency is key. Come back tomorrow to continue learning!
+            Consistency is key. Come back tomorrow to continue learning.
           </p>
         </div>
       </div>

@@ -24,7 +24,8 @@ import { WordStatus, WordRating, ProficiencyLevel } from "./index";
 
 // ===== LESSON PHASES =====
 
-export type LessonPhase =
+// New 10-phase lesson flow
+export type NewLessonPhase =
   | "spaced-retrieval-warmup" // Phase 1: Quick recall prompts
   | "prediction-stage" // Phase 2: Keywords + prediction
   | "audio-text" // Phase 3: Listen to story
@@ -35,6 +36,18 @@ export type LessonPhase =
   | "shadowing" // Phase 8: Pronunciation practice
   | "second-recall" // Phase 9: Retell with vocabulary
   | "progress-reflection"; // Phase 10: Metacognitive reflection
+
+// Legacy 6-phase lesson flow
+export type LegacyLessonPhase =
+  | "audio-comprehension"
+  | "verbal-check"
+  | "conversation-feedback"
+  | "text-reveal"
+  | "interactive-exercises"
+  | "final-assessment";
+
+// Combined type for all phases
+export type LessonPhase = NewLessonPhase | LegacyLessonPhase;
 
 // ===== LESSON PHASES ORDER =====
 
@@ -276,7 +289,7 @@ export interface ComprehensionResponse {
   id: string;
   lessonId: string;
   userId: string;
-  phase: "first-recall" | "second-recall"; // Updated phase names
+  phase: "first-recall" | "second-recall" | "verbal-check" | "final-assessment"; // New and legacy phase names
 
   // User's response
   audioBlob?: Blob;

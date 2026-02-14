@@ -17,17 +17,18 @@ import {
 /* =============================================================================
    DESIGN SYSTEM DOCUMENTATION
    
-   Visual Direction: "Oxford Library" - Warm, intelligent, premium
+   Visual Direction: "Classic Library" - Forest green walls, mahogany furniture, brass accents
    
    COLOR PHILOSOPHY:
-   - Background: Deep mahogany (25° warm brown)
-   - Text: Warm cream (#f5e6d3) - never pure white
-   - Accent: Cognac gold - used sparingly for emphasis only
+   - Background: Deep mahogany & forest green
+   - Text: Warm parchment (#f5e6d3) - never pure white  
+   - Primary: Forest green for main UI elements
+   - Accent: Brass/gold - used sparingly for emphasis only
    - Never more than 3 colors visible at once
    
    TYPOGRAPHY:
    - Headlines: font-light (300) for elegance, tracking-tight
-   - Body: font-light for readability
+   - Body: serif font for classic library feel
    - Accents: font-serif italic for emotional moments
    - Scale: 14px base, 1.5 line height
    - Hero headlines: 72-96px, single powerful statement
@@ -37,6 +38,7 @@ import {
    - Element gaps: 32-64px (4-8 units)
    - Card padding: 48-64px (6-8 units)
    - Never less than 24px between elements
+   - Borders: 1.5-2px for tactile, substantial feel
    
    MOTION SYSTEM:
    - Easing: cubic-bezier(0.16, 1, 0.3, 1) - Apple's ease-out
@@ -47,9 +49,10 @@ import {
    DESIGN PRINCIPLES:
    1. One idea per section
    2. Generous negative space
-   3. Restrained color usage
+   3. Restrained color usage - forest green & brass accents
    4. Subtle, purposeful motion
    5. Zero visual clutter
+   6. Tactile, library-like borders and textures
    
    UI COPY TONE:
    - Concise, confident, restrained
@@ -62,12 +65,12 @@ export default function Home() {
   return (
     <main className="bg-background text-foreground antialiased">
       {/* ========== NAVIGATION ========== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-library-forest/20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 bg-luxury-cognac rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-                <span className="text-background font-serif font-semibold text-lg">
+              <div className="w-9 h-9 bg-library-forest rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-library-brass">
+                <span className="text-foreground font-serif font-semibold text-lg">
                   L
                 </span>
               </div>
@@ -87,7 +90,7 @@ export default function Home() {
               <Link href="/auth/signup">
                 <Button
                   size="sm"
-                  className="bg-foreground text-background hover:bg-foreground/90 font-light rounded-full px-5"
+                  className="bg-library-forest hover:bg-library-forest-light text-foreground font-light rounded-full px-5 transition-all duration-300"
                 >
                   Get started
                 </Button>
@@ -101,8 +104,8 @@ export default function Home() {
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-16 overflow-hidden">
         {/* Ambient background */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-luxury-cognac/[0.03] rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-luxury-bronze/[0.02] rounded-full blur-[100px]" />
+          <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-library-brass/[0.03] rounded-full blur-[120px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-library-forest/[0.04] rounded-full blur-[100px]" />
         </div>
 
         <div className="max-w-4xl mx-auto text-center">
@@ -116,7 +119,7 @@ export default function Home() {
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight leading-[1.1] mb-8">
               Learn the way
               <br />
-              <span className="font-serif italic text-luxury-cognac">
+              <span className="font-serif italic text-library-brass">
                 you actually acquire.
               </span>
             </h1>
@@ -133,7 +136,7 @@ export default function Home() {
               <Link href="/auth/signup">
                 <Button
                   size="lg"
-                  className="bg-luxury-cognac text-background hover:bg-luxury-cognac/90 h-14 px-8 text-base font-light rounded-full group"
+                  className="bg-library-brass text-background hover:bg-library-brass/90 h-14 px-8 text-base font-light rounded-full group"
                 >
                   Start learning free
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -142,7 +145,7 @@ export default function Home() {
               <Button
                 variant="ghost"
                 size="lg"
-                className="h-14 px-8 text-base font-light text-muted-foreground hover:text-foreground group"
+                className="h-14 px-8 text-base font-light text-muted-foreground hover:text-library-forest border border-library-forest/20 hover:bg-library-forest/10 rounded-full group transition-all duration-300"
               >
                 <Play className="mr-2 h-4 w-4" />
                 Watch demo
@@ -248,8 +251,8 @@ export default function Home() {
                         direction="left"
                       >
                         <div className="flex items-start gap-5 group">
-                          <div className="w-12 h-12 rounded-xl bg-luxury-cognac/10 flex items-center justify-center flex-shrink-0 transition-colors duration-300 group-hover:bg-luxury-cognac/20">
-                            <step.icon className="h-5 w-5 text-luxury-cognac" />
+                          <div className="w-12 h-12 rounded-xl bg-library-brass/10 flex items-center justify-center flex-shrink-0 transition-colors duration-300 group-hover:bg-library-brass/20">
+                            <step.icon className="h-5 w-5 text-library-brass" />
                           </div>
                           <div>
                             <h3 className="text-lg font-medium mb-1">
@@ -271,7 +274,7 @@ export default function Home() {
                         <span className="text-xs font-light tracking-wider uppercase text-muted-foreground">
                           Lesson Preview
                         </span>
-                        <span className="text-xs text-luxury-cognac">
+                        <span className="text-xs text-library-brass">
                           A1 • Beginner
                         </span>
                       </div>
@@ -283,12 +286,12 @@ export default function Home() {
                       </div>
 
                       <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
-                        <div className="w-10 h-10 rounded-full bg-luxury-cognac flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-library-brass flex items-center justify-center">
                           <Play className="h-4 w-4 text-background ml-0.5" />
                         </div>
                         <div className="flex-1">
                           <div className="h-1.5 bg-muted-foreground/20 rounded-full">
-                            <div className="h-1.5 bg-luxury-cognac rounded-full w-1/3" />
+                            <div className="h-1.5 bg-library-brass rounded-full w-1/3" />
                           </div>
                         </div>
                         <span className="text-xs text-muted-foreground">
@@ -319,7 +322,7 @@ export default function Home() {
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
                   Focus on understanding.
                   <br />
-                  <span className="font-serif italic text-luxury-cognac">
+                  <span className="font-serif italic text-library-brass">
                     Speaking follows.
                   </span>
                 </h2>
@@ -337,13 +340,13 @@ export default function Home() {
               <ScrollReveal delay={300}>
                 <div className="flex items-center gap-6 pt-4">
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-luxury-cognac" />
+                    <Check className="h-4 w-4 text-library-brass" />
                     <span className="text-sm font-light">
                       Comprehensible input
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-luxury-cognac" />
+                    <Check className="h-4 w-4 text-library-brass" />
                     <span className="text-sm font-light">
                       Spaced repetition
                     </span>
@@ -356,7 +359,7 @@ export default function Home() {
               <div className="relative">
                 <div className="bg-card border border-border rounded-2xl p-8 shadow-luxury">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-2 h-2 rounded-full bg-luxury-cognac" />
+                    <div className="w-2 h-2 rounded-full bg-library-brass" />
                     <span className="text-sm text-muted-foreground font-light">
                       Your progress
                     </span>
@@ -366,45 +369,344 @@ export default function Home() {
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span className="font-light">Known vocabulary</span>
-                        <span className="text-luxury-cognac">847 words</span>
+                        <span className="text-library-brass">847 words</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full">
-                        <div className="h-2 bg-luxury-cognac rounded-full w-3/4 transition-all duration-1000" />
+                        <div className="h-2 bg-library-brass rounded-full w-3/4 transition-all duration-1000" />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span className="font-light">Comprehension</span>
-                        <span className="text-luxury-cognac">A2</span>
+                        <span className="text-library-brass">A2</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full">
-                        <div className="h-2 bg-luxury-cognac rounded-full w-1/2 transition-all duration-1000" />
+                        <div className="h-2 bg-library-brass rounded-full w-1/2 transition-all duration-1000" />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span className="font-light">Speaking confidence</span>
-                        <span className="text-luxury-cognac">72%</span>
+                        <span className="text-library-brass">72%</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full">
-                        <div className="h-2 bg-luxury-cognac rounded-full w-[72%] transition-all duration-1000" />
+                        <div className="h-2 bg-library-brass rounded-full w-[72%] transition-all duration-1000" />
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Decorative glow */}
-                <div className="absolute -inset-4 bg-luxury-cognac/5 rounded-3xl blur-2xl -z-10" />
+                <div className="absolute -inset-4 bg-library-brass/5 rounded-3xl blur-2xl -z-10" />
               </div>
             </ScrollReveal>
           </div>
         </div>
       </section>
 
-      {/* ========== ACCOUNTABILITY SECTION ========== */}
+      {/* ========== THE SCIENCE SECTION ========== */}
       <section className="py-40 px-6 bg-muted/30">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-20">
+            <ScrollReveal>
+              <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-8">
+                The Science
+              </p>
+            </ScrollReveal>
+
+            <ScrollReveal delay={100}>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
+                Decades of research.
+                <br />
+                <span className="font-serif italic text-library-brass">
+                  One proven method.
+                </span>
+              </h2>
+            </ScrollReveal>
+
+            <ScrollReveal delay={200}>
+              <p className="text-lg text-muted-foreground font-light leading-relaxed max-w-3xl mx-auto">
+                The most proven approach combines comprehensible input immersion
+                (via Krashen's i+1 principle), spaced repetition for vocabulary,
+                and early speaking practice like shadowing. This yields superior
+                fluency and retention backed by decades of research.
+              </p>
+            </ScrollReveal>
+          </div>
+
+          {/* Core Principles Grid */}
+          <div className="grid md:grid-cols-3 gap-6 mb-20">
+            <ScrollReveal delay={300}>
+              <div className="bg-card border border-library-forest/20 rounded-2xl p-8 hover:border-library-forest/40 transition-colors duration-300">
+                <div className="text-4xl font-light text-library-forest mb-4">
+                  95-98%
+                </div>
+                <h3 className="text-lg font-medium mb-3">
+                  Comprehensible Input
+                </h3>
+                <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                  Content at the sweet spot — mostly familiar with just enough
+                  new material (i+1) to stretch your understanding naturally.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal delay={400}>
+              <div className="bg-card border border-border rounded-2xl p-8">
+                <div className="text-4xl font-light text-library-brass mb-4">
+                  95%+
+                </div>
+                <h3 className="text-lg font-medium mb-3">Retention Rate</h3>
+                <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                  Spaced repetition times reviews against the forgetting curve,
+                  keeping vocabulary accessible long-term.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal delay={500}>
+              <div className="bg-card border border-library-forest/20 rounded-2xl p-8 hover:border-library-forest/40 transition-colors duration-300">
+                <div className="text-4xl font-light text-library-forest mb-4">
+                  3x
+                </div>
+                <h3 className="text-lg font-medium mb-3">Faster Proficiency</h3>
+                <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                  Immersion programs with early output practice achieve higher
+                  speaking and listening scores than classroom-only methods.
+                </p>
+              </div>
+            </ScrollReveal>
+          </div>
+
+          {/* Forgetting Curve Visualization */}
+          <ScrollReveal delay={600}>
+            <div className="bg-card border border-border rounded-2xl p-8 md:p-12">
+              <div className="mb-8">
+                <h3 className="text-2xl font-light mb-2">
+                  The{" "}
+                  <span className="font-serif italic text-library-brass">
+                    forgetting curve
+                  </span>
+                </h3>
+                <p className="text-sm text-muted-foreground font-light">
+                  Without reinforcement, memory decays rapidly. Spaced
+                  repetition interrupts this decline at optimal intervals.
+                </p>
+              </div>
+
+              <div className="relative h-80 md:h-96">
+                {/* SVG Forgetting Curve */}
+                <svg
+                  viewBox="0 0 800 400"
+                  className="w-full h-full"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Grid lines */}
+                  <g
+                    stroke="currentColor"
+                    strokeWidth="0.5"
+                    className="text-border opacity-30"
+                  >
+                    <line x1="80" y1="50" x2="80" y2="350" />
+                    <line x1="80" y1="350" x2="750" y2="350" />
+                    {[100, 150, 200, 250, 300].map((y) => (
+                      <line
+                        key={y}
+                        x1="80"
+                        y1={y}
+                        x2="750"
+                        y2={y}
+                        strokeDasharray="4 4"
+                      />
+                    ))}
+                  </g>
+
+                  {/* Axis labels */}
+                  <text
+                    x="40"
+                    y="55"
+                    className="text-[10px] fill-muted-foreground font-light"
+                  >
+                    100%
+                  </text>
+                  <text
+                    x="40"
+                    y="180"
+                    className="text-[10px] fill-muted-foreground font-light"
+                  >
+                    50%
+                  </text>
+                  <text
+                    x="40"
+                    y="355"
+                    className="text-[10px] fill-muted-foreground font-light"
+                  >
+                    0%
+                  </text>
+
+                  <text
+                    x="80"
+                    y="380"
+                    className="text-[10px] fill-muted-foreground font-light"
+                  >
+                    Day 1
+                  </text>
+                  <text
+                    x="250"
+                    y="380"
+                    className="text-[10px] fill-muted-foreground font-light"
+                  >
+                    Day 3
+                  </text>
+                  <text
+                    x="420"
+                    y="380"
+                    className="text-[10px] fill-muted-foreground font-light"
+                  >
+                    Week 2
+                  </text>
+                  <text
+                    x="590"
+                    y="380"
+                    className="text-[10px] fill-muted-foreground font-light"
+                  >
+                    Month 1
+                  </text>
+
+                  {/* Without spaced repetition - declining curve */}
+                  <path
+                    d="M 80 50 Q 200 120, 320 220 T 750 340"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="text-muted-foreground opacity-40"
+                    strokeDasharray="6 4"
+                  />
+
+                  {/* With spaced repetition - maintained curves */}
+                  <g>
+                    {/* First learning */}
+                    <path
+                      d="M 80 50 Q 140 80, 200 140"
+                      fill="none"
+                      stroke="hsl(var(--library-brass))"
+                      strokeWidth="3"
+                      className="opacity-80"
+                    />
+                    {/* First review */}
+                    <path
+                      d="M 200 140 L 200 55 Q 280 85, 360 145"
+                      fill="none"
+                      stroke="hsl(var(--library-brass))"
+                      strokeWidth="3"
+                      className="opacity-80"
+                    />
+                    {/* Second review */}
+                    <path
+                      d="M 360 145 L 360 60 Q 460 90, 540 150"
+                      fill="none"
+                      stroke="hsl(var(--library-brass))"
+                      strokeWidth="3"
+                      className="opacity-80"
+                    />
+                    {/* Third review */}
+                    <path
+                      d="M 540 150 L 540 65 Q 640 85, 720 115"
+                      fill="none"
+                      stroke="hsl(var(--library-brass))"
+                      strokeWidth="3"
+                      className="opacity-80"
+                    />
+                  </g>
+
+                  {/* Review point markers */}
+                  <circle
+                    cx="200"
+                    cy="55"
+                    r="4"
+                    className="fill-library-forest"
+                  />
+                  <circle
+                    cx="360"
+                    cy="60"
+                    r="4"
+                    className="fill-library-forest"
+                  />
+                  <circle
+                    cx="540"
+                    cy="65"
+                    r="4"
+                    className="fill-library-forest"
+                  />
+
+                  {/* Annotations */}
+                  <g className="text-[11px] fill-library-forest font-light">
+                    <text x="210" y="45">
+                      Review 1
+                    </text>
+                    <text x="370" y="50">
+                      Review 2
+                    </text>
+                    <text x="550" y="55">
+                      Review 3
+                    </text>
+                  </g>
+
+                  {/* Legend */}
+                  <g transform="translate(520, 20)">
+                    <line
+                      x1="0"
+                      y1="0"
+                      x2="30"
+                      y2="0"
+                      stroke="hsl(var(--library-brass))"
+                      strokeWidth="3"
+                    />
+                    <text
+                      x="40"
+                      y="5"
+                      className="text-[11px] fill-foreground font-light"
+                    >
+                      With spaced repetition
+                    </text>
+
+                    <line
+                      x1="0"
+                      y1="20"
+                      x2="30"
+                      y2="20"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="text-muted-foreground opacity-40"
+                      strokeDasharray="6 4"
+                    />
+                    <text
+                      x="40"
+                      y="25"
+                      className="text-[11px] fill-muted-foreground font-light"
+                    >
+                      Without review
+                    </text>
+                  </g>
+                </svg>
+              </div>
+
+              <div className="mt-8 pt-8 border-t border-border">
+                <p className="text-sm text-muted-foreground font-light text-center max-w-2xl mx-auto">
+                  Lingua automatically schedules vocabulary reviews at
+                  scientifically optimal intervals — right before you'd forget.
+                  This keeps words accessible while minimizing review time.
+                </p>
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* ========== ACCOUNTABILITY SECTION ========== */}
+      <section className="py-40 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <ScrollReveal>
             <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-8">
@@ -416,7 +718,7 @@ export default function Home() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
               Meet your goals.
               <br />
-              <span className="font-serif italic text-luxury-cognac">
+              <span className="font-serif italic text-library-brass">
                 Earn back 50%.
               </span>
             </h2>
@@ -443,7 +745,7 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground font-light mb-1">
                   Your reward
                 </p>
-                <p className="text-2xl font-light text-luxury-cognac">
+                <p className="text-2xl font-light text-library-brass">
                   50% cashback
                 </p>
               </div>
@@ -457,12 +759,12 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <ScrollReveal>
             <div className="relative">
-              <Quote className="h-12 w-12 text-luxury-cognac/20 mb-8" />
+              <Quote className="h-12 w-12 text-library-brass/20 mb-8" />
 
               <blockquote className="text-2xl sm:text-3xl md:text-4xl font-light leading-relaxed mb-8">
                 After years of apps that felt like games, this actually feels
                 like
-                <span className="font-serif italic text-luxury-cognac">
+                <span className="font-serif italic text-library-brass">
                   {" "}
                   learning.
                 </span>{" "}
@@ -487,7 +789,7 @@ export default function Home() {
       <section className="py-40 px-6 relative overflow-hidden">
         {/* Ambient background */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-luxury-cognac/[0.03] rounded-full blur-[150px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-library-brass/[0.03] rounded-full blur-[150px]" />
         </div>
 
         <div className="max-w-3xl mx-auto text-center">
@@ -495,7 +797,7 @@ export default function Home() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light leading-[1.2] mb-8">
               Ready to learn
               <br />
-              <span className="font-serif italic text-luxury-cognac">
+              <span className="font-serif italic text-library-brass">
                 the right way?
               </span>
             </h2>
@@ -511,7 +813,7 @@ export default function Home() {
             <Link href="/auth/signup">
               <Button
                 size="lg"
-                className="bg-luxury-cognac text-background hover:bg-luxury-cognac/90 h-16 px-12 text-lg font-light rounded-full group"
+                className="bg-library-brass text-background hover:bg-library-brass/90 h-16 px-12 text-lg font-light rounded-full group"
               >
                 Begin your journey
                 <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
@@ -526,8 +828,8 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-luxury-cognac rounded-lg flex items-center justify-center">
-                <span className="text-background font-serif font-semibold">
+              <div className="w-8 h-8 bg-library-forest rounded-lg flex items-center justify-center">
+                <span className="text-foreground font-serif font-semibold">
                   L
                 </span>
               </div>

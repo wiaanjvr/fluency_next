@@ -2,9 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Lesson } from "@/types/lesson";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
   Headphones,
   Play,
@@ -13,6 +10,7 @@ import {
   ArrowRight,
   Volume2,
   CheckCircle2,
+  Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -99,53 +97,55 @@ export function AudioComprehensionPhase({
   const canProceed = listenCount >= MIN_LISTENS;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Phase Header */}
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
           <Headphones className="h-4 w-4" />
           <span className="text-sm font-medium">
             Phase 1: Listen & Understand
           </span>
         </div>
-        <h1 className="text-2xl font-light">Listen to the Audio</h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
+          Listen to the{" "}
+          <span className="font-serif italic text-library-brass">audio</span>
+        </h1>
+        <p className="text-muted-foreground font-light max-w-md mx-auto">
           Focus on understanding the meaning. Don't worry about every word.
           Listen at least {MIN_LISTENS} times before continuing.
         </p>
       </div>
 
       {/* Audio Player Card */}
-      <Card className="border-primary/20">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center justify-between">
-            <span className="text-lg font-medium">{lesson.title}</span>
-            <span className="text-sm text-muted-foreground capitalize">
-              Level: {lesson.level}
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+          <span className="text-lg font-medium">{lesson.title}</span>
+          <span className="text-sm text-muted-foreground capitalize px-3 py-1 bg-muted rounded-full">
+            {lesson.level}
+          </span>
+        </div>
+
+        <div className="p-6 space-y-6">
           <audio ref={audioRef} src={lesson.audioUrl} preload="metadata" />
 
-          {/* Visualizer placeholder */}
-          <div className="h-24 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-lg flex items-center justify-center">
+          {/* Visualizer */}
+          <div className="h-28 bg-gradient-to-r from-library-brass/5 via-library-brass/10 to-library-brass/5 rounded-xl flex items-center justify-center">
             <div
               className={cn(
-                "flex items-center gap-1",
+                "flex items-center gap-1.5",
                 isPlaying && "animate-pulse",
               )}
             >
-              {[...Array(8)].map((_, i) => (
+              {[...Array(12)].map((_, i) => (
                 <div
                   key={i}
                   className={cn(
-                    "w-1.5 bg-primary/60 rounded-full transition-all duration-300",
-                    isPlaying ? "animate-bounce" : "h-4",
+                    "w-1.5 bg-library-brass/60 rounded-full transition-all duration-300",
                   )}
                   style={{
-                    height: isPlaying ? `${Math.random() * 40 + 20}px` : "16px",
-                    animationDelay: `${i * 0.1}s`,
+                    height: isPlaying ? `${Math.random() * 48 + 16}px` : "16px",
+                    animationDelay: `${i * 0.08}s`,
                   }}
                 />
               ))}
@@ -154,7 +154,12 @@ export function AudioComprehensionPhase({
 
           {/* Progress bar */}
           <div className="space-y-2">
-            <Progress value={progress} className="h-2" />
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-library-brass rounded-full transition-all duration-150"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
@@ -162,127 +167,132 @@ export function AudioComprehensionPhase({
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-center gap-2 sm:gap-4">
-            <Button
-              variant="outline"
-              size="icon"
+          <div className="flex items-center justify-center gap-4">
+            <button
               onClick={handleRestart}
-              className="h-9 w-9 sm:h-10 sm:w-10"
+              className="h-12 w-12 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
             >
-              <RotateCcw className="h-4 w-4" />
-            </Button>
+              <RotateCcw className="h-5 w-5" />
+            </button>
 
-            <Button
-              size="lg"
+            <button
               onClick={togglePlayPause}
-              className="h-12 w-12 sm:h-14 sm:w-14 rounded-full text-white"
+              className="h-16 w-16 rounded-2xl bg-library-brass hover:bg-library-brass/90 flex items-center justify-center transition-all duration-300 shadow-luxury"
             >
               {isPlaying ? (
-                <Pause className="h-5 w-5 sm:h-6 sm:w-6" />
+                <Pause className="h-7 w-7 text-background" />
               ) : (
-                <Play className="h-5 w-5 sm:h-6 sm:w-6 ml-1" />
+                <Play className="h-7 w-7 text-background ml-1" />
               )}
-            </Button>
+            </button>
 
-            <Button
-              variant="outline"
-              size="icon"
+            <button
               onClick={() => changeSpeed(playbackRate === 1 ? 0.75 : 1)}
-              className="h-9 w-9 sm:h-10 sm:w-10"
+              className="h-12 w-12 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
             >
-              <span className="text-xs font-medium">{playbackRate}x</span>
-            </Button>
+              <span className="text-sm font-medium">{playbackRate}x</span>
+            </button>
           </div>
 
           {/* Speed options */}
           <div className="flex items-center justify-center gap-2">
-            <span className="text-xs text-muted-foreground">Speed:</span>
+            <span className="text-xs text-muted-foreground mr-2">Speed:</span>
             {[0.5, 0.75, 1.0, 1.25].map((speed) => (
-              <Button
+              <button
                 key={speed}
-                variant={playbackRate === speed ? "default" : "ghost"}
-                size="sm"
                 onClick={() => changeSpeed(speed)}
-                className="h-7 px-2 text-xs"
+                className={cn(
+                  "h-8 px-3 rounded-lg text-sm transition-all duration-200",
+                  playbackRate === speed
+                    ? "bg-library-brass text-background"
+                    : "bg-muted hover:bg-muted/80",
+                )}
               >
                 {speed}x
-              </Button>
+              </button>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Listen Counter */}
-      <Card
+      <div
         className={cn(
-          "transition-colors",
-          canProceed
-            ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20"
-            : "",
+          "bg-card border border-border rounded-2xl p-6 transition-all duration-300",
+          canProceed && "border-green-500/30 bg-green-500/5",
         )}
       >
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center",
-                  canProceed ? "bg-green-500 text-white" : "bg-muted",
-                )}
-              >
-                {canProceed ? (
-                  <CheckCircle2 className="h-5 w-5" />
-                ) : (
-                  <Volume2 className="h-5 w-5" />
-                )}
-              </div>
-              <div>
-                <p className="font-medium">
-                  {canProceed ? "Ready to continue!" : "Keep listening..."}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Listened {listenCount} of {MIN_LISTENS} times
-                </p>
-              </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div
+              className={cn(
+                "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                canProceed ? "bg-green-500 text-white" : "bg-muted",
+              )}
+            >
+              {canProceed ? (
+                <CheckCircle2 className="h-6 w-6" />
+              ) : (
+                <Volume2 className="h-6 w-6" />
+              )}
             </div>
-
-            <div className="flex gap-2">
-              {[...Array(MIN_LISTENS)].map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "w-3 h-3 rounded-full transition-colors",
-                    i < listenCount ? "bg-green-500" : "bg-muted",
-                  )}
-                />
-              ))}
+            <div>
+              <p className="font-medium text-lg">
+                {canProceed ? "Ready to continue!" : "Keep listening..."}
+              </p>
+              <p className="text-sm text-muted-foreground font-light">
+                Listened {listenCount} of {MIN_LISTENS} times
+              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="flex gap-2">
+            {[...Array(MIN_LISTENS)].map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "w-3 h-3 rounded-full transition-all duration-300",
+                  i < listenCount ? "bg-green-500" : "bg-muted",
+                )}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Tips */}
-      <div className="bg-muted/50 rounded-lg p-4">
-        <h3 className="font-medium mb-2">Listening Tips:</h3>
-        <ul className="text-sm text-muted-foreground space-y-1">
-          <li>• Focus on the overall meaning, not individual words</li>
-          <li>• Try to identify: Who? What? Where? When?</li>
-          <li>• Use the slower speed if needed</li>
-          <li>• Don't worry if you miss some details</li>
-        </ul>
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center flex-shrink-0">
+            <Lightbulb className="h-5 w-5 text-library-brass" />
+          </div>
+          <div>
+            <h3 className="font-medium mb-3">Listening Tips</h3>
+            <ul className="text-sm text-muted-foreground font-light space-y-2">
+              <li>• Focus on the overall meaning, not individual words</li>
+              <li>• Try to identify: Who? What? Where? When?</li>
+              <li>• Use the slower speed if needed</li>
+              <li>• Don't worry if you miss some details</li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       {/* Continue Button */}
-      <Button
-        size="lg"
-        className="w-full h-14"
+      <button
         onClick={onPhaseComplete}
         disabled={!canProceed}
+        className={cn(
+          "w-full py-4 px-8 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2",
+          canProceed
+            ? "bg-library-brass hover:bg-library-brass/90 text-background"
+            : "bg-muted text-muted-foreground cursor-not-allowed",
+        )}
       >
         {canProceed ? (
           <>
             Continue to Speaking
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="h-5 w-5" />
           </>
         ) : (
           <>
@@ -290,7 +300,7 @@ export function AudioComprehensionPhase({
             {MIN_LISTENS - listenCount > 1 ? "s" : ""}
           </>
         )}
-      </Button>
+      </button>
     </div>
   );
 }

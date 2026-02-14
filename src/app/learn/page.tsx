@@ -149,9 +149,11 @@ export default function LearnPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
+      <div className="flex items-center justify-center min-h-screen bg-background px-6">
+        <div className="text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-library-forest/10 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-library-forest" />
+          </div>
           <p className="text-muted-foreground font-light">
             Preparing your session...
           </p>
@@ -172,46 +174,52 @@ export default function LearnPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+      <div className="max-w-4xl mx-auto px-6 py-16">
         {/* Header */}
-        <div className="flex items-center justify-between mb-12">
-          <div>
-            <h1 className="text-5xl font-light tracking-tight mb-3">
-              Practice <span className="font-serif italic">Session</span>
+        <div className="flex items-center justify-between mb-16">
+          <div className="space-y-3">
+            <h1 className="text-4xl sm:text-5xl font-light tracking-tight">
+              Practice{" "}
+              <span className="font-serif italic text-library-brass">
+                session
+              </span>
             </h1>
-            <p className="text-lg text-muted-foreground font-light">
+            <p className="text-muted-foreground font-light">
               Spaced repetition meets comprehensible input
             </p>
           </div>
-          <Button
-            variant="outline"
+          <button
             onClick={() => router.push("/dashboard")}
-            className="rounded-xl border-border/50 font-light"
+            className="h-10 px-5 rounded-xl border border-border hover:bg-card text-sm font-light transition-colors flex items-center gap-2"
           >
-            <Home className="w-4 h-4 mr-2" />
+            <Home className="w-4 h-4" />
             Dashboard
-          </Button>
+          </button>
         </div>
 
         {/* Vocabulary Stats */}
         {stats && (
           <div className="mb-12">
-            <div className="card-luxury p-8">
+            <div className="bg-card border border-border rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-8">
-                <BarChart3 className="w-6 h-6" />
-                <h2 className="text-2xl font-light">Vocabulary Progress</h2>
+                <div className="w-10 h-10 rounded-xl bg-library-forest/10 flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-library-forest" />
+                </div>
+                <h2 className="text-xl font-medium">Vocabulary Progress</h2>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                <div className="p-6 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="text-3xl font-light mb-2">{stats.total}</div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="p-5 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="text-3xl font-light text-library-brass mb-1">
+                    {stats.total}
+                  </div>
                   <div className="text-sm text-muted-foreground font-light">
                     Total Words
                   </div>
                 </div>
 
-                <div className="p-6 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="text-3xl font-light mb-2">
+                <div className="p-5 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="text-3xl font-light text-library-brass mb-1">
                     {stats.learning}
                   </div>
                   <div className="text-sm text-muted-foreground font-light">
@@ -219,25 +227,27 @@ export default function LearnPage() {
                   </div>
                 </div>
 
-                <div className="p-6 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="text-3xl font-light mb-2">{stats.known}</div>
+                <div className="p-5 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="text-3xl font-light text-library-brass mb-1">
+                    {stats.known}
+                  </div>
                   <div className="text-sm text-muted-foreground font-light">
                     Known
                   </div>
                 </div>
 
-                <div className="p-6 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="text-3xl font-light mb-2">
+                <div className="p-5 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="text-3xl font-light text-library-brass mb-1">
                     {stats.mastered}
                   </div>
-                  <div className="text-sm text-muted-foreground font-light flex items-center gap-1">
+                  <div className="text-sm text-muted-foreground font-light flex items-center gap-1.5">
                     <Trophy className="w-3.5 h-3.5" />
                     Mastered
                   </div>
                 </div>
 
-                <div className="p-6 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="text-3xl font-light mb-2">
+                <div className="p-5 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="text-3xl font-light text-library-brass mb-1">
                     {stats.ignored || 0}
                   </div>
                   <div className="text-sm text-muted-foreground font-light">
@@ -250,45 +260,51 @@ export default function LearnPage() {
         )}
 
         {/* Generate New Story */}
-        <div className="card-luxury p-10 bg-foreground text-background relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-background/5 rounded-full -mr-48 -mt-48" />
+        <div className="bg-card border border-border rounded-2xl p-10 relative overflow-hidden mb-12">
+          {/* Ambient gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-library-brass/5 via-transparent to-luxury-bronze/5" />
 
           <div className="relative z-10 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/20">
-              <Target className="h-3.5 w-3.5" />
-              <span className="text-xs font-light">Ready to Learn</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-forest/10 text-library-forest">
+              <Target className="h-4 w-4" />
+              <span className="text-sm font-medium">Ready to Learn</span>
             </div>
 
-            <div>
-              <h2 className="text-3xl font-light mb-3">Begin Your Session</h2>
-              <p className="text-background/70 font-light max-w-2xl">
+            <div className="space-y-3">
+              <h2 className="text-3xl font-light tracking-tight">
+                Begin your{" "}
+                <span className="font-serif italic text-library-brass">
+                  session
+                </span>
+              </h2>
+              <p className="text-muted-foreground font-light max-w-2xl">
                 Generate a personalized story at your level ({userLevel}).
                 Curated with 95% familiar words and 5% new vocabulary,
                 prioritizing words due for review.
               </p>
             </div>
 
-            <Button
+            <button
               onClick={handleGenerateStory}
               disabled={generating}
-              className="bg-background text-foreground hover:bg-background/90 rounded-xl h-12 px-6 font-light"
+              className="py-4 px-8 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50"
             >
               {generating ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                   Generating your story...
                 </>
               ) : (
                 <>
                   Generate New Story
-                  <ChevronRight className="ml-2 h-4 w-4" />
+                  <ChevronRight className="h-5 w-5" />
                 </>
               )}
-            </Button>
+            </button>
 
             {stats && stats.total === 0 && (
-              <div className="mt-6 p-4 rounded-xl bg-background/10 border border-background/20">
-                <p className="text-sm font-light">
+              <div className="p-5 rounded-xl bg-muted/50 border border-border">
+                <p className="text-sm font-light text-muted-foreground">
                   Your first session. We'll introduce common words and begin
                   building your vocabulary foundation.
                 </p>
@@ -296,10 +312,13 @@ export default function LearnPage() {
             )}
 
             {stats && stats.dueForReview > 0 && (
-              <div className="mt-6 p-4 rounded-xl bg-background/10 border border-background/20">
-                <p className="text-sm font-light">
+              <div className="p-5 rounded-xl bg-muted/50 border border-border">
+                <p className="text-sm font-light text-muted-foreground">
                   You have{" "}
-                  <span className="font-normal">{stats.dueForReview}</span> word
+                  <span className="text-library-brass font-medium">
+                    {stats.dueForReview}
+                  </span>{" "}
+                  word
                   {stats.dueForReview !== 1 ? "s" : ""} ready for review. Your
                   next story will prioritize these for optimal retention.
                 </p>
@@ -309,18 +328,23 @@ export default function LearnPage() {
         </div>
 
         {/* How it Works */}
-        <div className="card-luxury p-8">
-          <h3 className="text-2xl font-light mb-8">The Method</h3>
+        <div className="bg-card border border-border rounded-2xl p-8">
+          <h3 className="text-2xl font-light tracking-tight mb-10">
+            The{" "}
+            <span className="font-serif italic text-library-brass">method</span>
+          </h3>
 
-          <div className="space-y-8">
+          <div className="space-y-10">
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-foreground/10 flex items-center justify-center">
-                  <span className="text-lg font-light">01</span>
+                <div className="w-12 h-12 rounded-xl bg-library-forest/10 flex items-center justify-center">
+                  <span className="text-lg font-light text-library-forest">
+                    01
+                  </span>
                 </div>
               </div>
-              <div className="pt-2">
-                <h4 className="text-lg font-light mb-2">
+              <div className="pt-1">
+                <h4 className="text-lg font-medium mb-2">
                   Listen First, Struggle
                 </h4>
                 <p className="text-muted-foreground font-light leading-relaxed">
@@ -332,12 +356,14 @@ export default function LearnPage() {
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-foreground/10 flex items-center justify-center">
-                  <span className="text-lg font-light">02</span>
+                <div className="w-12 h-12 rounded-xl bg-library-forest/10 flex items-center justify-center">
+                  <span className="text-lg font-light text-library-forest">
+                    02
+                  </span>
                 </div>
               </div>
-              <div className="pt-2">
-                <h4 className="text-lg font-light mb-2">
+              <div className="pt-1">
+                <h4 className="text-lg font-medium mb-2">
                   Speak Before Reading
                 </h4>
                 <p className="text-muted-foreground font-light leading-relaxed">
@@ -349,12 +375,14 @@ export default function LearnPage() {
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-foreground/10 flex items-center justify-center">
-                  <span className="text-lg font-light">03</span>
+                <div className="w-12 h-12 rounded-xl bg-library-forest/10 flex items-center justify-center">
+                  <span className="text-lg font-light text-library-forest">
+                    03
+                  </span>
                 </div>
               </div>
-              <div className="pt-2">
-                <h4 className="text-lg font-light mb-2">Rate & Reinforce</h4>
+              <div className="pt-1">
+                <h4 className="text-lg font-medium mb-2">Rate & Reinforce</h4>
                 <p className="text-muted-foreground font-light leading-relaxed">
                   Honestly rate your familiarity with each word. Spaced
                   repetition ensures words appear at optimal intervals.

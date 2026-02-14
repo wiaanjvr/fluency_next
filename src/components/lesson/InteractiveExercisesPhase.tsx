@@ -7,9 +7,6 @@ import {
   ExerciseAttempt,
   ExerciseType,
 } from "@/types/lesson";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
   ArrowRight,
   CheckCircle2,
@@ -133,13 +130,13 @@ export function InteractiveExercisesPhase({
   const getExerciseIcon = (type: ExerciseType) => {
     switch (type) {
       case "multiple-choice":
-        return <Brain className="h-4 w-4" />;
+        return <Brain className="h-4 w-4 text-library-brass" />;
       case "word-definition":
-        return <BookOpen className="h-4 w-4" />;
+        return <BookOpen className="h-4 w-4 text-library-brass" />;
       case "fill-blank":
-        return <Zap className="h-4 w-4" />;
+        return <Zap className="h-4 w-4 text-library-brass" />;
       default:
-        return <Brain className="h-4 w-4" />;
+        return <Brain className="h-4 w-4 text-library-brass" />;
     }
   };
 
@@ -169,8 +166,10 @@ export function InteractiveExercisesPhase({
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
-          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Generating exercises...</p>
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-library-brass" />
+          <p className="text-muted-foreground font-light">
+            Generating exercises...
+          </p>
         </div>
       </div>
     );
@@ -182,68 +181,71 @@ export function InteractiveExercisesPhase({
 
     return (
       <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
             <Trophy className="h-4 w-4" />
             <span className="text-sm font-medium">Exercises Complete!</span>
           </div>
         </div>
 
-        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-          <CardContent className="pt-8 pb-8 text-center space-y-4">
-            <div className="text-6xl font-bold text-primary">{percentage}%</div>
-            <div className="text-xl font-medium">
-              {score} of {exercises.length} correct
-            </div>
-            <p className="text-muted-foreground">
-              {percentage >= 80
-                ? "Excellent work! You've mastered this content."
-                : percentage >= 60
-                  ? "Good job! Keep practicing to improve."
-                  : "Nice effort! Review the lesson to strengthen your understanding."}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="bg-card border border-library-brass/20 rounded-2xl p-8 text-center space-y-4">
+          <div className="text-6xl font-light text-library-brass">
+            {percentage}%
+          </div>
+          <div className="text-xl font-medium">
+            {score} of {exercises.length} correct
+          </div>
+          <p className="text-muted-foreground font-light">
+            {percentage >= 80
+              ? "Excellent work! You've mastered this content."
+              : percentage >= 60
+                ? "Good job! Keep practicing to improve."
+                : "Nice effort! Review the lesson to strengthen your understanding."}
+          </p>
+        </div>
 
         {/* Results Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Results Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="bg-card border border-border rounded-2xl">
+          <div className="p-6 border-b border-border">
+            <h2 className="text-lg font-light">Results Summary</h2>
+          </div>
+          <div className="p-6">
             <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
-              <div className="p-3 sm:p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
+              <div className="p-3 sm:p-4 bg-green-50 dark:bg-green-950/30 rounded-xl">
                 <div className="text-xl sm:text-2xl font-bold text-green-600">
                   {score}
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground">
+                <div className="text-xs sm:text-sm text-muted-foreground font-light">
                   Correct
                 </div>
               </div>
-              <div className="p-3 sm:p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
+              <div className="p-3 sm:p-4 bg-red-50 dark:bg-red-950/30 rounded-xl">
                 <div className="text-xl sm:text-2xl font-bold text-red-600">
                   {exercises.length - score}
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground">
+                <div className="text-xs sm:text-sm text-muted-foreground font-light">
                   Incorrect
                 </div>
               </div>
-              <div className="p-3 sm:p-4 bg-primary/10 rounded-lg">
-                <div className="text-xl sm:text-2xl font-bold text-primary">
+              <div className="p-3 sm:p-4 bg-library-brass/10 rounded-xl">
+                <div className="text-xl sm:text-2xl font-bold text-library-brass">
                   {exercises.length}
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground">
+                <div className="text-xs sm:text-sm text-muted-foreground font-light">
                   Total
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Button size="lg" className="w-full h-14" onClick={onPhaseComplete}>
+        <button
+          onClick={onPhaseComplete}
+          className="w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 bg-library-brass hover:bg-library-brass/90 text-background transition-colors"
+        >
           Continue to Final Assessment
-          <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
+          <ArrowRight className="h-5 w-5" />
+        </button>
       </div>
     );
   }
@@ -252,63 +254,77 @@ export function InteractiveExercisesPhase({
   return (
     <div className="space-y-6">
       {/* Phase Header */}
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
           <Brain className="h-4 w-4" />
           <span className="text-sm font-medium">
             Phase 5: Practice Exercises
           </span>
         </div>
-        <h1 className="text-2xl font-light">Test Your Understanding</h1>
+        <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
+          Test Your{" "}
+          <span className="font-serif italic text-library-brass">
+            Understanding
+          </span>
+        </h1>
       </div>
 
       {/* Progress */}
-      <Card>
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Progress</span>
-            <span className="text-sm text-muted-foreground">
-              {currentIndex + 1} / {exercises.length}
-            </span>
-          </div>
-          <Progress value={progress} className="h-2" />
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium">Progress</span>
+          <span className="text-sm text-muted-foreground font-light">
+            {currentIndex + 1} / {exercises.length}
+          </span>
+        </div>
+        <div className="w-full bg-background rounded-full h-2 overflow-hidden">
+          <div
+            className="h-full bg-library-brass transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
 
-          {/* Score indicator */}
-          <div className="flex items-center justify-end gap-4 mt-2 text-sm">
-            <span className="flex items-center gap-1 text-green-600">
-              <CheckCircle2 className="h-4 w-4" /> {score}
-            </span>
-            <span className="flex items-center gap-1 text-red-600">
-              <XCircle className="h-4 w-4" /> {results.length - score}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Score indicator */}
+        <div className="flex items-center justify-end gap-4 mt-3 text-sm">
+          <span className="flex items-center gap-1 text-green-600">
+            <CheckCircle2 className="h-4 w-4" /> {score}
+          </span>
+          <span className="flex items-center gap-1 text-red-600">
+            <XCircle className="h-4 w-4" /> {results.length - score}
+          </span>
+        </div>
+      </div>
 
       {/* Current Exercise */}
-      <Card
+      <div
         className={cn(
+          "bg-card border rounded-2xl",
           showFeedback &&
             selectedAnswer !== null &&
             (selectedAnswer === currentExercise.correctAnswer
               ? "border-green-500/50"
               : "border-red-500/50"),
+          !showFeedback && "border-border",
         )}
       >
-        <CardHeader>
+        <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              {getExerciseIcon(currentExercise.type)}
-              {getExerciseTypeLabel(currentExercise.type)}
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
+                {getExerciseIcon(currentExercise.type)}
+              </div>
+              <span className="font-light">
+                {getExerciseTypeLabel(currentExercise.type)}
+              </span>
+            </div>
             {currentExercise.targetWord && (
-              <span className="px-3 py-1 bg-primary/10 rounded-full text-sm font-medium">
+              <span className="px-3 py-1 bg-library-brass/10 rounded-full text-sm font-medium text-library-brass">
                 {currentExercise.targetWord}
               </span>
             )}
           </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        </div>
+        <div className="p-6 space-y-6">
           {/* Question */}
           <div className="text-lg font-medium text-center py-4">
             {currentExercise.question}
@@ -323,31 +339,38 @@ export function InteractiveExercisesPhase({
               const showIncorrect = showFeedback && isSelected && !isCorrect;
 
               return (
-                <Button
+                <button
                   key={index}
-                  variant="outline"
                   className={cn(
-                    "w-full h-auto py-4 justify-start text-left whitespace-normal",
+                    "w-full py-4 px-4 rounded-xl border text-left whitespace-normal flex items-center gap-3 transition-colors",
                     isSelected &&
                       !showFeedback &&
-                      "border-primary bg-primary/5",
+                      "border-library-brass bg-library-brass/5",
                     showCorrect &&
                       "border-green-500 bg-green-50 dark:bg-green-950/30",
                     showIncorrect &&
                       "border-red-500 bg-red-50 dark:bg-red-950/30",
+                    !isSelected &&
+                      !showCorrect &&
+                      !showIncorrect &&
+                      "border-border hover:bg-card/80",
+                    showFeedback && "cursor-default",
                   )}
                   onClick={() => handleAnswer(index)}
                   disabled={showFeedback}
                 >
                   <span
                     className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0",
+                      "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm",
                       isSelected &&
                         !showFeedback &&
-                        "bg-primary text-primary-foreground",
+                        "bg-library-brass text-background",
                       showCorrect && "bg-green-500 text-white",
                       showIncorrect && "bg-red-500 text-white",
-                      !isSelected && !showCorrect && "bg-muted",
+                      !isSelected &&
+                        !showCorrect &&
+                        !showIncorrect &&
+                        "bg-background border border-border",
                     )}
                   >
                     {showCorrect ? (
@@ -358,8 +381,8 @@ export function InteractiveExercisesPhase({
                       String.fromCharCode(65 + index)
                     )}
                   </span>
-                  <span>{option}</span>
-                </Button>
+                  <span className="font-light">{option}</span>
+                </button>
               );
             })}
           </div>
@@ -368,10 +391,10 @@ export function InteractiveExercisesPhase({
           {showFeedback && (
             <div
               className={cn(
-                "p-4 rounded-lg",
+                "p-4 rounded-xl border",
                 selectedAnswer === currentExercise.correctAnswer
-                  ? "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800"
-                  : "bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800",
+                  ? "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800"
+                  : "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800",
               )}
             >
               <div className="flex items-start gap-3">
@@ -394,14 +417,16 @@ export function InteractiveExercisesPhase({
                       : "Not quite right"}
                   </p>
                   {currentExercise.explanation && (
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-sm text-muted-foreground font-light mt-1">
                       {currentExercise.explanation}
                     </p>
                   )}
                   {currentExercise.grammarNote && (
                     <div className="mt-2 flex items-start gap-2 text-sm">
                       <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                      <span>{currentExercise.grammarNote}</span>
+                      <span className="font-light">
+                        {currentExercise.grammarNote}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -411,13 +436,16 @@ export function InteractiveExercisesPhase({
 
           {/* Next Button */}
           {showFeedback && (
-            <Button size="lg" className="w-full" onClick={handleNext}>
+            <button
+              onClick={handleNext}
+              className="w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 bg-library-brass hover:bg-library-brass/90 text-background transition-colors"
+            >
               {isLastExercise ? "See Results" : "Next Question"}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+              <ArrowRight className="h-4 w-4" />
+            </button>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

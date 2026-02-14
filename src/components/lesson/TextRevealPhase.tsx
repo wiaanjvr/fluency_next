@@ -3,9 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Lesson, LessonWord, VocabularyRating } from "@/types/lesson";
 import { WordRating } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
   Eye,
   ArrowRight,
@@ -191,114 +188,121 @@ export function TextRevealPhase({
   return (
     <div className="space-y-6">
       {/* Phase Header */}
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
           <Eye className="h-4 w-4" />
           <span className="text-sm font-medium">
             Phase 4: Text & Vocabulary
           </span>
         </div>
-        <h1 className="text-2xl font-light">Read & Rate Your Knowledge</h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
+          Read & Rate Your{" "}
+          <span className="font-serif italic text-library-brass">
+            Knowledge
+          </span>
+        </h1>
+        <p className="text-muted-foreground font-light max-w-md mx-auto">
           Now you can see the text! Highlighted words are new or due for review.
           Click each one to rate how well you know it.
         </p>
       </div>
 
       {/* Progress */}
-      <Card>
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Vocabulary Progress</span>
-            <span className="text-sm text-muted-foreground">
-              {vocabularyRatings.length} / {wordsToRate.length} words
-            </span>
-          </div>
-          <Progress value={progress} className="h-2" />
-          {wordsToRate.length > 0 && vocabularyRatings.length === 0 && (
-            <p className="text-xs text-muted-foreground mt-2">
-              💡 Tip: Click on highlighted words in the text below to rate your
-              knowledge
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium">Vocabulary Progress</span>
+          <span className="text-sm text-muted-foreground font-light">
+            {vocabularyRatings.length} / {wordsToRate.length} words
+          </span>
+        </div>
+        <div className="w-full bg-background rounded-full h-2 overflow-hidden">
+          <div
+            className="h-full bg-library-brass transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        {wordsToRate.length > 0 && vocabularyRatings.length === 0 && (
+          <p className="text-xs text-muted-foreground font-light mt-3">
+            💡 Tip: Click on highlighted words in the text below to rate your
+            knowledge
+          </p>
+        )}
+      </div>
 
       {/* Audio Player */}
-      <Card className="border-primary/20">
-        <CardContent className="pt-4 pb-4">
-          <audio
-            ref={audioRef}
-            src={lesson.audioUrl}
-            onEnded={() => setIsPlaying(false)}
-          />
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={togglePlayPause}
-              className="h-12 w-12"
-            >
-              {isPlaying ? (
-                <Pause className="h-5 w-5" />
-              ) : (
-                <Play className="h-5 w-5 ml-0.5" />
-              )}
-            </Button>
-            <div>
-              <p className="font-medium">Listen while reading</p>
-              <p className="text-sm text-muted-foreground">
-                Follow along with the audio
-              </p>
-            </div>
+      <div className="bg-card border border-library-brass/20 rounded-2xl p-6">
+        <audio
+          ref={audioRef}
+          src={lesson.audioUrl}
+          onEnded={() => setIsPlaying(false)}
+        />
+        <div className="flex items-center gap-4">
+          <button
+            onClick={togglePlayPause}
+            className="h-12 w-12 rounded-xl bg-transparent border border-border hover:bg-card flex items-center justify-center transition-colors"
+          >
+            {isPlaying ? (
+              <Pause className="h-5 w-5 text-foreground" />
+            ) : (
+              <Play className="h-5 w-5 ml-0.5 text-foreground" />
+            )}
+          </button>
+          <div>
+            <p className="font-medium">Listen while reading</p>
+            <p className="text-sm text-muted-foreground font-light">
+              Follow along with the audio
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Text Display */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            {lesson.title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="bg-card border border-border rounded-2xl">
+        <div className="p-6 border-b border-border flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
+            <BookOpen className="h-5 w-5 text-library-brass" />
+          </div>
+          <h2 className="text-lg font-light">{lesson.title}</h2>
+        </div>
+        <div className="p-6">
           <div className="text-lg leading-relaxed font-serif">
             {lesson.words.map((word, index) => renderWord(word, index))}
           </div>
 
           {/* Legend */}
-          <div className="mt-6 pt-4 border-t flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
+          <div className="mt-6 pt-4 border-t border-border flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 rounded bg-amber-200 dark:bg-amber-700/50" />
-              <span>New word (click to rate)</span>
+              <span className="font-light">New word (click to rate)</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 rounded bg-blue-200 dark:bg-blue-700/50" />
-              <span>Review word</span>
+              <span className="font-light">Review word</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/30" />
-              <span>Rated</span>
+              <span className="font-light">Rated</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Word Rating Modal */}
       {selectedWord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <Card className="border-primary shadow-lg w-full max-w-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg sm:text-xl text-center">
+          <div className="bg-card border border-library-brass rounded-2xl shadow-lg w-full max-w-md">
+            <div className="p-6 border-b border-border text-center">
+              <h2 className="text-lg sm:text-xl font-light">
                 How well do you know:{" "}
-                <span className="text-primary">"{selectedWord.word}"</span>?
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+                <span className="text-library-brass font-serif italic">
+                  "{selectedWord.word}"
+                </span>
+                ?
+              </h2>
+            </div>
+            <div className="p-6 space-y-4">
               {selectedWord.translation && (
-                <p className="text-center text-muted-foreground">
+                <p className="text-center text-muted-foreground font-light">
                   Translation: {selectedWord.translation}
                 </p>
               )}
@@ -306,10 +310,9 @@ export function TextRevealPhase({
               {/* Rating Buttons */}
               <div className="grid grid-cols-2 gap-3">
                 {RATING_OPTIONS.map((option) => (
-                  <Button
+                  <button
                     key={option.rating}
-                    variant="outline"
-                    className="h-auto py-4 flex flex-col items-center gap-1"
+                    className="bg-transparent border border-border hover:bg-card rounded-xl py-4 flex flex-col items-center gap-1 transition-colors"
                     onClick={() => handleRating(option.rating)}
                   >
                     <div className="flex items-center gap-2">
@@ -318,60 +321,61 @@ export function TextRevealPhase({
                       />
                       <span className="font-medium">{option.label}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground font-light">
                       {option.description}
                     </span>
-                  </Button>
+                  </button>
                 ))}
               </div>
 
-              <Button
-                variant="ghost"
-                className="w-full"
+              <button
+                className="w-full py-3 text-muted-foreground hover:text-foreground font-light transition-colors"
                 onClick={() => setSelectedWord(null)}
               >
                 Cancel
-              </Button>
-            </CardContent>
-          </Card>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Translation (collapsed by default) */}
       <details className="group">
         <summary className="cursor-pointer list-none">
-          <Card className="hover:bg-muted/50 transition-colors">
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Show Translation</span>
-                <span className="text-sm text-muted-foreground group-open:hidden">
-                  Click to reveal
-                </span>
-                <span className="text-sm text-muted-foreground hidden group-open:inline">
-                  Translation shown
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-card border border-border rounded-2xl p-6 hover:bg-card/80 transition-colors">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Show Translation</span>
+              <span className="text-sm text-muted-foreground font-light group-open:hidden">
+                Click to reveal
+              </span>
+              <span className="text-sm text-muted-foreground font-light hidden group-open:inline">
+                Translation shown
+              </span>
+            </div>
+          </div>
         </summary>
-        <Card className="mt-2 bg-muted/30">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-muted-foreground">{lesson.translation}</p>
-          </CardContent>
-        </Card>
+        <div className="bg-card border border-border rounded-2xl p-6 mt-2">
+          <p className="text-muted-foreground font-light">
+            {lesson.translation}
+          </p>
+        </div>
       </details>
 
       {/* Continue Button */}
-      <Button
-        size="lg"
-        className="w-full h-14"
+      <button
         onClick={onPhaseComplete}
         disabled={!allWordsRated}
+        className={cn(
+          "w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors",
+          allWordsRated
+            ? "bg-library-brass hover:bg-library-brass/90 text-background"
+            : "bg-card border border-border text-muted-foreground cursor-not-allowed",
+        )}
       >
         {allWordsRated ? (
           <>
             Continue to Exercises
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="h-5 w-5" />
           </>
         ) : (
           <>
@@ -379,7 +383,7 @@ export function TextRevealPhase({
             {wordsToRate.length - vocabularyRatings.length > 1 ? "s" : ""}
           </>
         )}
-      </Button>
+      </button>
     </div>
   );
 }

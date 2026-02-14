@@ -2,9 +2,9 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Lesson, LessonPhase, LESSON_PHASE_ORDER } from "@/types/lesson";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
   ArrowLeft,
   Headphones,
@@ -20,6 +20,7 @@ import {
   Target,
   Mic,
   TrendingUp,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,10 +31,10 @@ interface LessonHeaderProps {
   onExit: () => void;
 }
 
-const PHASE_CONFIG: Record<
-  LessonPhase,
-  { icon: React.ElementType; label: string; color: string }
-> = {
+// Extended type to include both new and legacy phases
+type PhaseConfig = { icon: React.ElementType; label: string; color: string };
+
+const PHASE_CONFIG: Record<LessonPhase, PhaseConfig> = {
   // New 10-phase structure
   "spaced-retrieval-warmup": {
     icon: RefreshCw,
@@ -48,12 +49,12 @@ const PHASE_CONFIG: Record<
   "audio-text": {
     icon: Headphones,
     label: "Listen",
-    color: "text-primary",
+    color: "text-library-brass",
   },
   "first-recall": {
     icon: MessageCircle,
     label: "Recall",
-    color: "text-blue-500",
+    color: "text-library-forest",
   },
   "transcript-reveal": {
     icon: FileText,
@@ -73,7 +74,7 @@ const PHASE_CONFIG: Record<
   shadowing: {
     icon: Mic,
     label: "Shadow",
-    color: "text-pink-500",
+    color: "text-library-forest-light",
   },
   "second-recall": {
     icon: MessagesSquare,
@@ -89,12 +90,12 @@ const PHASE_CONFIG: Record<
   "audio-comprehension": {
     icon: Headphones,
     label: "Listen",
-    color: "text-primary",
+    color: "text-library-brass",
   },
   "verbal-check": {
     icon: MessageCircle,
     label: "Speak",
-    color: "text-blue-500",
+    color: "text-library-forest",
   },
   "conversation-feedback": {
     icon: MessagesSquare,
@@ -134,40 +135,70 @@ export function LessonHeader({
   progress,
   onExit,
 }: LessonHeaderProps) {
-  // Determine which phase order to use based on lesson structure
-  const phaseOrder = lesson.content ? LESSON_PHASE_ORDER : LEGACY_PHASE_ORDER;
+  const phaseOrder: LessonPhase[] = lesson.content
+    ? [...LESSON_PHASE_ORDER]
+    : LEGACY_PHASE_ORDER;
   const currentIndex = phaseOrder.indexOf(currentPhase);
   const config = PHASE_CONFIG[currentPhase];
   const Icon = config?.icon || Brain;
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="container max-w-4xl mx-auto">
+    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
+      <div className="max-w-4xl mx-auto px-6">
         {/* Top Row */}
-        <div className="flex items-center justify-between py-3 px-4">
-          <Button variant="ghost" size="sm" onClick={onExit} className="gap-2">
+        <div className="flex items-center justify-between h-16">
+          {/* Exit Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onExit}
+            className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
+          >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Exit Lesson</span>
+            <span className="hidden sm:inline font-light">Exit</span>
           </Button>
 
-          <div className="flex items-center gap-2">
-            <Icon className={cn("h-4 w-4", config.color)} />
-            <span className="text-sm font-medium">{config.label}</span>
+          {/* Current Phase Indicator */}
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center bg-library-brass/10",
+              )}
+            >
+              <Icon
+                className={cn("h-4 w-4", config?.color || "text-library-brass")}
+              />
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-sm font-medium">{config?.label}</p>
+              <p className="text-xs text-muted-foreground font-light">
+                Step {currentIndex + 1} of {phaseOrder.length}
+              </p>
+            </div>
           </div>
 
-          <span className="text-sm text-muted-foreground">{lesson.level}</span>
+          {/* Level Badge */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-library-brass font-light px-3 py-1 rounded-full bg-library-brass/10">
+              {lesson.level}
+            </span>
+          </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="pb-2 px-4">
-          <Progress value={progress} className="h-1" />
+        <div className="pb-4">
+          <div className="h-1 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-library-brass rounded-full transition-all duration-700 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
 
-        {/* Phase Indicators */}
-        <div className="flex items-center justify-between gap-1 sm:gap-2 px-2 sm:px-4 pb-3 overflow-x-auto">
+        {/* Phase Steps - Minimal */}
+        <div className="flex items-center justify-between gap-1 pb-4 overflow-x-auto scrollbar-hide">
           {phaseOrder.map((phase, index) => {
             const phaseConfig = PHASE_CONFIG[phase];
-            const PhaseIcon = phaseConfig?.icon || Brain;
             const isActive = index === currentIndex;
             const isCompleted = index < currentIndex;
 
@@ -175,32 +206,12 @@ export function LessonHeader({
               <div
                 key={phase}
                 className={cn(
-                  "flex flex-col items-center gap-1 flex-shrink-0",
-                  isActive && "opacity-100",
-                  isCompleted && "opacity-60",
-                  !isActive && !isCompleted && "opacity-30",
+                  "flex-1 h-1 rounded-full transition-all duration-300",
+                  isCompleted && "bg-library-brass",
+                  isActive && "bg-library-brass/50",
+                  !isActive && !isCompleted && "bg-muted",
                 )}
-              >
-                <div
-                  className={cn(
-                    "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-colors",
-                    isActive && "bg-primary text-primary-foreground",
-                    isCompleted && "bg-green-500 text-white",
-                    !isActive && !isCompleted && "bg-muted",
-                  )}
-                >
-                  <PhaseIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-                </div>
-                <span
-                  className={cn(
-                    "text-[10px] hidden sm:block",
-                    isActive && "font-medium",
-                    !isActive && "text-muted-foreground",
-                  )}
-                >
-                  {phaseConfig.label}
-                </span>
-              </div>
+              />
             );
           })}
         </div>
