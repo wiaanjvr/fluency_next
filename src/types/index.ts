@@ -163,23 +163,24 @@ export interface UserWord {
   lemma: string; // base form
 
   // SM-2 Algorithm fields
-  easiness_factor: number; // 1.3 to 2.5+
+  ease_factor: number; // 1.3 to 2.5+ (renamed from easiness_factor to match DB)
   repetitions: number;
-  interval_days: number;
+  interval: number; // renamed from interval_days to match DB
   next_review: string;
 
   // Learning state
   status: WordStatus;
-  times_seen: number;
-  times_rated: number;
 
-  // Tracking
-  first_seen: string;
-  last_seen: string;
+  // Tracking (renamed to match DB schema)
+  created_at: string; // renamed from first_seen
+  updated_at: string; // renamed from last_seen
+  last_reviewed?: string; // DB column for last review timestamp
+  last_rated_at?: string; // DB column for last rating timestamp
 
   // Metadata
   part_of_speech?: string;
   frequency_rank?: number;
+  rating?: number; // DB column for current rating
 }
 
 export interface WordInteraction {
@@ -242,6 +243,7 @@ export interface StoryGenerationParams {
   language: string;
   level: ProficiencyLevel;
   topic?: string;
+  content_type?: string; // narrative, dialogue, descriptive, opinion
   word_count_target: number;
   new_word_percentage: number; // e.g., 0.05 for 5%
   prioritize_review: boolean; // use words due for review
@@ -267,3 +269,15 @@ export interface WordDueForReview {
 
 // Re-export lesson types
 export * from "./lesson";
+
+// Re-export foundation vocabulary types
+export * from "./foundation-vocabulary";
+
+// Re-export sentence transition types (Phase 1: 100-300 words)
+export * from "./sentence-transition";
+
+// Re-export micro-stories types (Phase 2: 300-500 words)
+export * from "./micro-stories";
+
+// Re-export progression gateway types
+export * from "./progression";

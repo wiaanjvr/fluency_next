@@ -579,6 +579,123 @@ export function AnimatedProgressBar({
 }
 
 // ============================================================================
+// FadeIn - Simple fade in animation
+// ============================================================================
+interface FadeInProps {
+  children: React.ReactNode;
+  delay?: number;
+  duration?: number;
+  className?: string;
+}
+
+export function FadeIn({
+  children,
+  delay = 0,
+  duration = 300,
+  className,
+}: FadeInProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const timer = setTimeout(() => setIsVisible(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  return (
+    <div
+      className={cn(
+        "transition-all ease-out",
+        mounted
+          ? isVisible
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-2"
+          : "opacity-100 translate-y-0",
+        className,
+      )}
+      style={{ transitionDuration: `${duration}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ============================================================================
+// ScaleIn - Scale up animation with fade
+// ============================================================================
+interface ScaleInProps {
+  children: React.ReactNode;
+  delay?: number;
+  duration?: number;
+  className?: string;
+}
+
+export function ScaleIn({
+  children,
+  delay = 0,
+  duration = 300,
+  className,
+}: ScaleInProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const timer = setTimeout(() => setIsVisible(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  return (
+    <div
+      className={cn(
+        "transition-all ease-out",
+        mounted
+          ? isVisible
+            ? "opacity-100 scale-100"
+            : "opacity-0 scale-90"
+          : "opacity-100 scale-100",
+        className,
+      )}
+      style={{ transitionDuration: `${duration}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ============================================================================
+// ShakeHorizontal - Shake animation for wrong answers
+// ============================================================================
+interface ShakeHorizontalProps {
+  children: React.ReactNode;
+  trigger: boolean;
+  className?: string;
+}
+
+export function ShakeHorizontal({
+  children,
+  trigger,
+  className,
+}: ShakeHorizontalProps) {
+  const [shaking, setShaking] = useState(false);
+
+  useEffect(() => {
+    if (trigger) {
+      setShaking(true);
+      const timer = setTimeout(() => setShaking(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [trigger]);
+
+  return (
+    <div className={cn(shaking && "animate-shake-gentle", className)}>
+      {children}
+    </div>
+  );
+}
+
+// ============================================================================
 // Completion Celebration
 // ============================================================================
 interface CompletionCelebrationProps {

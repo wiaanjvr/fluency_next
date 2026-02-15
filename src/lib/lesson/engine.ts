@@ -220,7 +220,20 @@ export function generateLessonPrompt(
   level: ProficiencyLevel,
   language: string,
 ): string {
-  const { targetWordCount, topicPreference, grammarFocus } = params;
+  const { targetWordCount, topicPreference, contentType, grammarFocus } =
+    params;
+
+  // Content type instructions for variety
+  const contentTypeInstructions: Record<string, string> = {
+    narrative:
+      "Format: NARRATIVE - Write a short story with a clear beginning, middle, and end. Include characters and a simple plot arc.",
+    dialogue:
+      "Format: DIALOGUE - Write a natural conversation between 2-3 people. Use proper quotation marks and speaker labels (e.g., 'Marie:', 'Pierre:'). Make the exchanges realistic and engaging.",
+    descriptive:
+      "Format: DESCRIPTIVE - Write a vivid description of a place, scene, or experience. Use sensory details (sight, sound, smell, touch, taste) to paint a picture.",
+    opinion:
+      "Format: OPINION PIECE - Write from a first-person perspective sharing thoughts on a topic. Include reasoning, examples, and personal reflections.",
+  };
 
   // Build word requirements
   const mustUseWords = [
@@ -261,8 +274,14 @@ Write the single sentence now. Return ONLY the sentence in ${language}, nothing 
   const targetKnownWordOccurrences = Math.floor(targetWordCount * 0.95);
   const targetNewWordOccurrences = Math.ceil(targetWordCount * 0.05);
 
-  let prompt = `Generate a natural ${language} text for ${level} learners.
+  // Get content type instruction if specified
+  const contentTypeInstruction =
+    contentType && contentTypeInstructions[contentType]
+      ? `\n${contentTypeInstructions[contentType]}\n`
+      : "";
 
+  let prompt = `Generate a natural ${language} text for ${level} learners.
+${contentTypeInstruction}
 🚨 CRITICAL: 95% KNOWN / 5% NEW WORD RATIO 🚨
 This is COMPREHENSIBLE INPUT - the learner MUST understand 95% of the content!
 
@@ -282,8 +301,9 @@ Exception: Basic articles (le/la/les/un/une/des) and conjunctions (et/ou/mais) a
 REQUIREMENTS:
 - Level: ${level} (${getLevelDescription(level)})
 ${topicPreference ? `- Topic: ${topicPreference}` : "- Topic: everyday situations"}
+${contentType ? `- Content style: ${contentType}` : "- Content style: engaging narrative"}
 ${grammarFocus?.length ? `- Grammar focus: ${grammarFocus.join(", ")}` : ""}
-- Write engaging, natural content with a complete narrative
+- Write engaging, natural content appropriate for the specified style
 - Use simple sentence structures appropriate for ${level}
 - Make new words understandable from context
 - Include each new/review word 2-3 times naturally

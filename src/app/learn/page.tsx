@@ -14,7 +14,33 @@ import {
   Trophy,
   Target,
   ChevronRight,
+  Sparkles,
+  MessageSquare,
 } from "lucide-react";
+
+// Content types for variety (users with 100+ words)
+const CONTENT_TYPES = [
+  { id: "narrative", label: "Narrative", description: "A short story or tale" },
+  {
+    id: "dialogue",
+    label: "Dialogue",
+    description: "A conversation between people",
+  },
+  {
+    id: "descriptive",
+    label: "Descriptive",
+    description: "A vivid description of a place or scene",
+  },
+  {
+    id: "opinion",
+    label: "Opinion Piece",
+    description: "Thoughts and perspectives on a topic",
+  },
+] as const;
+
+type ContentType = (typeof CONTENT_TYPES)[number]["id"] | "";
+
+const VOCABULARY_THRESHOLD = 100;
 
 export default function LearnPage() {
   const [loading, setLoading] = useState(true);
@@ -22,6 +48,13 @@ export default function LearnPage() {
   const [currentStory, setCurrentStory] = useState<GeneratedStory | null>(null);
   const [userLevel, setUserLevel] = useState<ProficiencyLevel>("A1");
   const [stats, setStats] = useState<any>(null);
+
+  // Custom prompt state (for users with 100+ vocabulary)
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [selectedContentType, setSelectedContentType] =
+    useState<ContentType>("");
+  const [showCustomOptions, setShowCustomOptions] = useState(false);
+
   const router = useRouter();
   const supabase = createClient();
 
@@ -83,13 +116,27 @@ export default function LearnPage() {
   const handleGenerateStory = async () => {
     setGenerating(true);
     try {
+      // Build request with optional custom topic and content type
+      const requestBody: Record<string, unknown> = {
+        level: userLevel,
+        prioritize_review: true,
+      };
+
+      // Add custom topic if user has enough vocabulary (100+ words)
+      const vocabularyCount = stats?.total || 0;
+      if (vocabularyCount >= VOCABULARY_THRESHOLD && customPrompt.trim()) {
+        requestBody.topic = customPrompt.trim();
+      }
+
+      // Add content type if selected
+      if (vocabularyCount >= VOCABULARY_THRESHOLD && selectedContentType) {
+        requestBody.content_type = selectedContentType;
+      }
+
       const response = await fetch("/api/stories/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          level: userLevel,
-          prioritize_review: true,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -98,6 +145,11 @@ export default function LearnPage() {
 
       const data = await response.json();
       setCurrentStory(data.story);
+
+      // Reset custom options for next time
+      setCustomPrompt("");
+      setSelectedContentType("");
+      setShowCustomOptions(false);
     } catch (error) {
       console.error("Error generating story:", error);
       alert("Failed to generate story. Please try again.");
@@ -259,6 +311,51 @@ export default function LearnPage() {
           </div>
         )}
 
+        {/* Sentence Learning - Unlocked at 100+ words */}
+        {stats && stats.total >= VOCABULARY_THRESHOLD && (
+          <div className="mb-12">
+            <div
+              className="bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-indigo-500/10 border border-blue-200 dark:border-blue-800 rounded-2xl p-8 cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => router.push("/learn/sentences")}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <MessageSquare className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-xl font-medium">Sentence Building</h3>
+                      <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 rounded-full">
+                        NEW
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground font-light">
+                      You've unlocked sentence learning! Combine words into real
+                      French sentences.
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <div className="mt-4 flex gap-6 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                  Listen First
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-purple-500" />
+                  Pattern Recognition
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-green-500" />
+                  Comprehensible Input
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Generate New Story */}
         <div className="bg-card border border-border rounded-2xl p-10 relative overflow-hidden mb-12">
           {/* Ambient gradient */}
@@ -282,7 +379,84 @@ export default function LearnPage() {
                 Curated with 95% familiar words and 5% new vocabulary,
                 prioritizing words due for review.
               </p>
+              {stats && stats.total >= VOCABULARY_THRESHOLD && (
+                <p className="text-sm text-library-brass/80 font-medium">
+                  🎉 {stats.total} words learned — custom topics unlocked!
+                </p>
+              )}
             </div>
+
+            {/* Custom Options for Advanced Users (100+ words) */}
+            {stats && stats.total >= VOCABULARY_THRESHOLD && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setShowCustomOptions(!showCustomOptions)}
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {showCustomOptions ? "Hide" : "Customize"} your story
+                </button>
+
+                {showCustomOptions && (
+                  <div className="bg-background/50 border border-border rounded-2xl p-6 space-y-5 text-left">
+                    {/* Custom Topic Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4 text-library-brass" />
+                        What&apos;s on your mind?
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        Tell us a topic and we&apos;ll create a story about it
+                      </p>
+                      <textarea
+                        value={customPrompt}
+                        onChange={(e) => setCustomPrompt(e.target.value)}
+                        placeholder="e.g., going to the cinema, cooking dinner, a day at the beach..."
+                        className="w-full p-3 rounded-xl bg-muted/50 border border-border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-library-brass/50 min-h-[80px]"
+                        maxLength={200}
+                      />
+                      <div className="text-xs text-muted-foreground text-right">
+                        {customPrompt.length}/200
+                      </div>
+                    </div>
+
+                    {/* Content Type Selection */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Content Style
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        Choose how the story should be structured
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {CONTENT_TYPES.map((type) => (
+                          <button
+                            key={type.id}
+                            onClick={() =>
+                              setSelectedContentType(
+                                selectedContentType === type.id ? "" : type.id,
+                              )
+                            }
+                            className={`p-3 rounded-xl border text-left transition-all ${
+                              selectedContentType === type.id
+                                ? "border-library-brass bg-library-brass/10"
+                                : "border-border hover:border-library-brass/50"
+                            }`}
+                          >
+                            <div className="text-sm font-medium">
+                              {type.label}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {type.description}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <button
               onClick={handleGenerateStory}
@@ -305,8 +479,8 @@ export default function LearnPage() {
             {stats && stats.total === 0 && (
               <div className="p-5 rounded-xl bg-muted/50 border border-border">
                 <p className="text-sm font-light text-muted-foreground">
-                  Your first session. We'll introduce common words and begin
-                  building your vocabulary foundation.
+                  Your first session. We&apos;ll introduce common words and
+                  begin building your vocabulary foundation.
                 </p>
               </div>
             )}

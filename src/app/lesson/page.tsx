@@ -42,7 +42,29 @@ import {
 } from "@/components/lesson";
 
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, Sparkles, MessageSquare } from "lucide-react";
+
+// Content types for variety (users with 100+ words)
+const CONTENT_TYPES = [
+  { id: "narrative", label: "Narrative", description: "A short story or tale" },
+  {
+    id: "dialogue",
+    label: "Dialogue",
+    description: "A conversation between people",
+  },
+  {
+    id: "descriptive",
+    label: "Descriptive",
+    description: "A vivid description of a place or scene",
+  },
+  {
+    id: "opinion",
+    label: "Opinion Piece",
+    description: "Thoughts and perspectives on a topic",
+  },
+] as const;
+
+type ContentType = (typeof CONTENT_TYPES)[number]["id"];
 
 // Legacy phase order (for old lessons without content structure)
 const LEGACY_PHASE_ORDER: LessonPhase[] = [
@@ -113,6 +135,15 @@ export default function LessonPage() {
   const [overallProgress, setOverallProgress] = useState(0);
   const [lessonStartTime, setLessonStartTime] = useState<number | null>(null);
 
+  // Custom prompt and content type (for users with 100+ vocabulary)
+  const [vocabularyCount, setVocabularyCount] = useState(0);
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [selectedContentType, setSelectedContentType] = useState<
+    ContentType | ""
+  >("");
+  const [showCustomOptions, setShowCustomOptions] = useState(false);
+  const VOCABULARY_THRESHOLD = 100;
+
   // Get the appropriate phase order based on lesson structure
   const getPhaseOrder = useCallback(() => {
     return isNewLessonStructure(lesson)
@@ -144,6 +175,17 @@ export default function LessonPage() {
         return;
       }
 
+      // Fetch vocabulary stats to determine if custom prompt is available
+      try {
+        const statsResponse = await fetch("/api/words/stats");
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          setVocabularyCount(statsData.stats?.total || 0);
+        }
+      } catch (statsError) {
+        console.error("Error fetching vocabulary stats:", statsError);
+      }
+
       // Check for incomplete lesson
       const { data: incompleteLessons } = await supabase
         .from("lessons")
@@ -172,15 +214,29 @@ export default function LessonPage() {
   };
 
   // Generate a new lesson
-  const handleGenerateLesson = async () => {
+  const handleGenerateLesson = async (customTopicOverride?: string) => {
     setGenerating(true);
     try {
+      // Prepare request body with optional custom topic and content type
+      const requestBody: Record<string, unknown> = {
+        prioritizeReview: true,
+      };
+
+      // Add custom topic if user has enough vocabulary (100+ words)
+      const topicToUse = customTopicOverride || customPrompt;
+      if (vocabularyCount >= VOCABULARY_THRESHOLD && topicToUse.trim()) {
+        requestBody.topic = topicToUse.trim();
+      }
+
+      // Add content type variation if selected
+      if (vocabularyCount >= VOCABULARY_THRESHOLD && selectedContentType) {
+        requestBody.contentType = selectedContentType;
+      }
+
       const response = await fetch("/api/lesson/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prioritizeReview: true,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -198,6 +254,11 @@ export default function LessonPage() {
       setListenCount(0);
       setOverallProgress(0);
       setLessonStartTime(Date.now());
+
+      // Reset custom prompt for next time
+      setCustomPrompt("");
+      setSelectedContentType("");
+      setShowCustomOptions(false);
 
       // Reset new phase state
       setWarmupResponses({});
@@ -516,6 +577,8 @@ export default function LessonPage() {
 
   // No lesson - show generation screen
   if (!lesson && !completed) {
+    const canCustomize = vocabularyCount >= VOCABULARY_THRESHOLD;
+
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="max-w-lg w-full text-center space-y-10">
@@ -537,12 +600,87 @@ export default function LessonPage() {
               Generate a personalized lesson based on your vocabulary and
               progress.
             </p>
+            {canCustomize && (
+              <p className="text-sm text-library-brass/80 font-medium">
+                🎉 {vocabularyCount} words learned — custom topics unlocked!
+              </p>
+            )}
           </div>
+
+          {/* Custom Options for Advanced Users (100+ words) */}
+          {canCustomize && (
+            <div className="space-y-4">
+              <button
+                onClick={() => setShowCustomOptions(!showCustomOptions)}
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Sparkles className="h-4 w-4" />
+                {showCustomOptions ? "Hide" : "Customize"} your lesson
+              </button>
+
+              {showCustomOptions && (
+                <div className="bg-card border border-border rounded-2xl p-6 space-y-5 text-left">
+                  {/* Custom Topic Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-library-brass" />
+                      What&apos;s on your mind?
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      Tell us a topic and we&apos;ll create a lesson about it
+                    </p>
+                    <textarea
+                      value={customPrompt}
+                      onChange={(e) => setCustomPrompt(e.target.value)}
+                      placeholder="e.g., ordering at a café, my trip to Paris, discussing the weather..."
+                      className="w-full p-3 rounded-xl bg-muted/50 border border-border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-library-brass/50 min-h-[80px]"
+                      maxLength={200}
+                    />
+                    <div className="text-xs text-muted-foreground text-right">
+                      {customPrompt.length}/200
+                    </div>
+                  </div>
+
+                  {/* Content Type Selection */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Content Style</label>
+                    <p className="text-xs text-muted-foreground">
+                      Choose how the lesson should be structured
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {CONTENT_TYPES.map((type) => (
+                        <button
+                          key={type.id}
+                          onClick={() =>
+                            setSelectedContentType(
+                              selectedContentType === type.id ? "" : type.id,
+                            )
+                          }
+                          className={`p-3 rounded-xl border text-left transition-all ${
+                            selectedContentType === type.id
+                              ? "border-library-brass bg-library-brass/10"
+                              : "border-border hover:border-library-brass/50"
+                          }`}
+                        >
+                          <div className="text-sm font-medium">
+                            {type.label}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {type.description}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Actions */}
           <div className="space-y-4">
             <button
-              onClick={handleGenerateLesson}
+              onClick={() => handleGenerateLesson()}
               disabled={generating}
               className="w-full py-4 px-8 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >

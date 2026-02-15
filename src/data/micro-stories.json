@@ -1,0 +1,1442 @@
+{
+  "description": "Micro-stories for Phase 2 (300-500 known words). Short narrative stories using primarily known vocabulary with 0-2 new words per story.",
+  "metadata": {
+    "unlockThreshold": 300,
+    "maxNewWordsPerStory": 2,
+    "sentenceCountProgression": [3, 4, 5]
+  },
+  "stories": [
+    {
+      "id": "ms-001",
+      "title": "Le chat de Marie",
+      "titleTranslation": "Marie's cat",
+      "difficulty": "beginner",
+      "sentenceCount": 3,
+      "totalWordCount": 15,
+      "requiredKnownWords": 300,
+      "vocabularyLevel": "300-350",
+      "theme": "animals",
+      "tags": ["animals", "pets", "simple"],
+      "newWords": [],
+      "sentences": [
+        {
+          "id": "ms-001-s1",
+          "order": 1,
+          "french": "Marie a un chat.",
+          "english": "Marie has a cat.",
+          "words": [
+            {
+              "text": "Marie",
+              "cleanText": "Marie",
+              "lemma": "marie",
+              "translation": "Marie",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "a",
+              "cleanText": "a",
+              "lemma": "avoir",
+              "translation": "has",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "un",
+              "cleanText": "un",
+              "lemma": "un",
+              "translation": "a",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "chat.",
+              "cleanText": "chat",
+              "lemma": "chat",
+              "translation": "cat",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-001-s2",
+          "order": 2,
+          "french": "Le chat est petit.",
+          "english": "The cat is small.",
+          "words": [
+            {
+              "text": "Le",
+              "cleanText": "Le",
+              "lemma": "le",
+              "translation": "the",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "chat",
+              "cleanText": "chat",
+              "lemma": "chat",
+              "translation": "cat",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "est",
+              "cleanText": "est",
+              "lemma": "être",
+              "translation": "is",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "petit.",
+              "cleanText": "petit",
+              "lemma": "petit",
+              "translation": "small",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-001-s3",
+          "order": 3,
+          "french": "Marie aime le chat.",
+          "english": "Marie loves the cat.",
+          "words": [
+            {
+              "text": "Marie",
+              "cleanText": "Marie",
+              "lemma": "marie",
+              "translation": "Marie",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "aime",
+              "cleanText": "aime",
+              "lemma": "aimer",
+              "translation": "loves",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "le",
+              "cleanText": "le",
+              "lemma": "le",
+              "translation": "the",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "chat.",
+              "cleanText": "chat",
+              "lemma": "chat",
+              "translation": "cat",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "id": "ms-001-q1",
+          "questionType": "true-false",
+          "questionText": "Marie has a dog.",
+          "questionLanguage": "english",
+          "correctAnswer": false,
+          "explanation": "Marie has a cat (un chat), not a dog."
+        },
+        {
+          "id": "ms-001-q2",
+          "questionType": "multiple-choice",
+          "questionText": "How is the cat described?",
+          "questionLanguage": "english",
+          "options": ["big", "small", "old", "young"],
+          "correctOptionIndex": 1,
+          "explanation": "The cat is described as 'petit' (small)."
+        }
+      ]
+    },
+    {
+      "id": "ms-002",
+      "title": "Au café",
+      "titleTranslation": "At the café",
+      "difficulty": "beginner",
+      "sentenceCount": 3,
+      "totalWordCount": 18,
+      "requiredKnownWords": 300,
+      "vocabularyLevel": "300-350",
+      "theme": "food",
+      "tags": ["food", "drinks", "cafe", "simple"],
+      "newWords": [
+        {
+          "word": "croissant",
+          "lemma": "croissant",
+          "translation": "croissant (pastry)",
+          "partOfSpeech": "noun",
+          "contextClue": "Something you eat for breakfast at a café",
+          "sentenceIndex": 1,
+          "firstAppearanceIndex": 2
+        }
+      ],
+      "sentences": [
+        {
+          "id": "ms-002-s1",
+          "order": 1,
+          "french": "Je suis au café.",
+          "english": "I am at the café.",
+          "words": [
+            {
+              "text": "Je",
+              "cleanText": "Je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "suis",
+              "cleanText": "suis",
+              "lemma": "être",
+              "translation": "am",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "au",
+              "cleanText": "au",
+              "lemma": "au",
+              "translation": "at the",
+              "partOfSpeech": "preposition",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "café.",
+              "cleanText": "café",
+              "lemma": "café",
+              "translation": "café",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-002-s2",
+          "order": 2,
+          "french": "Je mange un croissant.",
+          "english": "I eat a croissant.",
+          "words": [
+            {
+              "text": "Je",
+              "cleanText": "Je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "mange",
+              "cleanText": "mange",
+              "lemma": "manger",
+              "translation": "eat",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "un",
+              "cleanText": "un",
+              "lemma": "un",
+              "translation": "a",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "croissant.",
+              "cleanText": "croissant",
+              "lemma": "croissant",
+              "translation": "croissant",
+              "partOfSpeech": "noun",
+              "isNew": true,
+              "isKnown": false,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-002-s3",
+          "order": 3,
+          "french": "Le croissant est bon.",
+          "english": "The croissant is good.",
+          "words": [
+            {
+              "text": "Le",
+              "cleanText": "Le",
+              "lemma": "le",
+              "translation": "the",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "croissant",
+              "cleanText": "croissant",
+              "lemma": "croissant",
+              "translation": "croissant",
+              "partOfSpeech": "noun",
+              "isNew": true,
+              "isKnown": false,
+              "position": 1
+            },
+            {
+              "text": "est",
+              "cleanText": "est",
+              "lemma": "être",
+              "translation": "is",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "bon.",
+              "cleanText": "bon",
+              "lemma": "bon",
+              "translation": "good",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "id": "ms-002-q1",
+          "questionType": "true-false",
+          "questionText": "The narrator is at home.",
+          "questionLanguage": "english",
+          "correctAnswer": false,
+          "explanation": "The narrator is at the café (au café)."
+        },
+        {
+          "id": "ms-002-q2",
+          "questionType": "word-meaning",
+          "questionText": "What does 'croissant' mean?",
+          "questionLanguage": "english",
+          "targetWord": "croissant",
+          "meaningOptions": ["a drink", "a pastry", "a table", "a book"],
+          "correctMeaningIndex": 1,
+          "explanation": "A croissant is a flaky French pastry."
+        }
+      ]
+    },
+    {
+      "id": "ms-003",
+      "title": "Ma famille",
+      "titleTranslation": "My family",
+      "difficulty": "easy",
+      "sentenceCount": 4,
+      "totalWordCount": 24,
+      "requiredKnownWords": 320,
+      "vocabularyLevel": "300-350",
+      "theme": "family",
+      "tags": ["family", "people", "relationships"],
+      "newWords": [],
+      "sentences": [
+        {
+          "id": "ms-003-s1",
+          "order": 1,
+          "french": "J'ai une grande famille.",
+          "english": "I have a big family.",
+          "words": [
+            {
+              "text": "J'ai",
+              "cleanText": "ai",
+              "lemma": "avoir",
+              "translation": "I have",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "une",
+              "cleanText": "une",
+              "lemma": "un",
+              "translation": "a",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "grande",
+              "cleanText": "grande",
+              "lemma": "grand",
+              "translation": "big",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "famille.",
+              "cleanText": "famille",
+              "lemma": "famille",
+              "translation": "family",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-003-s2",
+          "order": 2,
+          "french": "Mon père est grand.",
+          "english": "My father is tall.",
+          "words": [
+            {
+              "text": "Mon",
+              "cleanText": "Mon",
+              "lemma": "mon",
+              "translation": "my",
+              "partOfSpeech": "determiner",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "père",
+              "cleanText": "père",
+              "lemma": "père",
+              "translation": "father",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "est",
+              "cleanText": "est",
+              "lemma": "être",
+              "translation": "is",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "grand.",
+              "cleanText": "grand",
+              "lemma": "grand",
+              "translation": "tall",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-003-s3",
+          "order": 3,
+          "french": "Ma mère est petite.",
+          "english": "My mother is short.",
+          "words": [
+            {
+              "text": "Ma",
+              "cleanText": "Ma",
+              "lemma": "mon",
+              "translation": "my",
+              "partOfSpeech": "determiner",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "mère",
+              "cleanText": "mère",
+              "lemma": "mère",
+              "translation": "mother",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "est",
+              "cleanText": "est",
+              "lemma": "être",
+              "translation": "is",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "petite.",
+              "cleanText": "petite",
+              "lemma": "petit",
+              "translation": "short/small",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-003-s4",
+          "order": 4,
+          "french": "J'aime ma famille.",
+          "english": "I love my family.",
+          "words": [
+            {
+              "text": "J'aime",
+              "cleanText": "aime",
+              "lemma": "aimer",
+              "translation": "I love",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "ma",
+              "cleanText": "ma",
+              "lemma": "mon",
+              "translation": "my",
+              "partOfSpeech": "determiner",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "famille.",
+              "cleanText": "famille",
+              "lemma": "famille",
+              "translation": "family",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            }
+          ]
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "id": "ms-003-q1",
+          "questionType": "multiple-choice",
+          "questionText": "Who is tall in the family?",
+          "questionLanguage": "english",
+          "options": ["The mother", "The father", "The narrator", "Everyone"],
+          "correctOptionIndex": 1,
+          "explanation": "The father (le père) is described as tall (grand)."
+        }
+      ]
+    },
+    {
+      "id": "ms-004",
+      "title": "Le matin",
+      "titleTranslation": "The morning",
+      "difficulty": "easy",
+      "sentenceCount": 4,
+      "totalWordCount": 26,
+      "requiredKnownWords": 330,
+      "vocabularyLevel": "300-350",
+      "theme": "daily-life",
+      "tags": ["routine", "morning", "daily-life"],
+      "newWords": [
+        {
+          "word": "douche",
+          "lemma": "douche",
+          "translation": "shower",
+          "partOfSpeech": "noun",
+          "contextClue": "Something you take in the morning to get clean",
+          "sentenceIndex": 1,
+          "firstAppearanceIndex": 3
+        }
+      ],
+      "sentences": [
+        {
+          "id": "ms-004-s1",
+          "order": 1,
+          "french": "Le matin, je me lève.",
+          "english": "In the morning, I get up.",
+          "words": [
+            {
+              "text": "Le",
+              "cleanText": "Le",
+              "lemma": "le",
+              "translation": "the",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "matin,",
+              "cleanText": "matin",
+              "lemma": "matin",
+              "translation": "morning",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "je",
+              "cleanText": "je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "me",
+              "cleanText": "me",
+              "lemma": "me",
+              "translation": "myself",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            },
+            {
+              "text": "lève.",
+              "cleanText": "lève",
+              "lemma": "lever",
+              "translation": "get up",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 4
+            }
+          ]
+        },
+        {
+          "id": "ms-004-s2",
+          "order": 2,
+          "french": "Je prends une douche.",
+          "english": "I take a shower.",
+          "words": [
+            {
+              "text": "Je",
+              "cleanText": "Je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "prends",
+              "cleanText": "prends",
+              "lemma": "prendre",
+              "translation": "take",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "une",
+              "cleanText": "une",
+              "lemma": "un",
+              "translation": "a",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "douche.",
+              "cleanText": "douche",
+              "lemma": "douche",
+              "translation": "shower",
+              "partOfSpeech": "noun",
+              "isNew": true,
+              "isKnown": false,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-004-s3",
+          "order": 3,
+          "french": "Je mange mon petit déjeuner.",
+          "english": "I eat my breakfast.",
+          "words": [
+            {
+              "text": "Je",
+              "cleanText": "Je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "mange",
+              "cleanText": "mange",
+              "lemma": "manger",
+              "translation": "eat",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "mon",
+              "cleanText": "mon",
+              "lemma": "mon",
+              "translation": "my",
+              "partOfSpeech": "determiner",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "petit",
+              "cleanText": "petit",
+              "lemma": "petit",
+              "translation": "small",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            },
+            {
+              "text": "déjeuner.",
+              "cleanText": "déjeuner",
+              "lemma": "déjeuner",
+              "translation": "breakfast/lunch",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 4
+            }
+          ]
+        },
+        {
+          "id": "ms-004-s4",
+          "order": 4,
+          "french": "Je suis prêt pour le jour.",
+          "english": "I am ready for the day.",
+          "words": [
+            {
+              "text": "Je",
+              "cleanText": "Je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "suis",
+              "cleanText": "suis",
+              "lemma": "être",
+              "translation": "am",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "prêt",
+              "cleanText": "prêt",
+              "lemma": "prêt",
+              "translation": "ready",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "pour",
+              "cleanText": "pour",
+              "lemma": "pour",
+              "translation": "for",
+              "partOfSpeech": "preposition",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            },
+            {
+              "text": "le",
+              "cleanText": "le",
+              "lemma": "le",
+              "translation": "the",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 4
+            },
+            {
+              "text": "jour.",
+              "cleanText": "jour",
+              "lemma": "jour",
+              "translation": "day",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 5
+            }
+          ]
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "id": "ms-004-q1",
+          "questionType": "word-meaning",
+          "questionText": "What does 'douche' mean?",
+          "questionLanguage": "english",
+          "targetWord": "douche",
+          "meaningOptions": ["bed", "shower", "breakfast", "clothes"],
+          "correctMeaningIndex": 1,
+          "explanation": "Douche means shower in French."
+        }
+      ]
+    },
+    {
+      "id": "ms-005",
+      "title": "Au parc",
+      "titleTranslation": "At the park",
+      "difficulty": "easy",
+      "sentenceCount": 5,
+      "totalWordCount": 32,
+      "requiredKnownWords": 350,
+      "vocabularyLevel": "350-400",
+      "theme": "daily-life",
+      "tags": ["outdoors", "park", "weather"],
+      "newWords": [
+        {
+          "word": "banc",
+          "lemma": "banc",
+          "translation": "bench",
+          "partOfSpeech": "noun",
+          "contextClue": "Something you sit on in a park",
+          "sentenceIndex": 2,
+          "firstAppearanceIndex": 5
+        }
+      ],
+      "sentences": [
+        {
+          "id": "ms-005-s1",
+          "order": 1,
+          "french": "Aujourd'hui, il fait beau.",
+          "english": "Today, the weather is nice.",
+          "words": [
+            {
+              "text": "Aujourd'hui,",
+              "cleanText": "Aujourd'hui",
+              "lemma": "aujourd'hui",
+              "translation": "today",
+              "partOfSpeech": "adverb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "il",
+              "cleanText": "il",
+              "lemma": "il",
+              "translation": "it",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "fait",
+              "cleanText": "fait",
+              "lemma": "faire",
+              "translation": "makes/is",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "beau.",
+              "cleanText": "beau",
+              "lemma": "beau",
+              "translation": "nice/beautiful",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-005-s2",
+          "order": 2,
+          "french": "Je vais au parc.",
+          "english": "I go to the park.",
+          "words": [
+            {
+              "text": "Je",
+              "cleanText": "Je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "vais",
+              "cleanText": "vais",
+              "lemma": "aller",
+              "translation": "go",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "au",
+              "cleanText": "au",
+              "lemma": "au",
+              "translation": "to the",
+              "partOfSpeech": "preposition",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "parc.",
+              "cleanText": "parc",
+              "lemma": "parc",
+              "translation": "park",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-005-s3",
+          "order": 3,
+          "french": "Je m'assieds sur un banc.",
+          "english": "I sit on a bench.",
+          "words": [
+            {
+              "text": "Je",
+              "cleanText": "Je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "m'assieds",
+              "cleanText": "assieds",
+              "lemma": "asseoir",
+              "translation": "sit",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "sur",
+              "cleanText": "sur",
+              "lemma": "sur",
+              "translation": "on",
+              "partOfSpeech": "preposition",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "un",
+              "cleanText": "un",
+              "lemma": "un",
+              "translation": "a",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            },
+            {
+              "text": "banc.",
+              "cleanText": "banc",
+              "lemma": "banc",
+              "translation": "bench",
+              "partOfSpeech": "noun",
+              "isNew": true,
+              "isKnown": false,
+              "position": 4
+            }
+          ]
+        },
+        {
+          "id": "ms-005-s4",
+          "order": 4,
+          "french": "Je regarde les oiseaux.",
+          "english": "I watch the birds.",
+          "words": [
+            {
+              "text": "Je",
+              "cleanText": "Je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "regarde",
+              "cleanText": "regarde",
+              "lemma": "regarder",
+              "translation": "watch",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "les",
+              "cleanText": "les",
+              "lemma": "le",
+              "translation": "the",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "oiseaux.",
+              "cleanText": "oiseaux",
+              "lemma": "oiseau",
+              "translation": "birds",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-005-s5",
+          "order": 5,
+          "french": "Le parc est très calme.",
+          "english": "The park is very calm.",
+          "words": [
+            {
+              "text": "Le",
+              "cleanText": "Le",
+              "lemma": "le",
+              "translation": "the",
+              "partOfSpeech": "article",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "parc",
+              "cleanText": "parc",
+              "lemma": "parc",
+              "translation": "park",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "est",
+              "cleanText": "est",
+              "lemma": "être",
+              "translation": "is",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "très",
+              "cleanText": "très",
+              "lemma": "très",
+              "translation": "very",
+              "partOfSpeech": "adverb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            },
+            {
+              "text": "calme.",
+              "cleanText": "calme",
+              "lemma": "calme",
+              "translation": "calm",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 4
+            }
+          ]
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "id": "ms-005-q1",
+          "questionType": "true-false",
+          "questionText": "The weather is bad today.",
+          "questionLanguage": "english",
+          "correctAnswer": false,
+          "explanation": "The weather is nice (il fait beau)."
+        },
+        {
+          "id": "ms-005-q2",
+          "questionType": "word-meaning",
+          "questionText": "What does 'banc' mean?",
+          "questionLanguage": "english",
+          "targetWord": "banc",
+          "meaningOptions": ["tree", "bench", "bird", "flower"],
+          "correctMeaningIndex": 1,
+          "explanation": "Banc means bench in French."
+        }
+      ]
+    },
+    {
+      "id": "ms-006",
+      "title": "Le chien perdu",
+      "titleTranslation": "The lost dog",
+      "difficulty": "medium",
+      "sentenceCount": 5,
+      "totalWordCount": 38,
+      "requiredKnownWords": 380,
+      "vocabularyLevel": "350-400",
+      "theme": "animals",
+      "tags": ["animals", "dogs", "story", "emotions"],
+      "newWords": [
+        {
+          "word": "perdu",
+          "lemma": "perdu",
+          "translation": "lost",
+          "partOfSpeech": "adjective",
+          "contextClue": "A dog that cannot find its way home",
+          "sentenceIndex": 0,
+          "firstAppearanceIndex": 4
+        },
+        {
+          "word": "retrouvé",
+          "lemma": "retrouver",
+          "translation": "found again",
+          "partOfSpeech": "verb",
+          "contextClue": "The happy ending when the dog comes back",
+          "sentenceIndex": 3,
+          "firstAppearanceIndex": 4
+        }
+      ],
+      "sentences": [
+        {
+          "id": "ms-006-s1",
+          "order": 1,
+          "french": "Mon chien était perdu.",
+          "english": "My dog was lost.",
+          "words": [
+            {
+              "text": "Mon",
+              "cleanText": "Mon",
+              "lemma": "mon",
+              "translation": "my",
+              "partOfSpeech": "determiner",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "chien",
+              "cleanText": "chien",
+              "lemma": "chien",
+              "translation": "dog",
+              "partOfSpeech": "noun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "était",
+              "cleanText": "était",
+              "lemma": "être",
+              "translation": "was",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "perdu.",
+              "cleanText": "perdu",
+              "lemma": "perdu",
+              "translation": "lost",
+              "partOfSpeech": "adjective",
+              "isNew": true,
+              "isKnown": false,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-006-s2",
+          "order": 2,
+          "french": "J'étais très triste.",
+          "english": "I was very sad.",
+          "words": [
+            {
+              "text": "J'étais",
+              "cleanText": "étais",
+              "lemma": "être",
+              "translation": "I was",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "très",
+              "cleanText": "très",
+              "lemma": "très",
+              "translation": "very",
+              "partOfSpeech": "adverb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "triste.",
+              "cleanText": "triste",
+              "lemma": "triste",
+              "translation": "sad",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            }
+          ]
+        },
+        {
+          "id": "ms-006-s3",
+          "order": 3,
+          "french": "Je l'ai cherché partout.",
+          "english": "I looked for him everywhere.",
+          "words": [
+            {
+              "text": "Je",
+              "cleanText": "Je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "l'ai",
+              "cleanText": "ai",
+              "lemma": "avoir",
+              "translation": "have",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "cherché",
+              "cleanText": "cherché",
+              "lemma": "chercher",
+              "translation": "looked for",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "partout.",
+              "cleanText": "partout",
+              "lemma": "partout",
+              "translation": "everywhere",
+              "partOfSpeech": "adverb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-006-s4",
+          "order": 4,
+          "french": "Finalement, je l'ai retrouvé.",
+          "english": "Finally, I found him again.",
+          "words": [
+            {
+              "text": "Finalement,",
+              "cleanText": "Finalement",
+              "lemma": "finalement",
+              "translation": "finally",
+              "partOfSpeech": "adverb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "je",
+              "cleanText": "je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "l'ai",
+              "cleanText": "ai",
+              "lemma": "avoir",
+              "translation": "have",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "retrouvé.",
+              "cleanText": "retrouvé",
+              "lemma": "retrouver",
+              "translation": "found again",
+              "partOfSpeech": "verb",
+              "isNew": true,
+              "isKnown": false,
+              "position": 3
+            }
+          ]
+        },
+        {
+          "id": "ms-006-s5",
+          "order": 5,
+          "french": "Maintenant, je suis heureux.",
+          "english": "Now, I am happy.",
+          "words": [
+            {
+              "text": "Maintenant,",
+              "cleanText": "Maintenant",
+              "lemma": "maintenant",
+              "translation": "now",
+              "partOfSpeech": "adverb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 0
+            },
+            {
+              "text": "je",
+              "cleanText": "je",
+              "lemma": "je",
+              "translation": "I",
+              "partOfSpeech": "pronoun",
+              "isNew": false,
+              "isKnown": true,
+              "position": 1
+            },
+            {
+              "text": "suis",
+              "cleanText": "suis",
+              "lemma": "être",
+              "translation": "am",
+              "partOfSpeech": "verb",
+              "isNew": false,
+              "isKnown": true,
+              "position": 2
+            },
+            {
+              "text": "heureux.",
+              "cleanText": "heureux",
+              "lemma": "heureux",
+              "translation": "happy",
+              "partOfSpeech": "adjective",
+              "isNew": false,
+              "isKnown": true,
+              "position": 3
+            }
+          ]
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "id": "ms-006-q1",
+          "questionType": "multiple-choice",
+          "questionText": "How did the narrator feel at the beginning?",
+          "questionLanguage": "english",
+          "options": ["happy", "angry", "sad", "tired"],
+          "correctOptionIndex": 2,
+          "explanation": "The narrator was sad (triste) because the dog was lost."
+        },
+        {
+          "id": "ms-006-q2",
+          "questionType": "true-false",
+          "questionText": "The narrator never found the dog.",
+          "questionLanguage": "english",
+          "correctAnswer": false,
+          "explanation": "The narrator found the dog again (je l'ai retrouvé)."
+        }
+      ]
+    }
+  ]
+}

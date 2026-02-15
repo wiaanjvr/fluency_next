@@ -5,6 +5,7 @@ import {
   LessonWord,
   GenerateLessonRequest,
   LessonVocabularyContext,
+  ContentType,
 } from "@/types/lesson";
 import { ProficiencyLevel } from "@/types";
 import OpenAI from "openai";
@@ -73,6 +74,18 @@ async function generateTTSAudio(
   return publicUrl;
 }
 
+// Content type descriptions for the AI prompt
+const CONTENT_TYPE_INSTRUCTIONS: Record<string, string> = {
+  narrative:
+    "Write a short story or tale with a clear beginning, middle, and end. Include characters and a simple plot.",
+  dialogue:
+    "Write a natural conversation between 2-3 people. Use quotation marks and speaker labels. Include realistic exchanges.",
+  descriptive:
+    "Write a vivid description of a place, scene, or experience. Use sensory details and imagery.",
+  opinion:
+    "Write a short opinion piece or personal perspective on a topic. Include reasoning and examples.",
+};
+
 /**
  * Generate lesson text using OpenAI
  */
@@ -84,6 +97,7 @@ async function generateLessonText(
     newWordPct: number;
     prioritizeReview: boolean;
     topic?: string;
+    contentType?: ContentType;
   },
   level: ProficiencyLevel,
   language: string,
@@ -95,17 +109,23 @@ async function generateLessonText(
       newWordPercentage: options.newWordPct,
       reviewWordPriority: options.prioritizeReview,
       topicPreference: options.topic,
+      contentType: options.contentType,
     },
     level,
     language,
   );
+
+  // Add content type instruction to system prompt if specified
+  const contentTypeInstruction = options.contentType
+    ? `\n${CONTENT_TYPE_INSTRUCTIONS[options.contentType] || ""}`
+    : "";
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
-        content: `Generate natural ${language} lessons for ${level} learners. 
+        content: `Generate natural ${language} lessons for ${level} learners.${contentTypeInstruction}
         Output JSON with format: {"title": "Lesson Title", "text": "The lesson text...", "translation": "English translation..."}`,
       },
       {
@@ -165,6 +185,7 @@ export async function POST(request: NextRequest) {
       language = "fr",
       level,
       topic,
+      contentType,
       wordCountTarget,
       prioritizeReview = true,
     } = body as GenerateLessonRequest;
@@ -267,6 +288,7 @@ export async function POST(request: NextRequest) {
           newWordPct,
           prioritizeReview,
           topic: selectedTopic,
+          contentType,
         },
         userLevel,
         targetLanguage,

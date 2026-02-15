@@ -236,8 +236,20 @@ export default function OnboardingPage() {
 
       console.log("Profile updated successfully:", updatedProfile);
 
-      // Seed vocabulary based on placement level
-      // This gives users known words proportional to their assessed level
+      // ============================================================
+      // VOCABULARY SEEDING BASED ON PLACEMENT TEST
+      // ============================================================
+      // Seed known vocabulary proportional to assessed proficiency:
+      // - A0: 0 words (complete beginner)
+      // - A1: 100 words (elementary)
+      // - A2: 200 words (pre-intermediate)
+      // - B1: 500 words (intermediate)
+      // - B2+: 1000 words (upper-intermediate+)
+      //
+      // This gives users a realistic starting point and ensures they
+      // begin with appropriate lesson difficulty. Words are marked as
+      // "known" with solid SRS parameters so they won't be re-taught.
+      // ============================================================
       try {
         const wordCount = await seedUserVocabulary(
           user.id,

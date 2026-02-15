@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -13,6 +13,13 @@ import {
   SectionHeader,
   EmptyState,
 } from "@/components/ui/premium-components";
+import {
+  ProgressPathVisualizer,
+  GraduationStatusCard,
+  LearningStatsCard,
+  FeatureUnlocksGrid,
+  MilestoneCelebration,
+} from "@/components/progression";
 import {
   Play,
   Settings,
@@ -29,13 +36,31 @@ import {
   Volume2,
   Target,
   Flame,
+  GraduationCap,
+  Lock,
 } from "lucide-react";
 import { getLevelLabel } from "@/lib/placement/scoring";
-import { ProficiencyLevel, WordStatus } from "@/types";
+import { getLessonPathForWordCount } from "@/lib/srs/seed-vocabulary";
+import {
+  ProficiencyLevel,
+  WordStatus,
+  UserWord,
+  ProgressMilestone,
+  GraduationStatus,
+} from "@/types";
 import {
   checkProficiencyUpdate,
   getProficiencyProgress,
 } from "@/lib/srs/proficiency-calculator";
+import {
+  checkGraduationReadiness,
+  getCurrentMilestone,
+  getNextMilestone,
+  checkMilestoneAchievement,
+  calculateLearningStats,
+  getUnlockedFeatures,
+  isFeatureUnlocked,
+} from "@/lib/progression";
 import { cn } from "@/lib/utils";
 
 interface VocabularyWord {
@@ -87,6 +112,13 @@ export default function DashboardPage() {
     progress: number;
   } | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
+
+  // Progression gateway state
+  const [graduationStatus, setGraduationStatus] =
+    useState<GraduationStatus | null>(null);
+  const [celebratingMilestone, setCelebratingMilestone] =
+    useState<ProgressMilestone | null>(null);
+  const [previousWordCount, setPreviousWordCount] = useState<number>(0);
 
   useEffect(() => {
     const fetchUserStats = async () => {
@@ -200,7 +232,9 @@ export default function DashboardPage() {
 
         const { data: allWords } = await supabase
           .from("user_words")
-          .select("id, word, lemma, status, rating, next_review")
+          .select(
+            "id, word, lemma, status, rating, next_review, ease_factor, interval, repetitions, created_at, updated_at, last_rated_at",
+          )
           .eq("user_id", user.id)
           .order("status", { ascending: false })
           .order("word", { ascending: true });
@@ -226,6 +260,39 @@ export default function DashboardPage() {
         }
 
         setVocabularyStats(vocabStats);
+
+        // Calculate graduation status for progression gateway
+        const userWordsForGraduation: UserWord[] = (allWords || []).map(
+          (w: any) => ({
+            id: w.id,
+            user_id: user.id,
+            word: w.word,
+            language: "french",
+            lemma: w.lemma,
+            ease_factor: w.ease_factor ?? 2.5,
+            repetitions: w.repetitions ?? 0,
+            interval: w.interval ?? 0,
+            next_review: w.next_review || new Date().toISOString(),
+            status: w.status as WordStatus,
+            created_at: w.created_at || new Date().toISOString(),
+            updated_at: w.updated_at || new Date().toISOString(),
+            last_rated_at: w.last_rated_at,
+            rating: w.rating,
+          }),
+        );
+
+        const gradStatus = checkGraduationReadiness(userWordsForGraduation);
+        setGraduationStatus(gradStatus);
+
+        // Check for new milestone achievement
+        const milestone = checkMilestoneAchievement(
+          previousWordCount,
+          wordsCount,
+        );
+        if (milestone && previousWordCount > 0) {
+          setCelebratingMilestone(milestone);
+        }
+        setPreviousWordCount(wordsCount);
 
         const currentLevel = (profile?.proficiency_level ||
           "A1") as ProficiencyLevel;
@@ -295,8 +362,50 @@ export default function DashboardPage() {
 
   const canStartLesson = sessionsToday < maxSessionsFree;
 
+  // Determine lesson path based on word count, not just proficiency level
+  // This respects the placement test seeding and progressive unlocking
+  const lessonPath = getLessonPathForWordCount(stats.wordsEncountered);
+
+  // Helper to get lesson type description
+  const getLessonTypeDescription = () => {
+    if (stats.wordsEncountered >= 500) {
+      return {
+        title: "acquisition mode",
+        description:
+          "Listen without text. Speak before reading. Embrace the productive discomfort.",
+      };
+    } else if (stats.wordsEncountered >= 300) {
+      return {
+        title: "micro-stories",
+        description:
+          "Read short, engaging stories using your 300+ known words.",
+      };
+    } else if (stats.wordsEncountered >= 100) {
+      return {
+        title: "sentence patterns",
+        description: "Practice with simple sentences and common patterns.",
+      };
+    } else {
+      return {
+        title: "foundation vocabulary",
+        description:
+          "Learn your first 100 French words with images, audio, and practice exercises.",
+      };
+    }
+  };
+
+  const lessonType = getLessonTypeDescription();
+
   return (
     <main className="min-h-screen bg-background text-foreground">
+      {/* ========== MILESTONE CELEBRATION MODAL ========== */}
+      {celebratingMilestone && (
+        <MilestoneCelebration
+          milestone={celebratingMilestone}
+          onClose={() => setCelebratingMilestone(null)}
+        />
+      )}
+
       {/* ========== NAVIGATION ========== */}
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-library-forest/20">
         <div className="max-w-6xl mx-auto px-6">
@@ -392,7 +501,7 @@ export default function DashboardPage() {
                           Begin your
                           <br />
                           <span className="font-serif italic text-library-brass">
-                            daily lesson
+                            {lessonType.title}
                           </span>
                         </>
                       ) : (
@@ -408,19 +517,19 @@ export default function DashboardPage() {
 
                     <p className="text-muted-foreground font-light mb-8 max-w-md">
                       {canStartLesson
-                        ? "Listen without text. Speak before reading. Embrace the productive discomfort."
+                        ? lessonType.description
                         : "Great work today. Upgrade to Premium for unlimited daily sessions."}
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                       {canStartLesson ? (
-                        <Link href="/lesson">
+                        <Link href={lessonPath}>
                           <Button
                             size="lg"
                             className="bg-library-brass text-background hover:bg-library-brass/90 h-14 px-8 text-base font-light rounded-full group"
                           >
                             <Play className="mr-2 h-4 w-4" />
-                            Start Lesson
+                            Start Learning
                             <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                           </Button>
                         </Link>
@@ -502,70 +611,275 @@ export default function DashboardPage() {
               />
             </ScrollReveal>
 
-            <div className="grid md:grid-cols-3 gap-6 mt-10">
+            {/* Progress Path Visualizer - 0 → 100 → 300 → 500 → 1000+ */}
+            <ScrollReveal delay={50} className="mt-10">
+              <ProgressPathVisualizer wordCount={stats.wordsEncountered} />
+            </ScrollReveal>
+
+            {/* Graduation Status & Stats Grid */}
+            <div className="grid lg:grid-cols-2 gap-6 mt-8">
+              {/* Graduation Status Card */}
+              {graduationStatus && (
+                <ScrollReveal delay={100}>
+                  <GraduationStatusCard graduationStatus={graduationStatus} />
+                </ScrollReveal>
+              )}
+
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+                <ScrollReveal delay={150}>
+                  <div className="bg-card border border-border rounded-2xl p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-library-forest/10 flex items-center justify-center">
+                        <Target className="h-5 w-5 text-library-forest" />
+                      </div>
+                      <span className="text-sm text-muted-foreground font-light">
+                        Sessions
+                      </span>
+                    </div>
+                    <div className="text-3xl font-light mb-1">
+                      {stats.totalSessions}
+                    </div>
+                    <p className="text-sm text-muted-foreground font-light">
+                      {stats.totalSessions === 0
+                        ? "The journey begins"
+                        : "Keep the momentum"}
+                    </p>
+                  </div>
+                </ScrollReveal>
+
+                <ScrollReveal delay={200}>
+                  <div className="bg-card border border-border rounded-2xl p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
+                        <Brain className="h-5 w-5 text-library-brass" />
+                      </div>
+                      <span className="text-sm text-muted-foreground font-light">
+                        Comprehension
+                      </span>
+                    </div>
+                    <div className="text-3xl font-light mb-1">
+                      {stats.avgComprehension}
+                      <span className="text-xl text-muted-foreground">%</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground font-light">
+                      Average accuracy
+                    </p>
+                  </div>
+                </ScrollReveal>
+
+                <ScrollReveal delay={250}>
+                  <div className="bg-card border border-border rounded-2xl p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-library-forest/10 flex items-center justify-center">
+                        <BookOpen className="h-5 w-5 text-library-forest" />
+                      </div>
+                      <span className="text-sm text-muted-foreground font-light">
+                        Vocabulary
+                      </span>
+                    </div>
+                    <div className="text-3xl font-light mb-1">
+                      {stats.wordsEncountered}
+                    </div>
+                    <p className="text-sm text-muted-foreground font-light">
+                      Words encountered
+                    </p>
+                  </div>
+                </ScrollReveal>
+              </div>
+            </div>
+
+            {/* Feature Unlocks Grid */}
+            <ScrollReveal delay={300} className="mt-8">
+              <FeatureUnlocksGrid wordCount={stats.wordsEncountered} />
+            </ScrollReveal>
+          </section>
+
+          {/* ========== LEARNING PATHS SECTION ========== */}
+          <section className="mt-20">
+            <ScrollReveal>
+              <SectionHeader
+                eyebrow="Learning Paths"
+                title="Your structured journey"
+              />
+            </ScrollReveal>
+
+            <div className="grid md:grid-cols-3 gap-6 mt-10 mb-20">
+              {/* Phase 0: Foundation - Always unlocked */}
               <ScrollReveal delay={100}>
-                <div className="bg-card border border-border rounded-2xl p-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-library-forest/10 flex items-center justify-center">
-                      <Target className="h-5 w-5 text-library-forest" />
+                <Link href="/learn/foundation">
+                  <div className="bg-card border border-border rounded-2xl p-6 h-full hover:shadow-luxury hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                          <BookOpen className="h-5 w-5 text-blue-500" />
+                        </div>
+                        <div>
+                          <span className="text-xs text-muted-foreground font-light">
+                            Phase 0
+                          </span>
+                          <h3 className="font-medium">Foundation</h3>
+                        </div>
+                      </div>
+                      {stats.wordsEncountered >= 100 && (
+                        <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                          <Star className="h-3 w-3 text-emerald-500" />
+                        </div>
+                      )}
                     </div>
-                    <span className="text-sm text-muted-foreground font-light">
-                      Sessions
-                    </span>
+                    <p className="text-sm text-muted-foreground font-light mb-4">
+                      Learn your first 100 words with images and audio.
+                    </p>
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                        <span className="text-muted-foreground">
+                          0-100 words
+                        </span>
+                      </div>
+                      {stats.wordsEncountered > 0 && (
+                        <span className="text-xs text-blue-500">
+                          {Math.min(stats.wordsEncountered, 100)}/100
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-4xl font-light mb-2">
-                    {stats.totalSessions}
-                  </div>
-                  <p className="text-sm text-muted-foreground font-light">
-                    {stats.totalSessions === 0
-                      ? "The journey begins"
-                      : "Keep the momentum"}
-                  </p>
-                </div>
+                </Link>
               </ScrollReveal>
 
+              {/* Phase 1: Sentences - Unlocks at 100 words */}
               <ScrollReveal delay={200}>
-                <div className="bg-card border border-border rounded-2xl p-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
-                      <Brain className="h-5 w-5 text-library-brass" />
+                {stats.wordsEncountered >= 100 ? (
+                  <Link href="/learn/sentences">
+                    <div className="bg-card border border-border rounded-2xl p-6 h-full hover:shadow-luxury hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                            <Brain className="h-5 w-5 text-emerald-500" />
+                          </div>
+                          <div>
+                            <span className="text-xs text-muted-foreground font-light">
+                              Phase 1
+                            </span>
+                            <h3 className="font-medium">Sentences</h3>
+                          </div>
+                        </div>
+                        {stats.wordsEncountered >= 300 && (
+                          <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                            <Star className="h-3 w-3 text-emerald-500" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground font-light mb-4">
+                        Read simple sentences with pattern recognition.
+                      </p>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                        <span className="text-muted-foreground">
+                          100-300 words
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-sm text-muted-foreground font-light">
-                      Comprehension
-                    </span>
+                  </Link>
+                ) : (
+                  <div className="bg-card border border-border rounded-2xl p-6 h-full opacity-60 cursor-not-allowed">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                          <Lock className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <span className="text-xs text-muted-foreground font-light">
+                            Phase 1
+                          </span>
+                          <h3 className="font-medium text-muted-foreground">
+                            Sentences
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground font-light mb-4">
+                      Read simple sentences with pattern recognition.
+                    </p>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Lock className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">
+                        Unlocks at 100 words ({100 - stats.wordsEncountered} to
+                        go)
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-4xl font-light mb-2">
-                    {stats.avgComprehension}
-                    <span className="text-2xl text-muted-foreground">%</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground font-light">
-                    Average accuracy
-                  </p>
-                </div>
+                )}
               </ScrollReveal>
 
+              {/* Phase 2: Micro-Stories - Unlocks at 300 words */}
               <ScrollReveal delay={300}>
-                <div className="bg-card border border-border rounded-2xl p-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-library-forest/10 flex items-center justify-center">
-                      <BookOpen className="h-5 w-5 text-library-forest" />
+                {stats.wordsEncountered >= 300 ? (
+                  <Link href="/learn/stories">
+                    <div className="bg-card border border-border rounded-2xl p-6 h-full hover:shadow-luxury hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                            <Sparkles className="h-5 w-5 text-amber-500" />
+                          </div>
+                          <div>
+                            <span className="text-xs text-muted-foreground font-light">
+                              Phase 2
+                            </span>
+                            <h3 className="font-medium">Micro-Stories</h3>
+                          </div>
+                        </div>
+                        {stats.wordsEncountered >= 500 && (
+                          <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center">
+                            <Star className="h-3 w-3 text-amber-500" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground font-light mb-4">
+                        Read short stories with interactive vocabulary.
+                      </p>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                        <span className="text-muted-foreground">
+                          300-500 words
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-sm text-muted-foreground font-light">
-                      Vocabulary
-                    </span>
+                  </Link>
+                ) : (
+                  <div className="bg-card border border-border rounded-2xl p-6 h-full opacity-60 cursor-not-allowed">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                          <Lock className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <span className="text-xs text-muted-foreground font-light">
+                            Phase 2
+                          </span>
+                          <h3 className="font-medium text-muted-foreground">
+                            Micro-Stories
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground font-light mb-4">
+                      Read short stories with interactive vocabulary.
+                    </p>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Lock className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">
+                        Unlocks at 300 words ({300 - stats.wordsEncountered} to
+                        go)
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-4xl font-light mb-2">
-                    {stats.wordsEncountered}
-                  </div>
-                  <p className="text-sm text-muted-foreground font-light">
-                    Words encountered
-                  </p>
-                </div>
+                )}
               </ScrollReveal>
             </div>
           </section>
 
-          {/* ========== VOCABULARY SECTION ========== */}
+          {/* ========== VOCABULARY COLLECTION ========== */}
           <section className="mt-20">
             <ScrollReveal>
               <div className="flex items-center justify-between mb-10">

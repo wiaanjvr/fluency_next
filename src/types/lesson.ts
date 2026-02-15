@@ -277,6 +277,7 @@ export interface LessonGenerationParams {
   newWordPercentage: number; // Target ~5%
   reviewWordPriority: boolean; // Prioritize words due for review
   topicPreference?: string;
+  contentType?: ContentType; // narrative, dialogue, descriptive, opinion
   grammarFocus?: string[];
   // New parameters for enhanced lesson generation
   maxNewWords?: number; // Maximum 3-5 new words
@@ -507,12 +508,24 @@ export interface LessonSessionState {
   lastActivityAt: string;
 }
 
+// ===== CONTENT TYPES FOR ADVANCED USERS =====
+
+export const CONTENT_TYPES = [
+  "narrative",
+  "dialogue",
+  "descriptive",
+  "opinion",
+] as const;
+
+export type ContentType = (typeof CONTENT_TYPES)[number];
+
 // ===== API REQUEST/RESPONSE TYPES =====
 
 export interface GenerateLessonRequest {
   language?: string;
   level?: ProficiencyLevel;
   topic?: string;
+  contentType?: ContentType;
   wordCountTarget?: number;
   prioritizeReview?: boolean;
   // New parameters

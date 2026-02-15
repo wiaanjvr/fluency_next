@@ -120,6 +120,18 @@ export function selectWordsForGeneration(
   };
 }
 
+// Content type instructions for varied content
+const CONTENT_TYPE_INSTRUCTIONS: Record<string, string> = {
+  narrative:
+    "Write a short STORY with a clear beginning, middle, and end. Include characters and a simple plot arc.",
+  dialogue:
+    "Write a natural DIALOGUE/CONVERSATION between 2-3 people. Use quotation marks and speaker labels (e.g., 'Marie:', 'Pierre:'). Make exchanges realistic.",
+  descriptive:
+    "Write a vivid DESCRIPTION of a place, scene, or experience. Use sensory details (sight, sound, smell) to paint a picture.",
+  opinion:
+    "Write a first-person OPINION PIECE sharing thoughts on the topic. Include reasoning, examples, and personal reflections.",
+};
+
 /**
  * Generate story prompt for AI (OpenAI, Claude, etc.)
  * Emphasizes comprehensible input: 95% known words + 5% new words
@@ -128,7 +140,7 @@ export function generateStoryPrompt(
   wordSelection: WordSelection,
   params: StoryGenerationParams,
 ): string {
-  const { level, topic, word_count_target, language } = params;
+  const { level, topic, content_type, word_count_target, language } = params;
 
   // If no words selected (beginner case), use top common words based on level
   const levelWordCount = LEVEL_WORD_ALLOCATION[level] || 50;
@@ -147,6 +159,12 @@ export function generateStoryPrompt(
   const totalWords = knownWordCount + newWordCount;
   const knownPercentage =
     totalWords > 0 ? Math.round((knownWordCount / totalWords) * 100) : 95;
+
+  // Get content type instruction if specified
+  const contentTypeInstruction =
+    content_type && CONTENT_TYPE_INSTRUCTIONS[content_type]
+      ? `\n**CONTENT STYLE:** ${CONTENT_TYPE_INSTRUCTIONS[content_type]}\n`
+      : "";
 
   // Special case: Complete beginner with 0 known words
   if (knownWordCount === 0) {
@@ -180,7 +198,7 @@ Write the single sentence now. Return ONLY the sentence in ${language}, nothing 
   const targetNewWordOccurrences = Math.ceil(word_count_target * 0.05);
 
   const prompt = `Generate a short story in ${language} for a ${level} language learner.
-
+${contentTypeInstruction}
 **🚨 CRITICAL: 95% KNOWN / 5% NEW WORD RATIO 🚨**
 This is COMPREHENSIBLE INPUT - the learner MUST understand 95% of the story!
 
@@ -214,16 +232,17 @@ IMPORTANT: Each new word should appear 2-3 times in the story to reach the 5% ra
 ✓ Verify 95% come from the KNOWN list
 ✓ Verify only 5% come from the NEW list
 ✓ Confirm NO words appear that aren't in either list (except le/la/les/un/une/des/et/ou/mais)
-✓ Make the story engaging and natural despite these strict constraints
+✓ Make the content engaging and natural despite these strict constraints
 
-**STORY REQUIREMENTS:**
+**CONTENT REQUIREMENTS:**
 - Topic: ${topic || "everyday situations, simple narratives, or common experiences"}
+- Style: ${content_type || "engaging narrative"}
 - Level: ${level} - use appropriate grammar and sentence structures
 - Make new words understandable from context
-- Tell a complete, coherent, interesting mini-narrative
+- Create complete, coherent, interesting content
 - Engage adult learners with relatable content
 
-Write the story now. Return ONLY the story text in ${language}, no commentary.`;
+Write the content now. Return ONLY the text in ${language}, no commentary.`;
 
   return prompt;
 }

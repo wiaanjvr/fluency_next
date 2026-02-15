@@ -25,8 +25,11 @@ export function ScrollReveal({
 }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -42,6 +45,13 @@ export function ScrollReveal({
     );
 
     if (ref.current) {
+      // Check if already in viewport on mount
+      const rect = ref.current.getBoundingClientRect();
+      const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
+      if (inViewport) {
+        setIsVisible(true);
+      }
+
       observer.observe(ref.current);
     }
 
@@ -69,9 +79,11 @@ export function ScrollReveal({
       ref={ref}
       className={className}
       style={{
-        transform: getTransform(),
-        opacity: isVisible ? 1 : 0,
-        transition: `transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
+        transform: mounted ? getTransform() : "translate3d(0, 0, 0)",
+        opacity: mounted ? (isVisible ? 1 : 0) : 1,
+        transition: mounted
+          ? `transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`
+          : "none",
         willChange: "transform, opacity",
       }}
     >

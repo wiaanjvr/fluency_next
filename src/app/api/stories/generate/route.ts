@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       language = "fr",
       level,
       topic,
+      content_type,
       word_count_target,
       new_word_percentage,
       prioritize_review = true,
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
       language?: string;
       level?: ProficiencyLevel;
       topic?: string;
+      content_type?: string;
       word_count_target?: number;
       new_word_percentage?: number;
       prioritize_review?: boolean;
@@ -113,6 +115,7 @@ export async function POST(request: NextRequest) {
       language: targetLanguage,
       level: userLevel,
       topic,
+      content_type,
       word_count_target: wordCount,
       new_word_percentage: newWordPct,
       prioritize_review,

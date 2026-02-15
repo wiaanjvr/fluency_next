@@ -24,14 +24,14 @@ export function calculateNextReview(
   currentWord: Partial<UserWord>,
   rating: WordRating,
 ): {
-  easiness_factor: number;
+  ease_factor: number;
   repetitions: number;
-  interval_days: number;
+  interval: number;
   next_review: Date;
   status: WordStatus;
 } {
   // Initialize defaults if word is new
-  const easiness = currentWord.easiness_factor ?? INITIAL_EASINESS;
+  const easiness = currentWord.ease_factor ?? INITIAL_EASINESS;
   const reps = currentWord.repetitions ?? 0;
   const status = currentWord.status ?? "new";
 
@@ -86,7 +86,7 @@ export function calculateNextReview(
     }
   } else {
     // Use SM-2 formula: I(n) = I(n-1) * EF
-    const previousInterval = currentWord.interval_days ?? SECOND_INTERVAL;
+    const previousInterval = currentWord.interval ?? SECOND_INTERVAL;
     intervalDays = previousInterval * newEasiness;
 
     // Update status based on performance
@@ -104,9 +104,9 @@ export function calculateNextReview(
   nextReview.setTime(nextReview.getTime() + intervalDays * 24 * 60 * 60 * 1000);
 
   return {
-    easiness_factor: Math.round(newEasiness * 100) / 100,
+    ease_factor: Math.round(newEasiness * 100) / 100,
     repetitions: newRepetitions,
-    interval_days: Math.round(intervalDays * 100) / 100,
+    interval: Math.round(intervalDays * 100) / 100,
     next_review: nextReview,
     status: newStatus,
   };
@@ -234,15 +234,13 @@ export function initializeNewWord(
     word,
     lemma,
     language,
-    easiness_factor: INITIAL_EASINESS,
+    ease_factor: INITIAL_EASINESS,
     repetitions: 0,
-    interval_days: 0,
+    interval: 0,
     next_review: new Date().toISOString(),
     status: "new",
-    times_seen: 0,
-    times_rated: 0,
-    first_seen: new Date().toISOString(),
-    last_seen: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
 }
 
