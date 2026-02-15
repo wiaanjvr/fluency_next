@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import {
   ArrowLeft,
   BookOpen,
@@ -11,7 +12,6 @@ import {
   TrendingUp,
   ChevronRight,
   Lock,
-  Loader2,
   Clock,
   Target,
 } from "lucide-react";
@@ -80,14 +80,7 @@ export default function MicroStoriesPage() {
   const currentLevel = microStoryProgress?.currentLevel || "300-350";
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Loading stories..." />;
   }
 
   return (

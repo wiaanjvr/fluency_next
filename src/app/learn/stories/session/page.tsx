@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import { MicroStorySession } from "@/components/micro-stories";
 import {
   getFoundationProgress,
@@ -26,11 +28,32 @@ export default function MicroStoriesSessionPage() {
     new Set(),
   );
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [canStart, setCanStart] = useState(true);
+  const [checkingLimits, setCheckingLimits] = useState(true);
 
   // Load user vocabulary on mount
   useEffect(() => {
     const loadVocabulary = async () => {
       try {
+        // Check usage limits first
+        try {
+          const response = await fetch("/api/usage/check", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionType: "microstory" }),
+          });
+
+          if (response.ok) {
+            const usageStatus = await response.json();
+            setCanStart(usageStatus.allowed);
+          }
+        } catch (error) {
+          console.error("Error checking usage limits:", error);
+          setCanStart(true); // Allow on error
+        } finally {
+          setCheckingLimits(false);
+        }
+
         // Get foundation progress
         const progress = await getFoundationProgress();
         const wordCount = progress?.totalWordsLearned || 0;
@@ -134,8 +157,117 @@ export default function MicroStoriesSessionPage() {
   }, [router]);
 
   // Handle session completion
-  const handleSessionComplete = (progress: MicroStoryProgress) => {
+  const handleSessionComplete = async (progress: MicroStoryProgress) => {
     console.log("Session completed:", progress);
+
+    // Update profile metrics (streak, sessions_completed, total_practice_minutes)
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select(
+            "last_lesson_date, streak, total_practice_minutes, sessions_completed",
+          )
+          .eq("id", user.id)
+          .single();
+
+        if (!profileError && profile) {
+          const today = new Date().toISOString().split("T")[0];
+          const lastLessonDate = profile?.last_lesson_date;
+          const practicedMinutes = 5; // Default 5 minutes for microstory session
+
+          // Calculate new streak
+          let newStreak = 1;
+          if (lastLessonDate) {
+            const lastDate = new Date(lastLessonDate);
+            const todayDate = new Date(today);
+            const daysDiff = Math.floor(
+              (todayDate.getTime() - lastDate.getTime()) /
+                (1000 * 60 * 60 * 24),
+            );
+
+            if (daysDiff === 0) {
+              // Same day - maintain streak
+              newStreak = profile?.streak || 1;
+            } else if (daysDiff === 1) {
+              // Consecutive day - increment streak
+              newStreak = (profile?.streak || 0) + 1;
+            }
+            // daysDiff > 1 means streak resets to 1
+          }
+
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({
+              streak: newStreak,
+              last_lesson_date: today,
+              total_practice_minutes:
+                (profile?.total_practice_minutes || 0) + practicedMinutes,
+              sessions_completed: (profile?.sessions_completed || 0) + 1,
+            })
+            .eq("id", user.id);
+
+          if (updateError) {
+            console.error("Error updating profile metrics:", updateError);
+          } else {
+            console.log("Profile metrics updated successfully:", {
+              streak: newStreak,
+              total_practice_minutes:
+                (profile?.total_practice_minutes || 0) + practicedMinutes,
+              sessions_completed: (profile?.sessions_completed || 0) + 1,
+            });
+          }
+
+          // Insert lesson record for average score tracking
+          // Calculate comprehension based on stories completed
+          const comprehensionScore = progress?.storiesCompleted
+            ? Math.min(100, 70 + progress.storiesCompleted * 5)
+            : 75;
+          const lessonId = `microstory-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          const { error: lessonError } = await supabase.from("lessons").insert({
+            id: lessonId,
+            user_id: user.id,
+            title: "Micro-Story Reading Session",
+            target_text: "Reading comprehension practice",
+            translation: "",
+            language: "fr",
+            level: "B1",
+            completed: true,
+            completed_at: new Date().toISOString(),
+            final_comprehension_score: comprehensionScore,
+          });
+
+          if (lessonError) {
+            console.error("Error inserting lesson record:", lessonError);
+          } else {
+            console.log(
+              "Lesson record inserted with score:",
+              comprehensionScore,
+            );
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to update profile metrics:", err);
+    }
+
+    // Track usage for free tier limits
+    try {
+      await fetch("/api/usage/increment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionType: "microstory" }),
+      });
+    } catch (err) {
+      console.error("Failed to track microstory session usage:", err);
+    }
+
     router.push("/learn/stories");
   };
 
@@ -145,18 +277,49 @@ export default function MicroStoriesSessionPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading stories...</p>
-        </div>
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Loading stories..." />;
   }
 
   if (!isUnlocked) {
     return null; // Will redirect
+  }
+
+  if (checkingLimits) {
+    return <LinguaLoadingAnimation message="Checking availability..." />;
+  }
+
+  if (!canStart) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle className="text-center">Daily Limit Reached</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              You've completed your microstory session for today. Come back
+              tomorrow to continue learning, or upgrade to Premium for unlimited
+              access.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => router.push("/pricing")}
+                className="w-full"
+              >
+                Upgrade to Premium
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/learn/stories")}
+                className="w-full"
+              >
+                Back to Stories
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

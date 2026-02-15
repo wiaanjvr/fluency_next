@@ -13,8 +13,8 @@ const EASINESS_PENALTY_HARD = 0.15;
 const EASINESS_PENALTY_WRONG = 0.2;
 
 // Initial intervals (in days)
-const FIRST_INTERVAL = 1;
-const SECOND_INTERVAL = 6;
+const FIRST_INTERVAL = 1 / 1440;
+const SECOND_INTERVAL = 1;
 
 /**
  * Calculate next review date and update SRS parameters based on user rating

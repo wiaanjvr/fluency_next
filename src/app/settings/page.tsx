@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import {
   Select,
   SelectContent,
@@ -18,7 +19,6 @@ import {
   Crown,
   Camera,
   User as UserIcon,
-  Loader2,
   ChevronRight,
   RefreshCcw,
 } from "lucide-react";
@@ -177,11 +177,7 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Loading settings..." />;
   }
 
   return (

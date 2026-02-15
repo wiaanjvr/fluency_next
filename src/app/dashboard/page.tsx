@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LeftSidebar, RightSidebar } from "@/components/dashboard";
 import { MilestoneCelebration } from "@/components/progression";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import { UsageLimitBanner } from "@/components/ui/UsageLimitBanner";
 import {
   Play,
   ArrowRight,
@@ -267,16 +269,7 @@ export default function DashboardPage() {
 
   // Loading state
   if (!authChecked || loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6">
-          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-          </div>
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Loading your dashboard..." />;
   }
 
   // Determine lesson path and type
@@ -327,6 +320,9 @@ export default function DashboardPage() {
       {/* ========== MAIN CONTENT ========== */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto p-8">
+          {/* Usage Limit Banner */}
+          <UsageLimitBanner className="mb-8" />
+
           {/* Hero Section */}
           <div className="mb-12">
             <h1 className="text-4xl font-bold mb-2">Welcome back</h1>
@@ -335,7 +331,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* Today's Lesson Card */}
+          {/* Next Lesson Card */}
           <div className="mb-8">
             <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 rounded-2xl p-8 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
@@ -344,7 +340,7 @@ export default function DashboardPage() {
                 <div className="flex items-start justify-between mb-6">
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">
-                      Today's Lesson
+                      Next Lesson
                     </p>
                     <h2 className="text-3xl font-bold mb-2">
                       {lessonType.title}

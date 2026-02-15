@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import {
   ArrowLeft,
   Star,
@@ -11,7 +12,6 @@ import {
   Target,
   Ear,
   Layers,
-  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -202,11 +202,7 @@ export function SentenceTransitionSession({
 
   // Loading state
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Loading sentence exercises..." />;
   }
 
   // ===== WARMUP PHASE =====

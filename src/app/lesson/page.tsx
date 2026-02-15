@@ -240,7 +240,20 @@ export default function LessonPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate lesson");
+        const errorData = await response.json();
+
+        // Handle usage limit reached
+        if (response.status === 429 && errorData.limitReached) {
+          alert(
+            errorData.message ||
+              "You've reached your daily lesson limit. Upgrade to Premium for unlimited access.",
+          );
+          // Optionally redirect to pricing page
+          // router.push("/pricing");
+          return;
+        }
+
+        throw new Error(errorData.error || "Failed to generate lesson");
       }
 
       const data = await response.json();
@@ -427,6 +440,17 @@ export default function LessonPage() {
               (profile?.total_practice_minutes || 0) + practicedMinutes,
             sessions_completed: (profile?.sessions_completed || 0) + 1,
           });
+        }
+
+        // Track usage for free tier limits
+        try {
+          await fetch("/api/usage/increment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionType: "main" }),
+          });
+        } catch (err) {
+          console.error("Failed to track main lesson usage:", err);
         }
       }
     } catch (error) {

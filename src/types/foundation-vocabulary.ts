@@ -58,6 +58,7 @@ export type FoundationExerciseType =
   | "word-to-image" // See word → select correct image (4 options)
   | "image-to-word" // See image → type/select word
   | "audio-to-image" // Hear word → select correct image
+  | "audio-to-word" // Hear word → select correct word (text options)
   | "sentence-identify" // Hear sentence → identify which word is used
   | "introduction"; // Initial word introduction (not an exercise)
 
@@ -75,6 +76,26 @@ export interface ExerciseResult {
   timestamp: string;
 }
 
+// Pronunciation attempt tracking
+export interface PronunciationAttempt {
+  wordId: string;
+  attempts: number;
+  success: boolean;
+  timestamp: string;
+}
+
+// Word performance summary for a session
+export interface WordPerformance {
+  wordId: string;
+  word: string;
+  pronunciationAttempts: number;
+  pronunciationSuccess: boolean;
+  exerciseResults: ExerciseResult[];
+  correctCount: number;
+  totalExercises: number;
+  accuracy: number;
+}
+
 export interface SessionResults {
   sessionId: string;
   wordsIntroduced: number;
@@ -84,6 +105,8 @@ export interface SessionResults {
   accuracy: number;
   timeSpentSeconds: number;
   exerciseResults: ExerciseResult[];
+  pronunciationAttempts?: PronunciationAttempt[];
+  wordPerformances?: WordPerformance[];
 }
 
 // Image service types

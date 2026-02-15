@@ -140,7 +140,7 @@ export function LeftSidebar({
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         <div className="text-xs font-medium text-muted-foreground mb-3 px-3">
-          Learning Paths
+          Learning Segments
         </div>
         {navItems.map((item) => (
           <Link

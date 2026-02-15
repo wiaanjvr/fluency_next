@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import {
   ArrowLeft,
   BookOpen,
   Check,
   Lock,
   ChevronRight,
-  Loader2,
   Star,
   Target,
   Brain,
@@ -55,12 +55,14 @@ export default function FoundationPage() {
   // Load progress and next session
   useEffect(() => {
     async function loadProgress() {
+      console.log("Loading foundation progress...");
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
         if (!user) {
+          console.log("No user found");
           setLoading(false);
           return;
         }
@@ -75,14 +77,20 @@ export default function FoundationPage() {
         const language = (profile?.target_language ||
           "fr") as SupportedLanguage;
         setTargetLanguage(language);
+        console.log("Target language:", language);
 
         // Generate vocabulary for the user's language
         const vocabularyData = getVocabularyData(language);
-        const words = generateFoundationVocabulary(vocabularyData.words);
+        const words = generateFoundationVocabulary(
+          vocabularyData.words,
+          language,
+        );
         setAllWords(words);
+        console.log("Total foundation words:", words.length);
 
         // Get next session data
         const sessionData = await getNextSessionWords(words, language, 4);
+        console.log("Next session data:", sessionData);
         setNextSessionData({
           reviewCount: sessionData.reviewCount,
           newCount: sessionData.newCount,
@@ -92,11 +100,13 @@ export default function FoundationPage() {
 
         // Count words due for review
         const userWords = await getUserWords(language);
+        console.log("User words from DB:", userWords.length);
         const now = new Date();
         const dueCount = userWords.filter(
           (w) => new Date(w.next_review) <= now,
         ).length;
         setWordsDueCount(dueCount);
+        console.log("Words due for review:", dueCount);
       } catch (error) {
         console.error("Error loading foundation progress:", error);
       }
@@ -105,6 +115,20 @@ export default function FoundationPage() {
     }
 
     loadProgress();
+
+    // Also reload when the page becomes visible (user returns from session)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        console.log("Page became visible, reloading progress...");
+        loadProgress();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [supabase]);
 
   // Calculate progress
@@ -114,11 +138,7 @@ export default function FoundationPage() {
     totalWords > 0 ? Math.round((learnedWords / totalWords) * 100) : 0;
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Loading foundation..." />;
   }
 
   return (

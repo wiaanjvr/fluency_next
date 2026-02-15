@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import {
   Card,
   CardContent,
@@ -232,11 +233,7 @@ export default function LearningSessionPage() {
   };
 
   if (!segment) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading session...</p>
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Loading session..." />;
   }
 
   return (

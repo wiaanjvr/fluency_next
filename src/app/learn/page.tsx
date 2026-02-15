@@ -6,9 +6,9 @@ import { createClient } from "@/lib/supabase/client";
 import { InteractiveStory } from "@/components/learning/InteractiveStory";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import { GeneratedStory, ProficiencyLevel, WordRating } from "@/types";
 import {
-  Loader2,
   Home,
   BarChart3,
   Trophy,
@@ -202,18 +202,7 @@ export default function LearnPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background px-6">
-        <div className="text-center space-y-6">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-library-forest/10 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-library-forest" />
-          </div>
-          <p className="text-muted-foreground font-light">
-            Preparing your session...
-          </p>
-        </div>
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Preparing your session..." />;
   }
 
   if (currentStory) {

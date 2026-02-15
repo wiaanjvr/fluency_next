@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import {
   Card,
   CardContent,
@@ -33,7 +34,6 @@ import {
   LEVEL_WORD_ALLOCATION,
 } from "@/lib/srs/seed-vocabulary";
 import {
-  Loader2,
   Headphones,
   BookOpen,
   Trophy,
@@ -52,6 +52,7 @@ import {
   Star,
   Lock,
   Unlock,
+  Loader2,
 } from "lucide-react";
 import {
   SupportedLanguage,
@@ -335,16 +336,7 @@ export default function OnboardingPage() {
 
   // Show loading state until auth is checked
   if (!authChecked || loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-muted-foreground font-light">
-            Preparing your assessment...
-          </p>
-        </div>
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Preparing your assessment..." />;
   }
 
   return (
@@ -750,7 +742,7 @@ export default function OnboardingPage() {
                           Foundation Vocabulary
                         </h4>
                         <span className="text-xs px-2 py-0.5 rounded-full bg-library-forest/20 text-library-forest-light border border-library-forest/30">
-                          0-300 words
+                          0-100 words
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground mb-3">

@@ -76,32 +76,49 @@ export async function saveFoundationProgress(
 ): Promise<void> {
   const supabase = createClient();
 
+  console.log("saveFoundationProgress called:", {
+    userId: progress.userId,
+    language,
+    totalWordsLearned: progress.totalWordsLearned,
+    completedSessions: progress.completedSessions.length,
+  });
+
   try {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      console.error("User not authenticated in saveFoundationProgress");
+      throw new Error("User not authenticated");
+    }
 
-    const { error } = await supabase.from("foundation_progress").upsert(
-      {
-        user_id: user.id,
-        language: language,
-        completed_sessions: progress.completedSessions,
-        words_learned: progress.wordsLearned,
-        total_sessions_completed: progress.completedSessions.length,
-        total_words_learned: progress.totalWordsLearned,
-        last_session_date: progress.lastSessionDate,
-      },
-      {
-        onConflict: "user_id,language",
-      },
-    );
+    const { data, error } = await supabase
+      .from("foundation_progress")
+      .upsert(
+        {
+          user_id: user.id,
+          language: language,
+          completed_sessions: progress.completedSessions,
+          words_learned: progress.wordsLearned,
+          total_sessions_completed: progress.completedSessions.length,
+          total_words_learned: progress.totalWordsLearned,
+          last_session_date: progress.lastSessionDate,
+        },
+        {
+          onConflict: "user_id,language",
+        },
+      )
+      .select();
 
     if (error) {
       console.error("Error saving foundation progress:", error);
+      throw error;
     }
+
+    console.log("Foundation progress saved successfully:", data);
   } catch (error) {
     console.error("Error in saveFoundationProgress:", error);
+    throw error; // Re-throw to be caught by caller
   }
 }
 
@@ -127,6 +144,7 @@ export async function initializeFoundationProgress(
 /**
  * Mark a session as completed and update progress
  * Note: sessionIndex is maintained for backward compatibility but not used in SRS-based system
+ * @param skipWordSave - Set to true when using saveSessionWordsWithPerformance separately
  */
 export async function completeSession(
   sessionIndex: number,
@@ -134,23 +152,34 @@ export async function completeSession(
   results: SessionResults,
   language: string = "fr",
   sessionWords?: FoundationWord[],
+  skipWordSave: boolean = false,
 ): Promise<FoundationProgress> {
   const supabase = createClient();
+
+  console.log("completeSession called:", {
+    sessionIndex,
+    wordIds: wordIds.length,
+    skipWordSave,
+  });
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
+    console.error("User not authenticated in completeSession");
     throw new Error("User not authenticated");
   }
 
-  // Save words to database with SRS tracking if provided
-  if (sessionWords && sessionWords.length > 0) {
+  // Only save words using old method if not using the new enhanced method
+  if (!skipWordSave && sessionWords && sessionWords.length > 0) {
+    console.log("Saving words using old method (saveSessionWordsToDatabase)");
     await saveSessionWordsToDatabase(
       sessionWords,
       results.exerciseResults,
       language,
     );
+  } else if (skipWordSave) {
+    console.log("Skipping saveSessionWordsToDatabase (using enhanced method)");
   }
 
   const existing =
@@ -384,14 +413,12 @@ export async function getUserWords(language: string): Promise<
     id: string;
     word: string;
     lemma: string;
-    easiness_factor: number;
+    ease_factor: number;
     repetitions: number;
-    interval_days: number;
+    interval: number;
     next_review: string;
     status: WordStatus;
-    times_seen: number;
-    first_seen: string;
-    last_seen: string;
+    last_reviewed: string | null;
     part_of_speech: string | null;
     frequency_rank: number | null;
   }>
@@ -571,9 +598,9 @@ export async function saveWordToDatabase(
     const srsData = calculateNextReview(
       existingWord
         ? {
-            ease_factor: existingWord.easiness_factor,
+            ease_factor: existingWord.ease_factor,
             repetitions: existingWord.repetitions,
-            interval: existingWord.interval_days,
+            interval: existingWord.interval,
             status: existingWord.status as WordStatus,
           }
         : {},
@@ -585,13 +612,12 @@ export async function saveWordToDatabase(
       word: word.word,
       language,
       lemma: word.lemma,
-      easiness_factor: srsData.ease_factor,
+      ease_factor: srsData.ease_factor,
       repetitions: srsData.repetitions,
-      interval_days: srsData.interval,
+      interval: srsData.interval,
       next_review: srsData.next_review.toISOString(),
       status: srsData.status,
-      times_seen: (existingWord?.times_seen || 0) + 1,
-      last_seen: new Date().toISOString(),
+      last_reviewed: new Date().toISOString(),
       part_of_speech: word.pos,
       frequency_rank: word.rank,
     };
@@ -604,10 +630,7 @@ export async function saveWordToDatabase(
         .eq("id", existingWord.id);
     } else {
       // Insert new
-      await supabase.from("user_words").insert({
-        ...wordData,
-        first_seen: new Date().toISOString(),
-      });
+      await supabase.from("user_words").insert(wordData);
     }
   } catch (error) {
     console.error("Error saving word to database:", error);
@@ -657,5 +680,178 @@ export async function saveSessionWordsToDatabase(
     }
 
     await saveWordToDatabase(word, language, rating);
+  }
+}
+
+/**
+ * Save session words with enhanced performance tracking
+ * Includes pronunciation attempts, exercise results, and word interactions
+ */
+export async function saveSessionWordsWithPerformance(
+  words: FoundationWord[],
+  wordPerformances: Array<{
+    wordId: string;
+    word: string;
+    pronunciationAttempts: number;
+    pronunciationSuccess: boolean;
+    exerciseResults: ExerciseResult[];
+    correctCount: number;
+    totalExercises: number;
+    accuracy: number;
+  }>,
+  language: string,
+): Promise<void> {
+  const supabase = createClient();
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      console.error("User not authenticated");
+      return;
+    }
+
+    console.log(`Saving ${words.length} words with performance data...`);
+
+    for (const word of words) {
+      const performance = wordPerformances.find((p) => p.wordId === word.id);
+      if (!performance) {
+        console.warn(`No performance data found for word: ${word.word}`);
+        continue;
+      }
+
+      // Calculate overall rating based on pronunciation AND quiz performance
+      let rating: WordRating = 3; // Default "Good"
+
+      // Factor in pronunciation success
+      const pronunciationWeight = 0.3;
+      const quizWeight = 0.7;
+
+      const pronunciationScore = performance.pronunciationSuccess ? 1.0 : 0.5;
+      const quizScore = performance.accuracy / 100;
+
+      const overallScore =
+        pronunciationScore * pronunciationWeight + quizScore * quizWeight;
+
+      // Convert to SRS rating
+      if (overallScore >= 0.9) {
+        rating = 5; // Perfect - both pronunciation and quizzes excellent
+      } else if (overallScore >= 0.8) {
+        rating = 4; // Easy - good pronunciation and quizzes
+      } else if (overallScore >= 0.6) {
+        rating = 3; // Good - decent performance
+      } else if (overallScore >= 0.4) {
+        rating = 2; // Hard - struggled with pronunciation or quizzes
+      } else {
+        rating = 1; // Wrong - failed both
+      }
+
+      console.log(
+        `Word "${word.word}": pronunciation=${performance.pronunciationSuccess}, quiz=${performance.accuracy}%, overall=${overallScore.toFixed(2)}, rating=${rating}`,
+      );
+
+      // Check if word exists
+      const { data: existingWord } = await supabase
+        .from("user_words")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("word", word.word)
+        .eq("language", language)
+        .single();
+
+      const srsData = calculateNextReview(
+        existingWord
+          ? {
+              ease_factor: existingWord.ease_factor,
+              repetitions: existingWord.repetitions,
+              interval: existingWord.interval,
+              status: existingWord.status as WordStatus,
+            }
+          : {},
+        rating,
+      );
+
+      const wordData = {
+        user_id: user.id,
+        word: word.word,
+        language,
+        lemma: word.lemma,
+        ease_factor: srsData.ease_factor,
+        repetitions: srsData.repetitions,
+        interval: srsData.interval,
+        next_review: srsData.next_review.toISOString(),
+        status: srsData.status,
+        last_reviewed: new Date().toISOString(),
+        rating: rating,
+        last_rated_at: new Date().toISOString(),
+        part_of_speech: word.pos,
+        frequency_rank: word.rank,
+      };
+
+      let wordId: string;
+
+      if (existingWord) {
+        // Update existing
+        await supabase
+          .from("user_words")
+          .update(wordData)
+          .eq("id", existingWord.id);
+        wordId = existingWord.id;
+        console.log(
+          `Updated existing word: ${word.word} (status: ${srsData.status})`,
+        );
+      } else {
+        // Insert new
+        const { data: newWord, error: insertError } = await supabase
+          .from("user_words")
+          .insert(wordData)
+          .select("id")
+          .single();
+
+        if (insertError) {
+          console.error(`Error inserting word ${word.word}:`, insertError);
+          continue;
+        }
+
+        wordId = newWord.id;
+        console.log(
+          `Inserted new word: ${word.word} (status: ${srsData.status})`,
+        );
+      }
+
+      // Create word interaction record
+      const { error: interactionError } = await supabase
+        .from("word_interactions")
+        .insert({
+          user_id: user.id,
+          word_id: wordId,
+          rating: rating,
+          response_time_ms:
+            performance.exerciseResults.length > 0
+              ? Math.round(
+                  performance.exerciseResults.reduce(
+                    (sum, r) => sum + r.responseTimeMs,
+                    0,
+                  ) / performance.exerciseResults.length,
+                )
+              : null,
+          context_sentence: null, // Could add example sentence from word data
+          created_at: new Date().toISOString(),
+        });
+
+      if (interactionError) {
+        console.error(
+          `Error creating word interaction for ${word.word}:`,
+          interactionError,
+        );
+      } else {
+        console.log(`Created word interaction for: ${word.word}`);
+      }
+    }
+
+    console.log("Successfully saved all words with performance data");
+  } catch (error) {
+    console.error("Error in saveSessionWordsWithPerformance:", error);
   }
 }

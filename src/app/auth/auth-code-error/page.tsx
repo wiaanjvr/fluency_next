@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import {
   Card,
   CardContent,
@@ -11,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 function AuthErrorContent() {
   const searchParams = useSearchParams();
@@ -80,11 +81,9 @@ function AuthErrorContent() {
 
 function AuthErrorFallback() {
   return (
-    <Card className="w-full max-w-md">
-      <CardContent className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </CardContent>
-    </Card>
+    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
+      <LinguaLoadingAnimation message="Loading..." showProgress={false} />
+    </div>
   );
 }
 

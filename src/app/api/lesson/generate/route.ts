@@ -166,6 +166,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check usage limits for free tier users
+    const { canStartSession } = await import("@/lib/usage-limits");
+    const usageStatus = await canStartSession(user.id, "main");
+
+    if (!usageStatus.allowed) {
+      return NextResponse.json(
+        {
+          error: "Daily limit reached",
+          message:
+            "You've reached your daily lesson limit. Upgrade to Premium for unlimited access.",
+          limitReached: true,
+          limit: usageStatus.limit,
+          currentCount: usageStatus.currentCount,
+        },
+        { status: 429 }, // 429 Too Many Requests
+      );
+    }
+
     // Require OpenAI API key - no local fallbacks
     const openaiApiKey = process.env.OPENAI_API_KEY;
     if (!openaiApiKey || openaiApiKey === "your_openai_api_key") {

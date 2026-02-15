@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       .select("*")
       .eq("user_id", user.id)
       .eq("language", language)
-      .order("last_seen", { ascending: false });
+      .order("updated_at", { ascending: false });
 
     if (status) {
       query = query.eq("status", status);

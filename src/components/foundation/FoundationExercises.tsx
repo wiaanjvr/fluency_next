@@ -502,6 +502,167 @@ export function ImageToWordExercise({
 }
 
 // ============================================================================
+// Audio to Word Exercise (Text Options)
+// Hear word → select correct word from text options (works for all words)
+// ============================================================================
+interface AudioToWordTextExerciseProps extends ExerciseProps {}
+
+export function AudioToWordTextExercise({
+  targetWord,
+  allWords,
+  onResult,
+  language = "fr",
+}: AudioToWordTextExerciseProps) {
+  const [options, setOptions] = useState<FoundationWord[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [showResult, setShowResult] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasPlayed, setHasPlayed] = useState(false);
+  const [startTime] = useState(Date.now());
+  const { playSuccess, playError } = useSoundEffects();
+
+  const langConfig = getLanguageConfig(language);
+
+  // Generate options on mount
+  useEffect(() => {
+    const distractors = getDistractorWords(targetWord, allWords, 3);
+    const allOptions = [targetWord, ...distractors];
+    const shuffled = allOptions.sort(() => Math.random() - 0.5);
+    setOptions(shuffled);
+  }, [targetWord, allWords]);
+
+  // Play audio using TTS
+  const playAudio = useCallback(() => {
+    if (isPlaying) return;
+
+    setIsPlaying(true);
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(targetWord.word);
+      utterance.lang = langConfig.speechCode;
+      utterance.rate = 0.8;
+
+      const selectedVoice = getTTSVoice(language);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+
+      utterance.onend = () => {
+        setIsPlaying(false);
+        setHasPlayed(true);
+      };
+
+      utterance.onerror = () => {
+        setIsPlaying(false);
+        setHasPlayed(true);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setIsPlaying(false);
+      setHasPlayed(true);
+    }
+  }, [isPlaying, targetWord.word, langConfig.speechCode, language]);
+
+  // Auto-play audio on mount
+  useEffect(() => {
+    if (!hasPlayed) {
+      const timer = setTimeout(playAudio, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [hasPlayed, playAudio]);
+
+  const handleSelect = (index: number) => {
+    if (showResult) return;
+
+    setSelectedIndex(index);
+    setShowResult(true);
+
+    const isCorrect = options[index].id === targetWord.id;
+    isCorrect ? playSuccess() : playError();
+
+    setTimeout(() => {
+      onResult({
+        wordId: targetWord.id,
+        exerciseType: "audio-to-word",
+        correct: isCorrect,
+        responseTimeMs: Date.now() - startTime,
+        timestamp: new Date().toISOString(),
+      });
+    }, 1500);
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-6 p-4">
+      {/* Audio Prompt */}
+      <FadeIn>
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">
+            Listen and select the word you hear:
+          </p>
+          <Button
+            onClick={playAudio}
+            disabled={isPlaying}
+            size="lg"
+            variant="outline"
+            className={cn(
+              "gap-2 px-8 py-6 text-xl rounded-full",
+              isPlaying && "animate-pulse bg-primary/10",
+            )}
+          >
+            <Volume2
+              className={cn(
+                "w-8 h-8",
+                isPlaying && "text-primary animate-bounce",
+              )}
+            />
+            {isPlaying ? "Playing..." : "Play Sound"}
+          </Button>
+        </div>
+      </FadeIn>
+
+      {/* Word Options */}
+      <div className="grid grid-cols-2 gap-3 max-w-md w-full">
+        {options.map((option, index) => {
+          const isSelected = selectedIndex === index;
+          const isCorrect = option.id === targetWord.id;
+          const showCorrectHighlight = showResult && isCorrect;
+          const showIncorrectHighlight = showResult && isSelected && !isCorrect;
+
+          return (
+            <FadeIn key={option.id} delay={index * 50}>
+              <button
+                onClick={() => handleSelect(index)}
+                disabled={showResult || !hasPlayed}
+                className={cn(
+                  "px-6 py-4 rounded-xl border-2 text-lg font-medium transition-all",
+                  "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20",
+                  !showResult && hasPlayed && "border-border hover:bg-muted",
+                  !hasPlayed && "opacity-50 cursor-not-allowed",
+                  showCorrectHighlight &&
+                    "border-green-500 bg-green-50 text-green-700",
+                  showIncorrectHighlight &&
+                    "border-red-500 bg-red-50 text-red-700",
+                  showResult && !isCorrect && !isSelected && "opacity-50",
+                )}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <span className="font-serif">{option.word}</span>
+                  {showCorrectHighlight && <AnimatedCheckmark show size="md" />}
+                  {showIncorrectHighlight && <AnimatedXMark show size="md" />}
+                </div>
+              </button>
+            </FadeIn>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // Sentence Identify Exercise
 // Hear sentence → identify which word is being used
 // ============================================================================
@@ -712,21 +873,24 @@ export function ExerciseSession({
       word: FoundationWord;
     }> = [];
 
-    // For each word, create 2-3 exercises
+    // For each word, create exercises based on imageability
     words.forEach((word) => {
+      // Audio-to-word works for ALL words (no images needed)
+      exerciseSequence.push({ type: "audio-to-word", word });
+
       // Only use imageable words for image-based exercises
       if (word.imageability !== "low") {
-        // Always start with word-to-image (easiest)
+        // Word-to-image (easiest - recognition)
         exerciseSequence.push({ type: "word-to-image", word });
 
-        // Then audio-to-image
+        // Audio-to-image
         exerciseSequence.push({ type: "audio-to-image", word });
 
-        // Then image-to-word (harder - recall)
+        // Image-to-word (harder - recall)
         exerciseSequence.push({ type: "image-to-word", word });
       }
 
-      // Always include sentence identify (works for all words)
+      // Sentence identify (works for all words)
       exerciseSequence.push({ type: "sentence-identify", word });
     });
 
@@ -773,6 +937,8 @@ export function ExerciseSession({
         return <WordToImageExercise {...props} />;
       case "audio-to-image":
         return <AudioToImageExercise {...props} />;
+      case "audio-to-word":
+        return <AudioToWordTextExercise {...props} />;
       case "image-to-word":
         return <ImageToWordExercise {...props} />;
       case "sentence-identify":

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import {
   ArrowLeft,
   BookOpen,
@@ -12,7 +13,6 @@ import {
   Star,
   ChevronRight,
   Lock,
-  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,11 +82,7 @@ export default function SentenceLearningPage() {
   }));
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Loading sentences..." />;
   }
 
   return (

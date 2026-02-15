@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { InteractiveStory } from "@/components/learning/InteractiveStory";
 import { Button } from "@/components/ui/button";
+import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import {
   Card,
   CardContent,
@@ -14,14 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { GeneratedStory, ProficiencyLevel, WordRating } from "@/types";
-import {
-  BookOpen,
-  Brain,
-  Loader2,
-  Home,
-  BarChart3,
-  Sparkles,
-} from "lucide-react";
+import { BookOpen, Brain, Home, BarChart3, Sparkles } from "lucide-react";
 
 export default function SRSLearnPage() {
   const [loading, setLoading] = useState(true);
@@ -163,11 +157,7 @@ export default function SRSLearnPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
+    return <LinguaLoadingAnimation message="Loading SRS session..." />;
   }
 
   // Show the story if there's one in progress
