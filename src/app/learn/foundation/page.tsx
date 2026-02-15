@@ -29,22 +29,20 @@ import {
   generateFoundationVocabulary,
   createLearningSessions,
 } from "@/data/foundation-vocabulary";
-import commonFrenchWords from "@/data/common-french-words.json";
+import { getVocabularyData } from "@/lib/languages/data-loader";
 import { FadeIn, CircularProgress } from "@/components/ui/animations";
 import { createClient } from "@/lib/supabase/client";
-
-// Generate vocabulary sessions once (static data)
-const words = generateFoundationVocabulary(commonFrenchWords.words);
-const initialSessions = createLearningSessions(words, 4);
+import type { SupportedLanguage } from "@/lib/languages";
 
 export default function FoundationPage() {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
-  const [sessions] = useState<FoundationWord[][]>(initialSessions);
+  const [sessions, setSessions] = useState<FoundationWord[][]>([]);
   const [completedSessions, setCompletedSessions] = useState<number[]>([]);
   const [userWordCount, setUserWordCount] = useState(0);
   const [alreadyKnowsFoundation, setAlreadyKnowsFoundation] = useState(false);
+  const [targetLanguage, setTargetLanguage] = useState<SupportedLanguage>("fr");
 
   // Load completed sessions from localStorage and check user's word count
   useEffect(() => {
@@ -56,11 +54,28 @@ export default function FoundationPage() {
         } = await supabase.auth.getUser();
 
         if (user) {
+          // Get user's target language from profile
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("target_language")
+            .eq("id", user.id)
+            .single();
+
+          const language = (profile?.target_language ||
+            "fr") as SupportedLanguage;
+          setTargetLanguage(language);
+
+          // Generate vocabulary sessions for the user's language
+          const vocabularyData = getVocabularyData(language);
+          const words = generateFoundationVocabulary(vocabularyData.words);
+          const generatedSessions = createLearningSessions(words, 4);
+          setSessions(generatedSessions);
+
           const { count } = await supabase
             .from("user_words")
             .select("*", { count: "exact", head: true })
             .eq("user_id", user.id)
-            .eq("language", "fr");
+            .eq("language", language);
 
           const wordCount = count || 0;
           setUserWordCount(wordCount);
@@ -70,7 +85,7 @@ export default function FoundationPage() {
           if (wordCount >= 100) {
             setAlreadyKnowsFoundation(true);
             // Auto-complete all foundation sessions
-            const allSessionIndices = sessions.map((_, i) => i);
+            const allSessionIndices = generatedSessions.map((_, i) => i);
             const stored = localStorage.getItem("foundationProgress");
             let existingProgress = { completedSessions: [] };
 
@@ -132,7 +147,7 @@ export default function FoundationPage() {
     }
 
     loadProgress();
-  }, [supabase, sessions]);
+  }, [supabase]);
 
   // Calculate progress
   const totalWords = sessions.reduce((sum, s) => sum + s.length, 0);

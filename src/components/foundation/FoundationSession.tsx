@@ -27,7 +27,7 @@ import {
   createLearningSessions,
   getImageableWords,
 } from "@/data/foundation-vocabulary";
-import commonFrenchWords from "@/data/common-french-words.json";
+import { getVocabularyData } from "@/lib/languages/data-loader";
 import {
   CircularProgress,
   CompletionCelebration,
@@ -39,6 +39,8 @@ import {
   processSessionResults,
   getFoundationProgress,
 } from "@/lib/srs/foundation-srs";
+import { createClient } from "@/lib/supabase/client";
+import type { SupportedLanguage } from "@/lib/languages";
 
 // Session phases
 type SessionPhase =
@@ -50,20 +52,18 @@ interface FoundationSessionPageProps {
   sessionIndex: number;
 }
 
-// Generate vocabulary sessions once (static data)
-const generatedWords = generateFoundationVocabulary(commonFrenchWords.words);
-const generatedSessions = createLearningSessions(generatedWords, 4);
-
 export function FoundationSessionPage({
   sessionIndex,
 }: FoundationSessionPageProps) {
   const router = useRouter();
+  const supabase = createClient();
   const { playAchieve, playComplete } = useSoundEffects();
 
-  // Use pre-generated vocabulary and sessions
-  const [allWords] = useState<FoundationWord[]>(generatedWords);
-  const [sessions] = useState<FoundationWord[][]>(generatedSessions);
+  // Dynamic vocabulary loading based on user's target language
+  const [allWords, setAllWords] = useState<FoundationWord[]>([]);
+  const [sessions, setSessions] = useState<FoundationWord[][]>([]);
   const [loading, setLoading] = useState(true);
+  const [targetLanguage, setTargetLanguage] = useState<SupportedLanguage>("fr");
 
   // Session state
   const [phase, setPhase] = useState<SessionPhase>("introduction");
@@ -71,10 +71,48 @@ export function FoundationSessionPage({
   const [exerciseResults, setExerciseResults] = useState<ExerciseResult[]>([]);
   const [sessionCompleted, setSessionCompleted] = useState(false);
 
-  // Mark as loaded on mount
+  // Load user's target language and generate vocabulary
   useEffect(() => {
-    setLoading(false);
-  }, []);
+    async function loadLanguageAndVocabulary() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          router.replace("/auth/login");
+          return;
+        }
+
+        // Get user's target language from profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("target_language")
+          .eq("id", user.id)
+          .single();
+
+        const language = (profile?.target_language ||
+          "fr") as SupportedLanguage;
+        setTargetLanguage(language);
+
+        // Load vocabulary data for the target language
+        const vocabularyData = getVocabularyData(language);
+        const generatedWords = generateFoundationVocabulary(
+          vocabularyData.words,
+        );
+        const generatedSessions = createLearningSessions(generatedWords, 4);
+
+        setAllWords(generatedWords);
+        setSessions(generatedSessions);
+      } catch (error) {
+        console.error("Error loading vocabulary:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadLanguageAndVocabulary();
+  }, [supabase, router]);
 
   // Get current session words
   const currentSession = sessions[sessionIndex] || [];
@@ -319,12 +357,14 @@ export function FoundationSessionPage({
           <WordIntroductionSession
             words={currentSession}
             onComplete={handleIntroductionComplete}
+            language={targetLanguage}
           />
         ) : (
           <ExerciseSession
             words={imageableWords}
             allWords={allWords.filter((w) => w.imageability !== "low")}
             onComplete={handlePracticeComplete}
+            language={targetLanguage}
           />
         )}
       </div>

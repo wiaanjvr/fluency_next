@@ -26,6 +26,12 @@ import {
   ScaleIn,
 } from "@/components/ui/animations";
 import { useSoundEffects } from "@/lib/sounds";
+import { getLanguageConfig, getTTSVoice } from "@/lib/languages";
+
+// Helper to get the target language text (supports both old 'french' and new 'target' fields)
+function getTargetText(sentence: SimpleSentence): string {
+  return sentence.target || sentence.french || "";
+}
 
 // ============================================================================
 // SENTENCE MINING EXERCISE
@@ -37,6 +43,7 @@ interface SentenceMiningExerciseProps {
   mode: "comprehension" | "word-identification" | "translation";
   onResult: (result: SentenceMiningResult) => void;
   showAudioFirst?: boolean;
+  language?: string; // Optional language code (fr, de, it)
 }
 
 export function SentenceMiningExercise({
@@ -44,6 +51,7 @@ export function SentenceMiningExercise({
   mode,
   onResult,
   showAudioFirst = true,
+  language = "fr",
 }: SentenceMiningExerciseProps) {
   const [phase, setPhase] = useState<"audio" | "interact" | "result">(
     showAudioFirst ? "audio" : "interact",
@@ -55,6 +63,10 @@ export function SentenceMiningExercise({
   const [startTime] = useState(Date.now());
   const { playSuccess, playError } = useSoundEffects();
 
+  // Get language configuration for TTS
+  const langConfig = getLanguageConfig(language as "fr" | "de" | "it");
+  const targetText = getTargetText(sentence);
+
   // Play sentence audio using TTS
   const playAudio = useCallback(() => {
     if (isPlaying) return;
@@ -64,19 +76,14 @@ export function SentenceMiningExercise({
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(sentence.french);
-      utterance.lang = "fr-FR";
+      const utterance = new SpeechSynthesisUtterance(targetText);
+      utterance.lang = langConfig.speechCode;
       utterance.rate = 0.75; // Slower for learners
 
-      const voices = window.speechSynthesis.getVoices();
-      const frenchVoice =
-        voices.find(
-          (voice) =>
-            voice.lang.startsWith("fr") && voice.name.includes("Google"),
-        ) || voices.find((voice) => voice.lang.startsWith("fr"));
-
-      if (frenchVoice) {
-        utterance.voice = frenchVoice;
+      // Find best voice for the target language
+      const selectedVoice = getTTSVoice(language as "fr" | "de" | "it");
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
       }
 
       utterance.onend = () => {
@@ -100,7 +107,7 @@ export function SentenceMiningExercise({
         setPhase("interact");
       }
     }
-  }, [isPlaying, sentence.french, phase]);
+  }, [isPlaying, targetText, langConfig.speechCode, language, phase]);
 
   // Auto-play audio on mount if audio-first mode
   useEffect(() => {
@@ -158,7 +165,7 @@ export function SentenceMiningExercise({
 
         <FadeIn delay={100}>
           <h2 className="text-2xl md:text-3xl font-serif text-primary mb-2">
-            {sentence.french}
+            {targetText}
           </h2>
         </FadeIn>
 
@@ -288,7 +295,7 @@ export function SentenceMiningExercise({
         {/* Sentence display */}
         <FadeIn delay={200}>
           <p className="text-xl md:text-2xl font-serif text-center mb-6">
-            {sentence.french}
+            {targetText}
           </p>
         </FadeIn>
 
@@ -380,10 +387,10 @@ export function SentenceMiningExercise({
           </div>
         </FadeIn>
 
-        {/* French sentence */}
+        {/* Target language sentence */}
         <FadeIn delay={200}>
           <h2 className="text-2xl md:text-3xl font-serif text-primary text-center mb-6">
-            {sentence.french}
+            {targetText}
           </h2>
         </FadeIn>
 

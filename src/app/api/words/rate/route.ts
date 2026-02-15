@@ -55,9 +55,9 @@ export async function POST(request: NextRequest) {
       const { data: updatedWord, error: updateError } = await supabase
         .from("user_words")
         .update({
-          ease_factor: srsUpdate.easiness_factor,
+          ease_factor: srsUpdate.ease_factor,
           repetitions: srsUpdate.repetitions,
-          interval: srsUpdate.interval_days,
+          interval: srsUpdate.interval,
           next_review: srsUpdate.next_review.toISOString(),
           status: srsUpdate.status,
           rating: rating,
@@ -90,9 +90,9 @@ export async function POST(request: NextRequest) {
           word,
           lemma,
           language,
-          ease_factor: srsUpdate.easiness_factor,
+          ease_factor: srsUpdate.ease_factor,
           repetitions: srsUpdate.repetitions,
-          interval: srsUpdate.interval_days,
+          interval: srsUpdate.interval,
           next_review: srsUpdate.next_review.toISOString(),
           status: srsUpdate.status,
           rating: rating,

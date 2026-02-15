@@ -1,0 +1,127 @@
+{
+  "language": "de",
+  "audioItems": [
+    {
+      "id": "audio-a1-de",
+      "difficulty": "A1",
+      "audioUrl": "/audio/placement/de/audio-a1.mp3",
+      "durationSeconds": 10,
+      "transcript": "Hallo, ich heiße Marie. Ich bin zwanzig Jahre alt.",
+      "question": "Wie heißt die Person?",
+      "options": ["Sophie", "Marie", "Clara", "Julia"],
+      "correctIndex": 1
+    },
+    {
+      "id": "audio-a2-de",
+      "difficulty": "A2",
+      "audioUrl": "/audio/placement/de/audio-a2.mp3",
+      "durationSeconds": 10,
+      "transcript": "Heute Morgen bin ich zum Markt gegangen, um Obst und Gemüse zu kaufen.",
+      "question": "Wohin ist er gegangen?",
+      "options": ["Nach Hause", "Zur Schule", "Zum Markt", "Zum Park"],
+      "correctIndex": 2
+    },
+    {
+      "id": "audio-b1-de",
+      "difficulty": "B1",
+      "audioUrl": "/audio/placement/de/audio-b1.mp3",
+      "durationSeconds": 10,
+      "transcript": "Der Bericht zeigt, dass die Verkäufe in diesem Quartal um fünfzehn Prozent im Vergleich zum Vorjahr gestiegen sind.",
+      "question": "Was ist gestiegen?",
+      "options": ["Die Produkte", "Die Verkäufe", "Die Kunden", "Die Preise"],
+      "correctIndex": 1
+    },
+    {
+      "id": "audio-b2-de",
+      "difficulty": "B2",
+      "audioUrl": "/audio/placement/de/audio-b2.mp3",
+      "durationSeconds": 10,
+      "transcript": "Obwohl die wirtschaftliche Lage besorgniserregend ist, sind die Experten der Meinung, dass eine schrittweise Erholung bis Ende des Jahres möglich ist.",
+      "question": "Was meinen die Experten?",
+      "options": [
+        "Das ist unmöglich zu sagen",
+        "Die Situation ist ernst",
+        "Eine Verbesserung ist möglich",
+        "Alles ist in Ordnung"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": "audio-c1-de",
+      "difficulty": "C1",
+      "audioUrl": "/audio/placement/de/audio-c1.mp3",
+      "durationSeconds": 10,
+      "transcript": "Das Aufkommen disruptiver Technologien hat die traditionellen Paradigmen, die bisher den Industriesektor beherrschten, grundlegend verändert.",
+      "question": "Welcher Sektor wird erwähnt?",
+      "options": [
+        "Der Medizinsektor",
+        "Der Agrarsektor",
+        "Der Industriesektor",
+        "Der Bildungssektor"
+      ],
+      "correctIndex": 2
+    }
+  ],
+  "readingItems": [
+    {
+      "id": "reading-a1-de",
+      "difficulty": "A1",
+      "passage": "Mein Name ist Paul. Ich wohne in Berlin. Ich bin Student.",
+      "question": "Wo wohnt Paul?",
+      "options": ["In München", "In Hamburg", "In Berlin", "In Wien"],
+      "correctIndex": 2
+    },
+    {
+      "id": "reading-a2-de",
+      "difficulty": "A2",
+      "passage": "Am Wochenende gehe ich gern spazieren. Manchmal treffe ich Freunde im Café. Wir reden und trinken Kaffee zusammen.",
+      "question": "Was macht die Person am Wochenende?",
+      "options": [
+        "Sie arbeitet",
+        "Sie geht spazieren und trifft Freunde",
+        "Sie bleibt zu Hause",
+        "Sie macht Sport"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": "reading-b1-de",
+      "difficulty": "B1",
+      "passage": "Die Studie zeigt, dass regelmäßige körperliche Aktivität nicht nur die körperliche Gesundheit verbessert, sondern auch positive Auswirkungen auf die geistige Gesundheit hat.",
+      "question": "Was zeigt die Studie?",
+      "options": [
+        "Sport ist schädlich",
+        "Bewegung verbessert körperliche und geistige Gesundheit",
+        "Nur Ärzte sollten Sport treiben",
+        "Die Studie wurde abgebrochen"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": "reading-b2-de",
+      "difficulty": "B2",
+      "passage": "Die zunehmende Digitalisierung der Arbeitswelt stellt sowohl Chancen als auch Herausforderungen dar. Während einige Berufe verschwinden könnten, entstehen gleichzeitig neue Tätigkeitsfelder.",
+      "question": "Was ist die Hauptaussage des Textes?",
+      "options": [
+        "Alle Berufe werden verschwinden",
+        "Die Digitalisierung hat keine Auswirkungen",
+        "Die Digitalisierung bringt Chancen und Herausforderungen",
+        "Neue Berufe sind schlecht"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": "reading-c1-de",
+      "difficulty": "C1",
+      "passage": "Die epistemologischen Grundlagen der modernen Wissenschaftstheorie wurden durch die Erkenntnisse der Quantenphysik fundamental erschüttert, was zu einer Neubewertung deterministischer Weltanschauungen führte.",
+      "question": "Was wurde durch die Quantenphysik beeinflusst?",
+      "options": [
+        "Die Kunstgeschichte",
+        "Die Wissenschaftstheorie und deterministische Weltanschauungen",
+        "Die Literatur",
+        "Die Soziologie"
+      ],
+      "correctIndex": 1
+    }
+  ]
+}

@@ -24,8 +24,9 @@ export interface FoundationPhrase {
   level: "A0";
   phase: "survival-basics";
   order: number;
-  phrase_french: string;
+  phrase_target: string; // target language (fr/de/it)
   phrase_english: string;
+  phrase_french?: string; // deprecated, kept for backwards compatibility
   audio_url: string;
   phonetic: string;
   breakdown: Array<{
@@ -34,8 +35,9 @@ export interface FoundationPhrase {
   }>;
   usage_context: string;
   practice_sentences: Array<{
-    french: string;
+    target: string; // target language
     english: string;
+    french?: string; // deprecated
     audio_url: string;
   }>;
 }
@@ -48,8 +50,9 @@ export interface SingleSentence {
   phase: "basic-sentences";
   order: number;
   topic: string;
-  sentence_french: string;
+  sentence_target: string; // target language (fr/de/it)
   sentence_english: string;
+  sentence_french?: string; // deprecated
   audio_url: string;
   phonetic: string;
   key_vocabulary: Array<{
@@ -57,8 +60,9 @@ export interface SingleSentence {
     meaning: string;
   }>;
   response_options: Array<{
-    french: string;
+    target: string; // target language
     english: string;
+    french?: string; // deprecated
     audio_url: string;
   }>;
 }

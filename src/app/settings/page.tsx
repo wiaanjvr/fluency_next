@@ -300,10 +300,9 @@ export default function SettingsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="fr">French</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
-                      <SelectItem value="it">Italian</SelectItem>
+                      <SelectItem value="fr">🇫🇷 French</SelectItem>
+                      <SelectItem value="de">🇩🇪 German</SelectItem>
+                      <SelectItem value="it">🇮🇹 Italian</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -317,10 +316,11 @@ export default function SettingsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
+                      <SelectItem value="en">🇬🇧 English</SelectItem>
+                      <SelectItem value="es">🇪🇸 Spanish</SelectItem>
+                      <SelectItem value="fr">🇫🇷 French</SelectItem>
+                      <SelectItem value="de">🇩🇪 German</SelectItem>
+                      <SelectItem value="it">🇮🇹 Italian</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

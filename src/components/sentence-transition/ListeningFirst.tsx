@@ -24,6 +24,16 @@ import {
   getPlaceholderImage,
   preloadImages,
 } from "@/lib/content/image-service";
+import {
+  getLanguageConfig,
+  getTTSVoice,
+  type SupportedLanguage,
+} from "@/lib/languages";
+
+// Helper to get the target language text
+function getTargetText(sentence: SimpleSentence): string {
+  return sentence.target || sentence.french || "";
+}
 
 // ============================================================================
 // LISTENING FIRST EXERCISE
@@ -35,6 +45,7 @@ interface ListeningFirstExerciseProps {
   imageOptions: ListeningImageOption[];
   correctImageIndex: number;
   onResult: (result: ListeningFirstResult) => void;
+  language?: SupportedLanguage;
 }
 
 export function ListeningFirstExercise({
@@ -42,6 +53,7 @@ export function ListeningFirstExercise({
   imageOptions,
   correctImageIndex,
   onResult,
+  language = "fr",
 }: ListeningFirstExerciseProps) {
   const [phase, setPhase] = useState<ListeningPhase>("audio-only");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -52,6 +64,9 @@ export function ListeningFirstExercise({
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [startTime] = useState(Date.now());
   const { playSuccess, playError } = useSoundEffects();
+
+  const langConfig = getLanguageConfig(language);
+  const targetText = getTargetText(sentence);
 
   // Preload images on mount
   useEffect(() => {
@@ -69,19 +84,13 @@ export function ListeningFirstExercise({
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(sentence.french);
-      utterance.lang = "fr-FR";
+      const utterance = new SpeechSynthesisUtterance(targetText);
+      utterance.lang = langConfig.speechCode;
       utterance.rate = 0.7; // Slower for comprehension
 
-      const voices = window.speechSynthesis.getVoices();
-      const frenchVoice =
-        voices.find(
-          (voice) =>
-            voice.lang.startsWith("fr") && voice.name.includes("Google"),
-        ) || voices.find((voice) => voice.lang.startsWith("fr"));
-
-      if (frenchVoice) {
-        utterance.voice = frenchVoice;
+      const selectedVoice = getTTSVoice(language);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
       }
 
       utterance.onend = () => {
@@ -106,7 +115,7 @@ export function ListeningFirstExercise({
         setPhase("select-meaning");
       }
     }
-  }, [isPlaying, sentence.french, phase]);
+  }, [isPlaying, targetText, langConfig.speechCode, language, phase]);
 
   // Auto-play audio on mount
   useEffect(() => {
@@ -336,9 +345,9 @@ export function ListeningFirstExercise({
                 </Button>
               </div>
 
-              {/* French sentence revealed */}
+              {/* Target language sentence revealed */}
               <h2 className="text-2xl md:text-3xl font-serif text-primary text-center mb-4">
-                {sentence.french}
+                {targetText}
               </h2>
 
               {/* English translation */}

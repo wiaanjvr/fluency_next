@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,6 @@ import {
   getLevelDescription,
   getResultsMessage,
 } from "@/lib/placement/scoring";
-import placementTestData from "@/data/placement-test.json";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -41,9 +40,17 @@ import {
   ArrowRight,
   Sparkles,
   CheckCircle2,
+  Globe,
 } from "lucide-react";
+import {
+  SupportedLanguage,
+  getLanguageConfig,
+  getLanguageList,
+  getPlacementTest,
+} from "@/lib/languages";
 
 type OnboardingStep =
+  | "language-select"
   | "welcome"
   | "audio-test"
   | "reading-test"
@@ -56,7 +63,9 @@ export default function OnboardingPage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
-  const [step, setStep] = useState<OnboardingStep>("welcome");
+  const [step, setStep] = useState<OnboardingStep>("language-select");
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<SupportedLanguage>("fr");
   const [audioIndex, setAudioIndex] = useState(0);
   const [readingIndex, setReadingIndex] = useState(0);
   const [audioResponses, setAudioResponses] = useState<TestResponse[]>([]);
@@ -68,6 +77,16 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false);
   const [completingOnboarding, setCompletingOnboarding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Get placement test data based on selected language
+  const placementTestData = useMemo(
+    () => getPlacementTest(selectedLanguage),
+    [selectedLanguage],
+  );
+  const languageConfig = useMemo(
+    () => getLanguageConfig(selectedLanguage),
+    [selectedLanguage],
+  );
 
   const audioItems = placementTestData.audioItems as AudioTestItem[];
   const readingItems = placementTestData.readingItems as ReadingTestItem[];
@@ -117,14 +136,15 @@ export default function OnboardingPage() {
     }
   }, []); // Empty dependency array - only run once on mount
 
-  const totalSteps = 5;
+  const totalSteps = 6;
   const currentStepNumber = {
-    welcome: 1,
-    "audio-test": 2,
-    "reading-test": 3,
-    results: 4,
-    interests: 5,
-    complete: 5,
+    "language-select": 1,
+    welcome: 2,
+    "audio-test": 3,
+    "reading-test": 4,
+    results: 5,
+    interests: 6,
+    complete: 6,
   }[step];
 
   // Handle audio test answer
@@ -211,10 +231,11 @@ export default function OnboardingPage() {
           id: user.id,
           email: user.email || "",
           proficiency_level: testResults.determinedLevel,
+          target_language: selectedLanguage,
           interests: selectedInterests,
           updated_at: new Date().toISOString(),
         })
-        .select("interests, proficiency_level")
+        .select("interests, proficiency_level, target_language")
         .single();
 
       if (updateError) {
@@ -320,7 +341,9 @@ export default function OnboardingPage() {
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold mb-2">Welcome to Lingua</h1>
           <p className="text-muted-foreground">
-            {step === "welcome" && "Let's find your perfect starting point"}
+            {step === "language-select" && "Choose your target language"}
+            {step === "welcome" &&
+              `Let's find your perfect starting point in ${languageConfig.name}`}
             {step === "audio-test" && "Listen carefully and answer"}
             {step === "reading-test" && "Read and answer"}
             {step === "results" && "Your assessment is complete!"}
@@ -334,7 +357,7 @@ export default function OnboardingPage() {
             <div
               key={i}
               className={cn(
-                "h-2 w-16 rounded-full transition-colors",
+                "h-2 w-12 rounded-full transition-colors",
                 i + 1 === currentStepNumber
                   ? "bg-primary"
                   : i + 1 < currentStepNumber
@@ -345,13 +368,70 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        {/* Step 1: Welcome */}
+        {/* Step 1: Language Selection */}
+        {step === "language-select" && (
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl flex items-center justify-center gap-2">
+                <Globe className="h-6 w-6" />
+                Choose Your Language
+              </CardTitle>
+              <CardDescription className="text-base">
+                Select the language you want to learn
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-3">
+                {getLanguageList().map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => setSelectedLanguage(lang.code)}
+                    className={cn(
+                      "p-4 rounded-lg border-2 transition-all text-left flex items-center gap-4",
+                      selectedLanguage === lang.code
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50 hover:bg-muted/50",
+                    )}
+                  >
+                    <span className="text-4xl">{lang.flag}</span>
+                    <div>
+                      <div className="font-semibold text-lg">{lang.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {lang.nativeName}
+                      </div>
+                    </div>
+                    {selectedLanguage === lang.code && (
+                      <CheckCircle2 className="ml-auto h-5 w-5 text-primary" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <Button
+                size="lg"
+                onClick={() => setStep("welcome")}
+                className="w-full"
+              >
+                Continue with {languageConfig.name}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 2: Welcome */}
         {step === "welcome" && (
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Placement Assessment</CardTitle>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-3xl">{languageConfig.flag}</span>
+                <CardTitle className="text-2xl">
+                  {languageConfig.name} Placement
+                </CardTitle>
+              </div>
               <CardDescription className="text-base">
-                We'll assess your French level with a quick 10-question test
+                We'll assess your {languageConfig.name} level with a quick
+                10-question test
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -379,9 +459,10 @@ export default function OnboardingPage() {
 
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
                 <p className="text-sm text-amber-700 dark:text-amber-400">
-                  <strong>Note:</strong> All questions are in French at varying
-                  difficulty levels. Don't worry if some seem challenging—that's
-                  how we determine your level!
+                  <strong>Note:</strong> All questions are in{" "}
+                  {languageConfig.name} at varying difficulty levels. Don't
+                  worry if some seem challenging—that's how we determine your
+                  level!
                 </p>
               </div>
 
@@ -397,7 +478,7 @@ export default function OnboardingPage() {
           </Card>
         )}
 
-        {/* Step 2: Audio Listening Test */}
+        {/* Step 3: Audio Listening Test */}
         {step === "audio-test" && (
           <div className="space-y-4">
             <div className="text-center text-sm text-muted-foreground">

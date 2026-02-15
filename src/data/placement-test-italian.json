@@ -1,0 +1,127 @@
+{
+  "language": "it",
+  "audioItems": [
+    {
+      "id": "audio-a1-it",
+      "difficulty": "A1",
+      "audioUrl": "/audio/placement/it/audio-a1.mp3",
+      "durationSeconds": 10,
+      "transcript": "Ciao, mi chiamo Maria. Ho venti anni.",
+      "question": "Come si chiama la persona?",
+      "options": ["Sofia", "Maria", "Chiara", "Giulia"],
+      "correctIndex": 1
+    },
+    {
+      "id": "audio-a2-it",
+      "difficulty": "A2",
+      "audioUrl": "/audio/placement/it/audio-a2.mp3",
+      "durationSeconds": 10,
+      "transcript": "Stamattina sono andato al mercato per comprare frutta e verdura.",
+      "question": "Dove è andato?",
+      "options": ["A casa", "A scuola", "Al mercato", "Al parco"],
+      "correctIndex": 2
+    },
+    {
+      "id": "audio-b1-it",
+      "difficulty": "B1",
+      "audioUrl": "/audio/placement/it/audio-b1.mp3",
+      "durationSeconds": 10,
+      "transcript": "Il rapporto indica che le vendite sono aumentate del quindici per cento questo trimestre rispetto all'anno scorso.",
+      "question": "Cosa è aumentato?",
+      "options": ["I prodotti", "Le vendite", "I clienti", "I prezzi"],
+      "correctIndex": 1
+    },
+    {
+      "id": "audio-b2-it",
+      "difficulty": "B2",
+      "audioUrl": "/audio/placement/it/audio-b2.mp3",
+      "durationSeconds": 10,
+      "transcript": "Nonostante la situazione economica sia preoccupante, gli esperti ritengono che una ripresa graduale sia possibile entro la fine dell'anno.",
+      "question": "Qual è l'opinione degli esperti?",
+      "options": [
+        "È impossibile dirlo",
+        "La situazione è grave",
+        "Un miglioramento è possibile",
+        "Tutto va bene"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": "audio-c1-it",
+      "difficulty": "C1",
+      "audioUrl": "/audio/placement/it/audio-c1.mp3",
+      "durationSeconds": 10,
+      "transcript": "L'emergere delle tecnologie dirompenti ha fondamentalmente sconvolto i paradigmi tradizionali che fino ad ora governavano il settore industriale.",
+      "question": "Quale settore viene menzionato?",
+      "options": [
+        "Il settore medico",
+        "Il settore agricolo",
+        "Il settore industriale",
+        "Il settore educativo"
+      ],
+      "correctIndex": 2
+    }
+  ],
+  "readingItems": [
+    {
+      "id": "reading-a1-it",
+      "difficulty": "A1",
+      "passage": "Mi chiamo Paolo. Abito a Roma. Sono studente.",
+      "question": "Dove abita Paolo?",
+      "options": ["A Milano", "A Napoli", "A Roma", "A Venezia"],
+      "correctIndex": 2
+    },
+    {
+      "id": "reading-a2-it",
+      "difficulty": "A2",
+      "passage": "Nel weekend mi piace fare passeggiate. A volte incontro amici al bar. Parliamo e beviamo caffè insieme.",
+      "question": "Cosa fa la persona nel weekend?",
+      "options": [
+        "Lavora",
+        "Fa passeggiate e incontra amici",
+        "Resta a casa",
+        "Fa sport"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": "reading-b1-it",
+      "difficulty": "B1",
+      "passage": "Lo studio dimostra che l'attività fisica regolare non solo migliora la salute fisica, ma ha anche effetti positivi sulla salute mentale.",
+      "question": "Cosa dimostra lo studio?",
+      "options": [
+        "Lo sport è dannoso",
+        "L'esercizio migliora la salute fisica e mentale",
+        "Solo i medici dovrebbero fare sport",
+        "Lo studio è stato interrotto"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": "reading-b2-it",
+      "difficulty": "B2",
+      "passage": "La crescente digitalizzazione del mondo del lavoro presenta sia opportunità che sfide. Mentre alcune professioni potrebbero scomparire, ne emergono contemporaneamente di nuove.",
+      "question": "Qual è il messaggio principale del testo?",
+      "options": [
+        "Tutte le professioni scompariranno",
+        "La digitalizzazione non ha effetti",
+        "La digitalizzazione porta opportunità e sfide",
+        "Le nuove professioni sono negative"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": "reading-c1-it",
+      "difficulty": "C1",
+      "passage": "I fondamenti epistemologici della moderna teoria della scienza sono stati fondamentalmente scossi dalle scoperte della fisica quantistica, portando a una rivalutazione delle visioni deterministiche del mondo.",
+      "question": "Cosa è stato influenzato dalla fisica quantistica?",
+      "options": [
+        "La storia dell'arte",
+        "La teoria della scienza e le visioni deterministiche",
+        "La letteratura",
+        "La sociologia"
+      ],
+      "correctIndex": 1
+    }
+  ]
+}

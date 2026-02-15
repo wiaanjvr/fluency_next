@@ -48,6 +48,7 @@ export default function LearnPage() {
   const [currentStory, setCurrentStory] = useState<GeneratedStory | null>(null);
   const [userLevel, setUserLevel] = useState<ProficiencyLevel>("A1");
   const [stats, setStats] = useState<any>(null);
+  const [targetLanguage, setTargetLanguage] = useState<string>("fr");
 
   // Custom prompt state (for users with 100+ vocabulary)
   const [customPrompt, setCustomPrompt] = useState("");
@@ -81,6 +82,7 @@ export default function LearnPage() {
 
       if (profile) {
         setUserLevel(profile.proficiency_level as ProficiencyLevel);
+        setTargetLanguage(profile.target_language || "fr");
       }
 
       await loadStats();
@@ -167,7 +169,7 @@ export default function LearnPage() {
           word,
           lemma: word.toLowerCase(),
           rating,
-          language: "fr",
+          language: targetLanguage,
           story_id: currentStory?.id,
         }),
       });

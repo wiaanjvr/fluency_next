@@ -11,8 +11,11 @@ export interface FoundationWord {
   pos: string; // part of speech
   translation: string;
   exampleSentence: {
-    french: string;
+    /** Target language text (French, German, Italian, etc.) */
+    target?: string;
     english: string;
+    /** @deprecated Use 'target' instead */
+    french?: string;
   };
   imageKeyword: string; // keyword for image search
   audioUrl?: string;

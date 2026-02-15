@@ -11,11 +11,25 @@ import {
   getPlaceholderImage,
 } from "@/lib/content/image-service";
 import { FadeIn, ScaleIn } from "@/components/ui/animations";
+import {
+  getLanguageConfig,
+  getTTSVoice,
+  type SupportedLanguage,
+} from "@/lib/languages";
+
+// Helper to get target text from exampleSentence
+function getExampleSentenceText(exampleSentence: {
+  french?: string;
+  target?: string;
+}): string {
+  return exampleSentence.target || exampleSentence.french || "";
+}
 
 interface WordIntroductionProps {
   word: FoundationWord;
   onComplete: () => void;
   showNavigation?: boolean;
+  language?: SupportedLanguage;
 }
 
 /**
@@ -30,12 +44,14 @@ export function WordIntroduction({
   word,
   onComplete,
   showNavigation = true,
+  language = "fr",
 }: WordIntroductionProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayedAudio, setHasPlayedAudio] = useState(false);
 
   const imageResult = getImageForWord(word.imageKeyword);
+  const langConfig = getLanguageConfig(language);
 
   // Play audio using Web Speech API (free, no API needed)
   const playAudio = async () => {
@@ -49,19 +65,13 @@ export function WordIntroduction({
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(word.word);
-      utterance.lang = "fr-FR";
+      utterance.lang = langConfig.speechCode;
       utterance.rate = 0.8; // Slightly slower for learning
 
-      // Try to find a French voice
-      const voices = window.speechSynthesis.getVoices();
-      const frenchVoice =
-        voices.find(
-          (voice) =>
-            voice.lang.startsWith("fr") && voice.name.includes("Google"),
-        ) || voices.find((voice) => voice.lang.startsWith("fr"));
-
-      if (frenchVoice) {
-        utterance.voice = frenchVoice;
+      // Try to find the appropriate voice for the target language
+      const selectedVoice = getTTSVoice(language);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
       }
 
       utterance.onend = () => {
@@ -189,7 +199,7 @@ export function WordIntroduction({
       <FadeIn delay={300}>
         <Card className="p-4 bg-muted/50 max-w-md">
           <p className="text-lg md:text-xl font-medium text-center mb-2">
-            &ldquo;{word.exampleSentence.french}&rdquo;
+            &ldquo;{getExampleSentenceText(word.exampleSentence)}&rdquo;
           </p>
           <p className="text-muted-foreground text-center">
             {word.exampleSentence.english}
@@ -218,6 +228,7 @@ export function WordIntroduction({
 interface WordIntroductionSessionProps {
   words: FoundationWord[];
   onComplete: (wordsLearned: FoundationWord[]) => void;
+  language?: SupportedLanguage;
 }
 
 /**
@@ -226,6 +237,7 @@ interface WordIntroductionSessionProps {
 export function WordIntroductionSession({
   words,
   onComplete,
+  language = "fr",
 }: WordIntroductionSessionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [learnedWords, setLearnedWords] = useState<FoundationWord[]>([]);
@@ -270,6 +282,7 @@ export function WordIntroductionSession({
           key={currentWord.id}
           word={currentWord}
           onComplete={handleWordComplete}
+          language={language}
         />
       </div>
     </div>

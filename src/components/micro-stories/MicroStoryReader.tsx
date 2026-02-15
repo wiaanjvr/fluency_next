@@ -37,6 +37,34 @@ import {
   AnimatedXMark,
 } from "@/components/ui/animations";
 import { useSoundEffects } from "@/lib/sounds";
+import {
+  getLanguageConfig,
+  getTTSVoice,
+  type SupportedLanguage,
+} from "@/lib/languages";
+
+// Helper to get target text from StorySentence
+function getSentenceText(sentence: StorySentence): string {
+  return sentence.target || sentence.french || "";
+}
+
+// TTS helper that supports multiple languages
+function playTTS(text: string, language: SupportedLanguage = "fr") {
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    const langConfig = getLanguageConfig(language);
+    utterance.lang = langConfig.speechCode;
+    utterance.rate = 0.7;
+
+    const selectedVoice = getTTSVoice(language);
+    if (selectedVoice) utterance.voice = selectedVoice;
+
+    window.speechSynthesis.speak(utterance);
+    return utterance;
+  }
+  return null;
+}
 
 // ============================================================================
 // INTERACTIVE WORD COMPONENT
@@ -50,6 +78,7 @@ interface InteractiveWordProps {
   onClick: (word: StoryWord) => void;
   showTooltip: boolean;
   onTooltipClose: () => void;
+  language?: SupportedLanguage;
 }
 
 export function InteractiveWord({
@@ -59,24 +88,14 @@ export function InteractiveWord({
   onClick,
   showTooltip,
   onTooltipClose,
+  language = "fr",
 }: InteractiveWordProps) {
   const wordRef = useRef<HTMLSpanElement>(null);
 
   // Play word audio using TTS
   const playWordAudio = useCallback(() => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(word.cleanText);
-      utterance.lang = "fr-FR";
-      utterance.rate = 0.7;
-
-      const voices = window.speechSynthesis.getVoices();
-      const frenchVoice = voices.find((v) => v.lang.startsWith("fr"));
-      if (frenchVoice) utterance.voice = frenchVoice;
-
-      window.speechSynthesis.speak(utterance);
-    }
-  }, [word.cleanText]);
+    playTTS(word.cleanText, language);
+  }, [word.cleanText, language]);
 
   const handleClick = () => {
     onClick(word);
@@ -181,6 +200,7 @@ interface InteractiveSentenceProps {
   activeWordIndex: number | null;
   onActiveWordChange: (index: number | null) => void;
   isCurrentSentence: boolean;
+  language?: SupportedLanguage;
 }
 
 export function InteractiveSentence({
@@ -190,8 +210,10 @@ export function InteractiveSentence({
   activeWordIndex,
   onActiveWordChange,
   isCurrentSentence,
+  language = "fr",
 }: InteractiveSentenceProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const sentenceText = getSentenceText(sentence);
 
   // Play sentence audio
   const playSentenceAudio = useCallback(() => {
@@ -200,20 +222,20 @@ export function InteractiveSentence({
     setIsPlaying(true);
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(sentence.french);
-      utterance.lang = "fr-FR";
+      const langConfig = getLanguageConfig(language);
+      const utterance = new SpeechSynthesisUtterance(sentenceText);
+      utterance.lang = langConfig.speechCode;
       utterance.rate = 0.75;
 
-      const voices = window.speechSynthesis.getVoices();
-      const frenchVoice = voices.find((v) => v.lang.startsWith("fr"));
-      if (frenchVoice) utterance.voice = frenchVoice;
+      const selectedVoice = getTTSVoice(language);
+      if (selectedVoice) utterance.voice = selectedVoice;
 
       utterance.onend = () => setIsPlaying(false);
       utterance.onerror = () => setIsPlaying(false);
 
       window.speechSynthesis.speak(utterance);
     }
-  }, [sentence.french, isPlaying]);
+  }, [sentenceText, language, isPlaying]);
 
   const handleWordClick = (word: StoryWord) => {
     onActiveWordChange(word.position);
@@ -234,12 +256,13 @@ export function InteractiveSentence({
         </span>
 
         <div className="flex-1">
-          {/* French sentence with interactive words */}
+          {/* Target language sentence with interactive words */}
           <div className="text-lg leading-relaxed mb-2">
             {sentence.words.map((word, index) => (
               <React.Fragment key={`${sentence.id}-${index}`}>
                 <InteractiveWord
                   word={word}
+                  language={language}
                   scaffoldingMode={scaffoldingMode}
                   isHighlighted={activeWordIndex === word.position}
                   onClick={handleWordClick}
@@ -447,12 +470,14 @@ interface WordReviewProps {
   newWords: StoryWord[];
   clickedWords: StoryWord[];
   onComplete: () => void;
+  language?: SupportedLanguage;
 }
 
 export function WordReview({
   newWords,
   clickedWords,
   onComplete,
+  language = "fr",
 }: WordReviewProps) {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const allWords = [
@@ -461,18 +486,7 @@ export function WordReview({
   ];
 
   const playWordAudio = (word: string) => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = "fr-FR";
-      utterance.rate = 0.7;
-
-      const voices = window.speechSynthesis.getVoices();
-      const frenchVoice = voices.find((v) => v.lang.startsWith("fr"));
-      if (frenchVoice) utterance.voice = frenchVoice;
-
-      window.speechSynthesis.speak(utterance);
-    }
+    playTTS(word, language);
   };
 
   if (allWords.length === 0) {
@@ -579,6 +593,7 @@ interface MicroStoryReaderProps {
   comprehensionQuestions?: StoryComprehensionQuestion[];
   onComplete: (result: MicroStoryResult) => void;
   onWordClick?: (event: WordClickEvent) => void;
+  language?: SupportedLanguage;
 }
 
 export function MicroStoryReader({
@@ -587,6 +602,7 @@ export function MicroStoryReader({
   comprehensionQuestions = [],
   onComplete,
   onWordClick,
+  language = "fr",
 }: MicroStoryReaderProps) {
   const [phase, setPhase] = useState<StoryReadingPhase>("intro");
   const [scaffoldingMode, setScaffoldingMode] = useState<ScaffoldingMode>(
@@ -639,22 +655,22 @@ export function MicroStoryReader({
 
   // Play full story audio
   const playStoryAudio = useCallback(() => {
-    const fullText = story.sentences.map((s) => s.french).join(". ");
+    const fullText = story.sentences.map((s) => getSentenceText(s)).join(". ");
 
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
+      const langConfig = getLanguageConfig(language);
       const utterance = new SpeechSynthesisUtterance(fullText);
-      utterance.lang = "fr-FR";
+      utterance.lang = langConfig.speechCode;
       utterance.rate = 0.7;
 
-      const voices = window.speechSynthesis.getVoices();
-      const frenchVoice = voices.find((v) => v.lang.startsWith("fr"));
-      if (frenchVoice) utterance.voice = frenchVoice;
+      const selectedVoice = getTTSVoice(language);
+      if (selectedVoice) utterance.voice = selectedVoice;
 
       window.speechSynthesis.speak(utterance);
       setAudioPlayCount((prev) => prev + 1);
     }
-  }, [story.sentences]);
+  }, [story.sentences, language]);
 
   // Complete the story
   const completeStory = useCallback(() => {

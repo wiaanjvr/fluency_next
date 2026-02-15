@@ -51,7 +51,10 @@ export interface MicroStory {
 export interface StorySentence {
   id: string;
   order: number;
-  french: string;
+  /** @deprecated Use 'target' instead */
+  french?: string;
+  /** Target language text */
+  target?: string;
   english: string;
   audioUrl?: string;
 

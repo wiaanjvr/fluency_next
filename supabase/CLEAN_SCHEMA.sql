@@ -265,6 +265,54 @@ CREATE TABLE IF NOT EXISTS foundation_lessons (
 );
 
 -- ============================================
+-- 10. VOCABULARY TABLE (Master word database)
+-- ============================================
+-- Stores common words across all languages (replaces static JSON files)
+
+CREATE TABLE IF NOT EXISTS vocabulary (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    
+    -- Word data
+    word TEXT NOT NULL,
+    lemma TEXT NOT NULL,
+    language TEXT NOT NULL DEFAULT 'fr' CHECK (language IN ('fr', 'de', 'it', 'es', 'pt')),
+    
+    -- Linguistic metadata
+    part_of_speech TEXT, -- pos: article, verb, noun, etc.
+    frequency_rank INTEGER NOT NULL,
+    
+    -- Optional fields
+    translation_en TEXT, -- English translation
+    pronunciation TEXT, -- IPA or phonetic
+    audio_url TEXT, -- Link to pronunciation audio
+    example_sentence TEXT,
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    -- Constraints
+    UNIQUE(word, language, frequency_rank)
+);
+
+-- ============================================
+-- 11. VOCABULARY LEVEL ALLOCATION TABLE
+-- ============================================
+-- Stores how many words are allocated to each CEFR level per language
+
+CREATE TABLE IF NOT EXISTS vocabulary_level_allocation (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    language TEXT NOT NULL CHECK (language IN ('fr', 'de', 'it', 'es', 'pt')),
+    level TEXT NOT NULL CHECK (level IN ('A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2')),
+    max_rank INTEGER NOT NULL,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    UNIQUE(language, level)
+);
+
+-- ============================================
 -- INDEXES
 -- ============================================
 
@@ -306,6 +354,14 @@ CREATE INDEX IF NOT EXISTS idx_vocab_exercises_segment_id ON vocabulary_exercise
 CREATE INDEX IF NOT EXISTS idx_foundation_lessons_level ON foundation_lessons(level);
 CREATE INDEX IF NOT EXISTS idx_foundation_lessons_phase ON foundation_lessons(phase);
 CREATE INDEX IF NOT EXISTS idx_foundation_lessons_order ON foundation_lessons("order");
+
+-- Vocabulary
+CREATE INDEX IF NOT EXISTS idx_vocabulary_language_rank ON vocabulary(language, frequency_rank);
+CREATE INDEX IF NOT EXISTS idx_vocabulary_word_language ON vocabulary(word, language);
+CREATE INDEX IF NOT EXISTS idx_vocabulary_lemma_language ON vocabulary(lemma, language);
+
+-- Vocabulary Level Allocation
+CREATE INDEX IF NOT EXISTS idx_vocab_level_alloc_language ON vocabulary_level_allocation(language);
 
 -- ============================================
 -- ROW LEVEL SECURITY (RLS)
@@ -426,6 +482,22 @@ DROP POLICY IF EXISTS "Foundation lessons are publicly readable" ON foundation_l
 
 CREATE POLICY "Foundation lessons are publicly readable" ON foundation_lessons
     FOR SELECT TO authenticated USING (true);
+
+-- Vocabulary (Public read)
+ALTER TABLE vocabulary ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Vocabulary is publicly readable" ON vocabulary;
+
+CREATE POLICY "Vocabulary is publicly readable" ON vocabulary
+    FOR SELECT USING (true);
+
+-- Vocabulary Level Allocation (Public read)
+ALTER TABLE vocabulary_level_allocation ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Level allocation is publicly readable" ON vocabulary_level_allocation;
+
+CREATE POLICY "Level allocation is publicly readable" ON vocabulary_level_allocation
+    FOR SELECT USING (true);
 
 -- ============================================
 -- TRIGGERS & FUNCTIONS

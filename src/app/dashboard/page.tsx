@@ -62,6 +62,7 @@ import {
   isFeatureUnlocked,
 } from "@/lib/progression";
 import { cn } from "@/lib/utils";
+import { getLanguageConfig, SupportedLanguage } from "@/lib/languages";
 
 interface VocabularyWord {
   id: string;
@@ -96,6 +97,7 @@ export default function DashboardPage() {
     avgComprehension: 0,
     wordsEncountered: 0,
   });
+  const [targetLanguage, setTargetLanguage] = useState<string>("fr");
   const [vocabularyStats, setVocabularyStats] = useState<VocabularyStats>({
     new: 0,
     learning: 0,
@@ -143,7 +145,7 @@ export default function DashboardPage() {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select(
-            "streak, total_practice_minutes, sessions_completed, proficiency_level, interests",
+            "streak, total_practice_minutes, sessions_completed, proficiency_level, interests, target_language",
           )
           .eq("id", user.id)
           .single();
@@ -191,6 +193,10 @@ export default function DashboardPage() {
               router.replace("/onboarding");
               return;
             }
+          }
+          // Set the target language from profile
+          if (profile?.target_language) {
+            setTargetLanguage(profile.target_language);
           }
           setAuthChecked(true);
         }
@@ -267,7 +273,7 @@ export default function DashboardPage() {
             id: w.id,
             user_id: user.id,
             word: w.word,
-            language: "french",
+            language: profile?.target_language || "fr",
             lemma: w.lemma,
             ease_factor: w.ease_factor ?? 2.5,
             repetitions: w.repetitions ?? 0,
@@ -344,6 +350,12 @@ export default function DashboardPage() {
     fetchUserStats();
   }, [supabase, router]);
 
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  const languageConfig = useMemo(
+    () => getLanguageConfig(targetLanguage),
+    [targetLanguage],
+  );
+
   // Premium loading state
   if (!authChecked || loading) {
     return (
@@ -388,8 +400,7 @@ export default function DashboardPage() {
     } else {
       return {
         title: "foundation vocabulary",
-        description:
-          "Learn your first 100 French words with images, audio, and practice exercises.",
+        description: `Learn your first 100 ${languageConfig.name} words with images, audio, and practice exercises.`,
       };
     }
   };
@@ -413,10 +424,10 @@ export default function DashboardPage() {
             <Link href="/dashboard" className="flex items-center gap-3 group">
               <div className="w-9 h-9 bg-library-forest rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-library-brass">
                 <span className="text-foreground font-serif font-semibold text-lg">
-                  L
+                  F
                 </span>
               </div>
-              <span className="text-lg font-light">Lingua</span>
+              <span className="text-lg font-light">Fluency Next</span>
             </Link>
 
             <div className="flex items-center gap-4">
@@ -454,7 +465,7 @@ export default function DashboardPage() {
           )}
 
           {/* ========== HERO SECTION ========== */}
-          <section className="mb-16">
+          <section className="mb-12">
             <ScrollReveal>
               <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-4">
                 Welcome back
@@ -463,25 +474,25 @@ export default function DashboardPage() {
 
             <ScrollReveal delay={100}>
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-light tracking-tight mb-4">
-                Ready to{" "}
+                Time to{" "}
                 <span className="font-serif italic text-library-brass">
-                  learn?
+                  show up.
                 </span>
               </h1>
             </ScrollReveal>
 
             <ScrollReveal delay={200}>
               <p className="text-lg text-muted-foreground font-light">
-                Embrace the productive discomfort. Progress awaits.
+                Discipline today. Fluency tomorrow. Let's build your streak.
               </p>
             </ScrollReveal>
           </section>
 
-          {/* ========== MAIN CONTENT GRID ========== */}
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* ========== TODAY'S LESSON CARD ========== */}
-            <ScrollReveal delay={300} className="lg:col-span-2">
-              <div className="relative overflow-hidden rounded-3xl bg-card border border-border p-8 md:p-10 min-h-[400px]">
+          {/* ========== BENTO GRID LAYOUT ========== */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 auto-rows-fr">
+            {/* ========== TODAY'S LESSON CARD - Large Feature ========== */}
+            <ScrollReveal delay={300} className="md:col-span-2 lg:row-span-2">
+              <div className="relative overflow-hidden rounded-3xl bg-card border border-border p-8 md:p-10 h-full min-h-[400px]">
                 {/* Ambient glow */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-library-forest/[0.04] rounded-full blur-3xl -mr-32 -mt-32" />
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-luxury-bronze/[0.02] rounded-full blur-2xl -ml-24 -mb-24" />
@@ -568,46 +579,88 @@ export default function DashboardPage() {
               </div>
             </ScrollReveal>
 
-            {/* ========== STATS SIDEBAR ========== */}
-            <div className="space-y-4">
-              <ScrollReveal delay={400}>
-                <StatCard
-                  label="Current Level"
-                  value={stats.currentLevel}
-                  subtext={getLevelLabel(
-                    stats.currentLevel as ProficiencyLevel,
-                  )}
-                  icon={<TrendingUp className="h-4 w-4" />}
-                  accent
-                />
-              </ScrollReveal>
+            {/* ========== COMPACT STATS - Right Column ========== */}
+            <ScrollReveal delay={400} className="md:col-span-1">
+              <div className="bg-gradient-to-br from-library-forest/10 to-library-forest/5 border border-library-forest/20 rounded-2xl p-6 h-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-library-forest/20 flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-library-forest" />
+                  </div>
+                  <span className="text-sm font-light tracking-wider uppercase text-muted-foreground">
+                    Level
+                  </span>
+                </div>
+                <div className="text-4xl font-light mb-2">
+                  {stats.currentLevel}
+                </div>
+                <p className="text-sm text-muted-foreground font-light">
+                  {getLevelLabel(stats.currentLevel as ProficiencyLevel)}
+                </p>
+              </div>
+            </ScrollReveal>
 
-              <ScrollReveal delay={500}>
-                <StatCard
-                  label="Learning Streak"
-                  value={stats.streak}
-                  subtext="days consecutive"
-                  icon={<Flame className="h-4 w-4" />}
-                />
-              </ScrollReveal>
+            <ScrollReveal delay={450} className="md:col-span-1">
+              <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-500/20 rounded-2xl p-6 h-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                    <Flame className="h-5 w-5 text-orange-500" />
+                  </div>
+                  <span className="text-sm font-light tracking-wider uppercase text-muted-foreground">
+                    Streak
+                  </span>
+                </div>
+                <div className="text-4xl font-light mb-2">{stats.streak}</div>
+                <p className="text-sm text-muted-foreground font-light">
+                  days consecutive
+                </p>
+              </div>
+            </ScrollReveal>
 
-              <ScrollReveal delay={600}>
-                <StatCard
-                  label="Total Time"
-                  value={`${stats.totalTime}`}
-                  subtext="minutes practiced"
-                  icon={<Clock className="h-4 w-4" />}
-                />
-              </ScrollReveal>
-            </div>
+            <ScrollReveal delay={500} className="md:col-span-1">
+              <div className="bg-card border border-border rounded-2xl p-6 h-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                    <Clock className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <span className="text-sm font-light tracking-wider uppercase text-muted-foreground">
+                    Practice
+                  </span>
+                </div>
+                <div className="text-4xl font-light mb-2">
+                  {stats.totalTime}
+                </div>
+                <p className="text-sm text-muted-foreground font-light">
+                  minutes total
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal delay={550} className="md:col-span-1">
+              <div className="bg-card border border-border rounded-2xl p-6 h-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                    <Target className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <span className="text-sm font-light tracking-wider uppercase text-muted-foreground">
+                    Sessions
+                  </span>
+                </div>
+                <div className="text-4xl font-light mb-2">
+                  {stats.totalSessions}
+                </div>
+                <p className="text-sm text-muted-foreground font-light">
+                  {stats.totalSessions === 0 ? "begins now" : "completed"}
+                </p>
+              </div>
+            </ScrollReveal>
           </div>
 
-          {/* ========== PROGRESS SECTION ========== */}
-          <section className="mt-20">
+          {/* ========== PROGRESS & LEARNING PATHS SECTION ========== */}
+          <section className="mt-16">
             <ScrollReveal>
               <SectionHeader
-                eyebrow="Your Progress"
-                title="Track your journey"
+                eyebrow="Your Journey"
+                title="Progress & Learning Paths"
               />
             </ScrollReveal>
 
@@ -616,114 +669,35 @@ export default function DashboardPage() {
               <ProgressPathVisualizer wordCount={stats.wordsEncountered} />
             </ScrollReveal>
 
-            {/* Graduation Status & Stats Grid */}
-            <div className="grid lg:grid-cols-2 gap-6 mt-8">
+            {/* Combined Grid: Graduation + Learning Paths */}
+            <div className="grid lg:grid-cols-3 gap-6 mt-8">
               {/* Graduation Status Card */}
               {graduationStatus && (
-                <ScrollReveal delay={100}>
+                <ScrollReveal delay={100} className="lg:col-span-3">
                   <GraduationStatusCard graduationStatus={graduationStatus} />
                 </ScrollReveal>
               )}
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
-                <ScrollReveal delay={150}>
-                  <div className="bg-card border border-border rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-library-forest/10 flex items-center justify-center">
-                        <Target className="h-5 w-5 text-library-forest" />
-                      </div>
-                      <span className="text-sm text-muted-foreground font-light">
-                        Sessions
-                      </span>
-                    </div>
-                    <div className="text-3xl font-light mb-1">
-                      {stats.totalSessions}
-                    </div>
-                    <p className="text-sm text-muted-foreground font-light">
-                      {stats.totalSessions === 0
-                        ? "The journey begins"
-                        : "Keep the momentum"}
-                    </p>
-                  </div>
-                </ScrollReveal>
-
-                <ScrollReveal delay={200}>
-                  <div className="bg-card border border-border rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
-                        <Brain className="h-5 w-5 text-library-brass" />
-                      </div>
-                      <span className="text-sm text-muted-foreground font-light">
-                        Comprehension
-                      </span>
-                    </div>
-                    <div className="text-3xl font-light mb-1">
-                      {stats.avgComprehension}
-                      <span className="text-xl text-muted-foreground">%</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground font-light">
-                      Average accuracy
-                    </p>
-                  </div>
-                </ScrollReveal>
-
-                <ScrollReveal delay={250}>
-                  <div className="bg-card border border-border rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-library-forest/10 flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-library-forest" />
-                      </div>
-                      <span className="text-sm text-muted-foreground font-light">
-                        Vocabulary
-                      </span>
-                    </div>
-                    <div className="text-3xl font-light mb-1">
-                      {stats.wordsEncountered}
-                    </div>
-                    <p className="text-sm text-muted-foreground font-light">
-                      Words encountered
-                    </p>
-                  </div>
-                </ScrollReveal>
-              </div>
-            </div>
-
-            {/* Feature Unlocks Grid */}
-            <ScrollReveal delay={300} className="mt-8">
-              <FeatureUnlocksGrid wordCount={stats.wordsEncountered} />
-            </ScrollReveal>
-          </section>
-
-          {/* ========== LEARNING PATHS SECTION ========== */}
-          <section className="mt-20">
-            <ScrollReveal>
-              <SectionHeader
-                eyebrow="Learning Paths"
-                title="Your structured journey"
-              />
-            </ScrollReveal>
-
-            <div className="grid md:grid-cols-3 gap-6 mt-10 mb-20">
+              {/* Learning Path Cards */}
               {/* Phase 0: Foundation - Always unlocked */}
-              <ScrollReveal delay={100}>
+              <ScrollReveal delay={150}>
                 <Link href="/learn/foundation">
                   <div className="bg-card border border-border rounded-2xl p-6 h-full hover:shadow-luxury hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                          <BookOpen className="h-5 w-5 text-blue-500" />
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                          <BookOpen className="h-6 w-6 text-blue-500" />
                         </div>
                         <div>
                           <span className="text-xs text-muted-foreground font-light">
                             Phase 0
                           </span>
-                          <h3 className="font-medium">Foundation</h3>
+                          <h3 className="font-medium text-lg">Foundation</h3>
                         </div>
                       </div>
                       {stats.wordsEncountered >= 100 && (
-                        <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                          <Star className="h-3 w-3 text-emerald-500" />
+                        <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                          <Star className="h-4 w-4 text-emerald-500" />
                         </div>
                       )}
                     </div>
@@ -738,7 +712,7 @@ export default function DashboardPage() {
                         </span>
                       </div>
                       {stats.wordsEncountered > 0 && (
-                        <span className="text-xs text-blue-500">
+                        <span className="text-xs font-medium text-blue-500">
                           {Math.min(stats.wordsEncountered, 100)}/100
                         </span>
                       )}
@@ -754,19 +728,19 @@ export default function DashboardPage() {
                     <div className="bg-card border border-border rounded-2xl p-6 h-full hover:shadow-luxury hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                            <Brain className="h-5 w-5 text-emerald-500" />
+                          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                            <Brain className="h-6 w-6 text-emerald-500" />
                           </div>
                           <div>
                             <span className="text-xs text-muted-foreground font-light">
                               Phase 1
                             </span>
-                            <h3 className="font-medium">Sentences</h3>
+                            <h3 className="font-medium text-lg">Sentences</h3>
                           </div>
                         </div>
                         {stats.wordsEncountered >= 300 && (
-                          <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                            <Star className="h-3 w-3 text-emerald-500" />
+                          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                            <Star className="h-4 w-4 text-emerald-500" />
                           </div>
                         )}
                       </div>
@@ -785,14 +759,14 @@ export default function DashboardPage() {
                   <div className="bg-card border border-border rounded-2xl p-6 h-full opacity-60 cursor-not-allowed">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                          <Lock className="h-5 w-5 text-muted-foreground" />
+                        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                          <Lock className="h-6 w-6 text-muted-foreground" />
                         </div>
                         <div>
                           <span className="text-xs text-muted-foreground font-light">
                             Phase 1
                           </span>
-                          <h3 className="font-medium text-muted-foreground">
+                          <h3 className="font-medium text-lg text-muted-foreground">
                             Sentences
                           </h3>
                         </div>
@@ -813,25 +787,27 @@ export default function DashboardPage() {
               </ScrollReveal>
 
               {/* Phase 2: Micro-Stories - Unlocks at 300 words */}
-              <ScrollReveal delay={300}>
+              <ScrollReveal delay={250}>
                 {stats.wordsEncountered >= 300 ? (
                   <Link href="/learn/stories">
                     <div className="bg-card border border-border rounded-2xl p-6 h-full hover:shadow-luxury hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                            <Sparkles className="h-5 w-5 text-amber-500" />
+                          <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                            <Sparkles className="h-6 w-6 text-amber-500" />
                           </div>
                           <div>
                             <span className="text-xs text-muted-foreground font-light">
                               Phase 2
                             </span>
-                            <h3 className="font-medium">Micro-Stories</h3>
+                            <h3 className="font-medium text-lg">
+                              Micro-Stories
+                            </h3>
                           </div>
                         </div>
                         {stats.wordsEncountered >= 500 && (
-                          <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center">
-                            <Star className="h-3 w-3 text-amber-500" />
+                          <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
+                            <Star className="h-4 w-4 text-amber-500" />
                           </div>
                         )}
                       </div>
@@ -850,14 +826,14 @@ export default function DashboardPage() {
                   <div className="bg-card border border-border rounded-2xl p-6 h-full opacity-60 cursor-not-allowed">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                          <Lock className="h-5 w-5 text-muted-foreground" />
+                        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                          <Lock className="h-6 w-6 text-muted-foreground" />
                         </div>
                         <div>
                           <span className="text-xs text-muted-foreground font-light">
                             Phase 2
                           </span>
-                          <h3 className="font-medium text-muted-foreground">
+                          <h3 className="font-medium text-lg text-muted-foreground">
                             Micro-Stories
                           </h3>
                         </div>
@@ -877,10 +853,15 @@ export default function DashboardPage() {
                 )}
               </ScrollReveal>
             </div>
+
+            {/* Feature Unlocks Grid */}
+            <ScrollReveal delay={300} className="mt-8">
+              <FeatureUnlocksGrid wordCount={stats.wordsEncountered} />
+            </ScrollReveal>
           </section>
 
           {/* ========== VOCABULARY COLLECTION ========== */}
-          <section className="mt-20">
+          <section className="mt-16">
             <ScrollReveal>
               <div className="flex items-center justify-between mb-10">
                 <SectionHeader
@@ -907,14 +888,15 @@ export default function DashboardPage() {
               </div>
             </ScrollReveal>
 
-            {/* Vocabulary Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {/* Vocabulary Stats Grid - Compact Bento Style */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {[
                 {
                   status: "mastered" as WordStatus,
                   icon: Star,
                   color: "text-yellow-500",
                   bgColor: "bg-yellow-500/10",
+                  borderColor: "border-yellow-500/20",
                   count: vocabularyStats.mastered,
                 },
                 {
@@ -922,6 +904,7 @@ export default function DashboardPage() {
                   icon: Sparkles,
                   color: "text-emerald-500",
                   bgColor: "bg-emerald-500/10",
+                  borderColor: "border-emerald-500/20",
                   count: vocabularyStats.known,
                 },
                 {
@@ -929,6 +912,7 @@ export default function DashboardPage() {
                   icon: Brain,
                   color: "text-blue-500",
                   bgColor: "bg-blue-500/10",
+                  borderColor: "border-blue-500/20",
                   count: vocabularyStats.learning,
                 },
                 {
@@ -936,6 +920,7 @@ export default function DashboardPage() {
                   icon: BookOpen,
                   color: "text-muted-foreground",
                   bgColor: "bg-muted",
+                  borderColor: "border-border",
                   count: vocabularyStats.new,
                 },
               ].map((item, i) => (
@@ -949,24 +934,24 @@ export default function DashboardPage() {
                     className={cn(
                       "w-full bg-card border rounded-2xl p-5 text-left transition-all duration-300 hover:shadow-luxury hover:-translate-y-0.5",
                       vocabFilter === item.status
-                        ? "border-library-brass"
-                        : "border-border",
+                        ? "border-library-brass ring-2 ring-library-brass/20"
+                        : item.borderColor,
                     )}
                   >
                     <div className="flex items-center gap-2 mb-3">
                       <div
                         className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center",
+                          "w-9 h-9 rounded-xl flex items-center justify-center",
                           item.bgColor,
                         )}
                       >
-                        <item.icon className={cn("h-4 w-4", item.color)} />
+                        <item.icon className={cn("h-5 w-5", item.color)} />
                       </div>
                       <span className="text-xs font-light tracking-wider uppercase text-muted-foreground">
                         {item.status}
                       </span>
                     </div>
-                    <div className="text-2xl font-light">{item.count}</div>
+                    <div className="text-3xl font-light">{item.count}</div>
                   </button>
                 </ScrollReveal>
               ))}

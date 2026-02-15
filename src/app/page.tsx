@@ -71,10 +71,10 @@ export default function Home() {
             <Link href="/" className="flex items-center gap-3 group">
               <div className="w-9 h-9 bg-library-forest rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-library-gold">
                 <span className="text-foreground font-serif font-semibold text-lg">
-                  L
+                  F
                 </span>
               </div>
-              <span className="text-lg font-medium">Lingua</span>
+              <span className="text-lg font-medium">Fluency Next</span>
             </Link>
 
             <div className="flex items-center gap-6">
@@ -117,17 +117,17 @@ export default function Home() {
 
           <ScrollReveal delay={200}>
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight leading-[1.1] mb-8">
-              Learn the way
+              Discipline now.
               <br />
               <span className="font-serif italic text-library-brass">
-                you actually acquire.
+                Fluency next.
               </span>
             </h1>
           </ScrollReveal>
 
           <ScrollReveal delay={400}>
             <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-xl mx-auto mb-12 leading-relaxed">
-              Listen. Understand. Speak. Repeat.
+              Build consistency. Master comprehension. Speak with confidence.
             </p>
           </ScrollReveal>
 
@@ -181,20 +181,20 @@ export default function Home() {
 
           <ScrollReveal delay={100}>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.3] mb-8">
-              Most apps teach you to recognize words.
+              Fluency isn't magic.
               <br />
               <span className="text-muted-foreground">
-                Not to understand them.
+                It's daily discipline.
               </span>
             </h2>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
             <p className="text-lg text-muted-foreground font-light leading-relaxed">
-              Lingua is built on comprehensible input — the only method proven
-              to create lasting fluency. You listen to content just slightly
-              above your level, understand through context, and speak from real
-              comprehension.
+              Fluency Next is built on proven science and consistent practice.
+              Show up daily, embrace comprehensible input, and speak from real
+              understanding. The work you put in today becomes the fluency you
+              have tomorrow.
             </p>
           </ScrollReveal>
         </div>
@@ -320,20 +320,20 @@ export default function Home() {
 
               <ScrollReveal delay={100}>
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
-                  Focus on understanding.
+                  Put in the reps.
                   <br />
                   <span className="font-serif italic text-library-brass">
-                    Speaking follows.
+                    Earn the results.
                   </span>
                 </h2>
               </ScrollReveal>
 
               <ScrollReveal delay={200}>
                 <p className="text-lg text-muted-foreground font-light leading-relaxed mb-8">
-                  Every lesson is calibrated so most of what you hear is already
-                  familiar, with just enough new material to stretch your
-                  understanding. This is how children acquire language — and it
-                  works for adults too.
+                  Each lesson builds on what you know, adding carefully measured
+                  challenges. Track your streak. Complete your daily sessions.
+                  Watch your vocabulary expand. Consistency turns effort into
+                  fluency.
                 </p>
               </ScrollReveal>
 
@@ -716,19 +716,19 @@ export default function Home() {
 
           <ScrollReveal delay={100}>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
-              Meet your goals.
+              Your commitment matters.
               <br />
               <span className="font-serif italic text-library-brass">
-                Earn back 50%.
+                We reward it.
               </span>
             </h2>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
             <p className="text-lg text-muted-foreground font-light leading-relaxed mb-12 max-w-xl mx-auto">
-              Set a monthly learning target. Complete your lessons. Speak
-              consistently. When you hit your goals, you get half your
-              subscription back.
+              Set monthly targets. Show up consistently. Hit your milestones.
+              We'll give you 50% back because your discipline deserves
+              recognition.
             </p>
           </ScrollReveal>
 
@@ -762,13 +762,12 @@ export default function Home() {
               <Quote className="h-12 w-12 text-library-brass/20 mb-8" />
 
               <blockquote className="text-2xl sm:text-3xl md:text-4xl font-light leading-relaxed mb-8">
-                After years of apps that felt like games, this actually feels
-                like
+                I stopped looking for shortcuts and just showed up every day.
                 <span className="font-serif italic text-library-brass">
                   {" "}
-                  learning.
-                </span>{" "}
-                I can follow conversations now. Real ones.
+                  Six months later
+                </span>
+                , I'm having real conversations in French.
               </blockquote>
 
               <div className="flex items-center gap-4">
@@ -795,17 +794,17 @@ export default function Home() {
         <div className="max-w-3xl mx-auto text-center">
           <ScrollReveal>
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light leading-[1.2] mb-8">
-              Ready to learn
+              Ready to commit?
               <br />
               <span className="font-serif italic text-library-brass">
-                the right way?
+                Start today.
               </span>
             </h2>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
             <p className="text-lg text-muted-foreground font-light mb-12 max-w-lg mx-auto">
-              Start with your first lesson. No credit card required.
+              Your first lesson is waiting. No credit card. Just discipline.
             </p>
           </ScrollReveal>
 
@@ -830,10 +829,10 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-library-forest rounded-lg flex items-center justify-center">
                 <span className="text-foreground font-serif font-semibold">
-                  L
+                  F
                 </span>
               </div>
-              <span className="font-light">Lingua</span>
+              <span className="font-light">Fluency Next</span>
             </div>
 
             <div className="flex items-center gap-8">
@@ -864,7 +863,7 @@ export default function Home() {
             </div>
 
             <p className="text-sm text-muted-foreground/60 font-light">
-              © 2026 Lingua
+              © 2026 Fluency Next
             </p>
           </div>
         </div>

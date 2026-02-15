@@ -20,8 +20,11 @@ import { FoundationWord } from "./foundation-vocabulary";
 
 export interface SimpleSentence {
   id: string;
-  french: string;
+  /** Target language text (French, German, Italian, etc.) */
+  target?: string;
   english: string;
+  /** @deprecated Use 'target' instead */
+  french?: string;
   audioUrl?: string;
 
   // Words breakdown
@@ -102,7 +105,10 @@ export interface PatternColorScheme {
 
 export interface PatternExample {
   id: string;
-  french: string;
+  /** @deprecated Use 'target' instead */
+  french?: string;
+  /** Target language text (French, German, Italian, etc.) */
+  target?: string;
   english: string;
   audioUrl?: string;
 
@@ -129,7 +135,10 @@ export interface PatternRecognitionExercise {
 
   // For "complete" mode
   incompleteSentence?: {
-    french: string;
+    /** @deprecated Use 'target' instead */
+    french?: string;
+    /** Target language text */
+    target?: string;
     missingPart: HighlightedPart;
     options: string[];
     correctIndex: number;

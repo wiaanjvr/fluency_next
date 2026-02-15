@@ -20,6 +20,16 @@ import {
 } from "@/components/ui/animations";
 import { useSoundEffects } from "@/lib/sounds";
 import { PATTERN_COLORS } from "@/data/sentence-patterns";
+import {
+  getLanguageConfig,
+  getTTSVoice,
+  type SupportedLanguage,
+} from "@/lib/languages";
+
+// Helper to get target text from PatternExample
+function getExampleText(example: PatternExample): string {
+  return example.target || example.french || "";
+}
 
 // ============================================================================
 // PATTERN RECOGNITION EXERCISE
@@ -30,9 +40,11 @@ interface PatternRecognitionExerciseProps {
   pattern: SentencePattern;
   mode: "observe" | "complete" | "generate";
   onResult: (result: PatternRecognitionResult) => void;
+  language?: SupportedLanguage;
   // For complete mode
   incompleteSentence?: {
-    french: string;
+    french?: string;
+    target?: string;
     missingPart: HighlightedPart;
     options: string[];
     correctIndex: number;
@@ -44,6 +56,7 @@ export function PatternRecognitionExercise({
   mode,
   onResult,
   incompleteSentence,
+  language = "fr",
 }: PatternRecognitionExerciseProps) {
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -52,6 +65,8 @@ export function PatternRecognitionExercise({
   const [observedCount, setObservedCount] = useState(0);
   const [startTime] = useState(Date.now());
   const { playSuccess, playError, playAchieve } = useSoundEffects();
+
+  const langConfig = getLanguageConfig(language);
 
   // Play example audio using TTS
   const playAudio = useCallback(
@@ -64,18 +79,12 @@ export function PatternRecognitionExercise({
         window.speechSynthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "fr-FR";
+        utterance.lang = langConfig.speechCode;
         utterance.rate = 0.75;
 
-        const voices = window.speechSynthesis.getVoices();
-        const frenchVoice =
-          voices.find(
-            (voice) =>
-              voice.lang.startsWith("fr") && voice.name.includes("Google"),
-          ) || voices.find((voice) => voice.lang.startsWith("fr"));
-
-        if (frenchVoice) {
-          utterance.voice = frenchVoice;
+        const selectedVoice = getTTSVoice(language);
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
         }
 
         utterance.onend = () => setIsPlaying(false);
@@ -86,7 +95,7 @@ export function PatternRecognitionExercise({
         setIsPlaying(false);
       }
     },
-    [isPlaying],
+    [isPlaying, langConfig.speechCode, language],
   );
 
   // Handle moving to next example
@@ -190,7 +199,7 @@ export function PatternRecognitionExercise({
               {/* Audio button */}
               <div className="flex justify-end mb-4">
                 <Button
-                  onClick={() => playAudio(currentExample.french)}
+                  onClick={() => playAudio(getExampleText(currentExample))}
                   disabled={isPlaying}
                   variant="ghost"
                   size="sm"
@@ -209,7 +218,7 @@ export function PatternRecognitionExercise({
               <div className="text-center mb-4">
                 <p className="text-xl md:text-2xl font-serif leading-relaxed">
                   <HighlightedSentence
-                    text={currentExample.french}
+                    text={getExampleText(currentExample)}
                     highlights={currentExample.highlightedParts}
                     structureColors={pattern.structureColors}
                   />
@@ -291,7 +300,11 @@ export function PatternRecognitionExercise({
               <div className="text-center mb-6">
                 <p className="text-xl md:text-2xl font-serif">
                   <IncompleteSentence
-                    text={incompleteSentence.french}
+                    text={
+                      incompleteSentence.target ||
+                      incompleteSentence.french ||
+                      ""
+                    }
                     missingPart={incompleteSentence.missingPart}
                     selectedOption={
                       selectedAnswer !== null
@@ -364,7 +377,7 @@ export function PatternRecognitionExercise({
                   key={example.id}
                   className="text-sm text-muted-foreground text-center italic"
                 >
-                  {example.french} = {example.english}
+                  {getExampleText(example)} = {example.english}
                 </p>
               ))}
             </div>

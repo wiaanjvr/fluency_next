@@ -25,11 +25,25 @@ import {
 } from "@/components/ui/animations";
 import { useSoundEffects } from "@/lib/sounds";
 import { getDistractorWords } from "@/data/foundation-vocabulary";
+import {
+  getLanguageConfig,
+  getTTSVoice,
+  type SupportedLanguage,
+} from "@/lib/languages";
+
+// Helper to get target text from exampleSentence
+function getExampleSentenceText(exampleSentence: {
+  french?: string;
+  target?: string;
+}): string {
+  return exampleSentence.target || exampleSentence.french || "";
+}
 
 interface ExerciseProps {
   targetWord: FoundationWord;
   allWords: FoundationWord[];
   onResult: (result: ExerciseResult) => void;
+  language?: SupportedLanguage;
 }
 
 // ============================================================================
@@ -177,6 +191,7 @@ export function AudioToImageExercise({
   targetWord,
   allWords,
   onResult,
+  language = "fr",
 }: AudioToImageExerciseProps) {
   const [options, setOptions] = useState<FoundationWord[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -186,6 +201,8 @@ export function AudioToImageExercise({
   const [hasPlayed, setHasPlayed] = useState(false);
   const [startTime] = useState(Date.now());
   const { playSuccess, playError } = useSoundEffects();
+
+  const langConfig = getLanguageConfig(language);
 
   // Generate options on mount
   useEffect(() => {
@@ -210,18 +227,12 @@ export function AudioToImageExercise({
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(targetWord.word);
-      utterance.lang = "fr-FR";
+      utterance.lang = langConfig.speechCode;
       utterance.rate = 0.8;
 
-      const voices = window.speechSynthesis.getVoices();
-      const frenchVoice =
-        voices.find(
-          (voice) =>
-            voice.lang.startsWith("fr") && voice.name.includes("Google"),
-        ) || voices.find((voice) => voice.lang.startsWith("fr"));
-
-      if (frenchVoice) {
-        utterance.voice = frenchVoice;
+      const selectedVoice = getTTSVoice(language);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
       }
 
       utterance.onend = () => {
@@ -500,6 +511,7 @@ export function SentenceIdentifyExercise({
   targetWord,
   allWords,
   onResult,
+  language = "fr",
 }: SentenceIdentifyExerciseProps) {
   const [options, setOptions] = useState<FoundationWord[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -508,6 +520,9 @@ export function SentenceIdentifyExercise({
   const [hasPlayed, setHasPlayed] = useState(false);
   const [startTime] = useState(Date.now());
   const { playSuccess, playError } = useSoundEffects();
+
+  const langConfig = getLanguageConfig(language);
+  const sentenceText = getExampleSentenceText(targetWord.exampleSentence);
 
   // Generate options
   useEffect(() => {
@@ -526,21 +541,13 @@ export function SentenceIdentifyExercise({
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(
-        targetWord.exampleSentence.french,
-      );
-      utterance.lang = "fr-FR";
+      const utterance = new SpeechSynthesisUtterance(sentenceText);
+      utterance.lang = langConfig.speechCode;
       utterance.rate = 0.75; // Slower for sentence comprehension
 
-      const voices = window.speechSynthesis.getVoices();
-      const frenchVoice =
-        voices.find(
-          (voice) =>
-            voice.lang.startsWith("fr") && voice.name.includes("Google"),
-        ) || voices.find((voice) => voice.lang.startsWith("fr"));
-
-      if (frenchVoice) {
-        utterance.voice = frenchVoice;
+      const selectedVoice = getTTSVoice(language);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
       }
 
       utterance.onend = () => {
@@ -558,7 +565,7 @@ export function SentenceIdentifyExercise({
       setIsPlaying(false);
       setHasPlayed(true);
     }
-  }, [isPlaying, targetWord.exampleSentence.french]);
+  }, [isPlaying, sentenceText, langConfig.speechCode, language]);
 
   // Auto-play on mount
   useEffect(() => {
@@ -620,7 +627,7 @@ export function SentenceIdentifyExercise({
         <FadeIn>
           <Card className="p-4 bg-muted/50 max-w-md">
             <p className="text-lg font-medium text-center mb-1">
-              &ldquo;{targetWord.exampleSentence.french}&rdquo;
+              &ldquo;{sentenceText}&rdquo;
             </p>
             <p className="text-muted-foreground text-center text-sm">
               {targetWord.exampleSentence.english}
@@ -680,12 +687,14 @@ interface ExerciseSessionProps {
   words: FoundationWord[];
   allWords: FoundationWord[];
   onComplete: (results: ExerciseResult[]) => void;
+  language?: SupportedLanguage;
 }
 
 export function ExerciseSession({
   words,
   allWords,
   onComplete,
+  language = "fr",
 }: ExerciseSessionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<ExerciseResult[]>([]);
@@ -756,6 +765,7 @@ export function ExerciseSession({
       targetWord: currentExercise.word,
       allWords,
       onResult: handleResult,
+      language,
     };
 
     switch (currentExercise.type) {

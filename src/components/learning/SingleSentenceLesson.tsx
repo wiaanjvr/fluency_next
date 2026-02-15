@@ -23,15 +23,23 @@ import {
 import { SingleSentence } from "@/types";
 import { useSpeechRecognition } from "@/lib/speech/useSpeechRecognition";
 import { validateSpeechInput, ValidationResult } from "@/lib/speech/validation";
+import { getLanguageConfig, type SupportedLanguage } from "@/lib/languages";
+
+// Helper to get target text from SingleSentence
+function getSentenceTarget(sentence: SingleSentence): string {
+  return sentence.sentence_target || sentence.sentence_french || "";
+}
 
 interface SingleSentenceLessonProps {
   sentence: SingleSentence;
   onComplete: () => void;
+  language?: SupportedLanguage;
 }
 
 export function SingleSentenceLesson({
   sentence,
   onComplete,
+  language = "fr",
 }: SingleSentenceLessonProps) {
   const [step, setStep] = useState<
     "listen" | "vocabulary" | "respond" | "speak" | "complete"
@@ -44,6 +52,9 @@ export function SingleSentenceLesson({
   const [attemptCount, setAttemptCount] = useState(0);
   const [isPassed, setIsPassed] = useState(false);
 
+  const langConfig = getLanguageConfig(language);
+  const sentenceTarget = getSentenceTarget(sentence);
+
   const {
     transcript,
     isListening,
@@ -53,7 +64,7 @@ export function SingleSentenceLesson({
     startListening,
     stopListening,
     resetTranscript,
-  } = useSpeechRecognition({ language: "fr-FR" });
+  } = useSpeechRecognition({ language: langConfig.speechCode });
 
   useEffect(() => {
     if (isListening) {
@@ -66,11 +77,7 @@ export function SingleSentenceLesson({
 
   useEffect(() => {
     if (transcript && !isListening && step === "speak") {
-      const result = validateSpeechInput(
-        transcript,
-        sentence.sentence_french,
-        75,
-      );
+      const result = validateSpeechInput(transcript, sentenceTarget, 75);
       setValidationResult(result);
       setAttemptCount((prev) => prev + 1);
 
@@ -78,7 +85,7 @@ export function SingleSentenceLesson({
         setIsPassed(true);
       }
     }
-  }, [transcript, isListening, step, sentence.sentence_french]);
+  }, [transcript, isListening, step, sentenceTarget]);
 
   const playAudio = (audioUrl: string) => {
     const audio = new Audio(audioUrl);
@@ -178,7 +185,7 @@ export function SingleSentenceLesson({
                 <div className="text-center space-y-6">
                   <div className="bg-gradient-to-r from-violet-100 to-pink-100 dark:from-violet-900/30 dark:to-pink-900/30 rounded-2xl p-8">
                     <div className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white leading-relaxed">
-                      {sentence.sentence_french}
+                      {sentenceTarget}
                     </div>
                   </div>
 
@@ -233,7 +240,7 @@ export function SingleSentenceLesson({
                 <div className="text-center mb-8">
                   <div className="bg-gradient-to-r from-violet-100 to-pink-100 dark:from-violet-900/30 dark:to-pink-900/30 rounded-2xl p-6 mb-4">
                     <div className="text-3xl font-bold text-gray-800 dark:text-white">
-                      {sentence.sentence_french}
+                      {sentenceTarget}
                     </div>
                   </div>
                   <Button
@@ -276,7 +283,7 @@ export function SingleSentenceLesson({
                   </p>
                   <div className="bg-gradient-to-r from-violet-100 to-pink-100 dark:from-violet-900/30 dark:to-pink-900/30 rounded-2xl p-6">
                     <div className="text-3xl font-bold text-gray-800 dark:text-white">
-                      {sentence.sentence_french}
+                      {sentenceTarget}
                     </div>
                   </div>
                   <Button
@@ -339,7 +346,7 @@ export function SingleSentenceLesson({
                   </p>
                   <div className="bg-gradient-to-r from-violet-100 to-pink-100 dark:from-violet-900/30 dark:to-pink-900/30 rounded-2xl p-8">
                     <div className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-4">
-                      {sentence.sentence_french}
+                      {sentenceTarget}
                     </div>
                     <div className="text-xl text-gray-600 dark:text-gray-300 italic">
                       {sentence.phonetic}
@@ -475,7 +482,7 @@ export function SingleSentenceLesson({
                 <div className="space-y-6">
                   <div className="bg-gradient-to-r from-violet-100 to-pink-100 dark:from-violet-900/30 dark:to-pink-900/30 rounded-2xl p-8">
                     <div className="text-4xl font-bold text-gray-800 dark:text-white mb-4">
-                      {sentence.sentence_french}
+                      {sentenceTarget}
                     </div>
                     <div className="text-2xl text-gray-600 dark:text-gray-300">
                       {sentence.sentence_english}
