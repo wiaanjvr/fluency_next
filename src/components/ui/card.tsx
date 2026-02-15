@@ -8,7 +8,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-2xl border-[1.5px] border-border/50 bg-card text-card-foreground shadow-luxury",
+      "rounded-3xl border-[1.5px] border-library-brass/60 bg-card text-card-foreground shadow-soft transition-all duration-300",
       className,
     )}
     {...props}
@@ -16,13 +16,29 @@ const Card = React.forwardRef<
 ));
 Card.displayName = "Card";
 
+// Interactive card with hover lift effect
+const CardInteractive = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-3xl border-[1.5px] border-library-brass/60 bg-card text-card-foreground shadow-soft card-hover-lift cursor-pointer",
+      className,
+    )}
+    {...props}
+  />
+));
+CardInteractive.displayName = "CardInteractive";
+
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    className={cn("flex flex-col space-y-1.5 p-7", className)}
     {...props}
   />
 ));
@@ -56,7 +72,7 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  <div ref={ref} className={cn("p-7 pt-0", className)} {...props} />
 ));
 CardContent.displayName = "CardContent";
 
@@ -66,7 +82,7 @@ const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
+    className={cn("flex items-center p-7 pt-0", className)}
     {...props}
   />
 ));
@@ -74,6 +90,7 @@ CardFooter.displayName = "CardFooter";
 
 export {
   Card,
+  CardInteractive,
   CardHeader,
   CardFooter,
   CardTitle,

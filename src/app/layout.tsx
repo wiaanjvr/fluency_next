@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Plus_Jakarta_Sans, Crimson_Pro } from "next/font/google";
 import "@/styles/globals.css";
 import { PaddleProvider } from "@/lib/paddle";
 
-const inter = Inter({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-sans",
   display: "swap",
 });
 
-const playfair = Playfair_Display({
+const crimsonPro = Crimson_Pro({
   subsets: ["latin"],
-  variable: "--font-lora",
+  variable: "--font-serif",
   display: "swap",
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -37,8 +38,11 @@ export default function RootLayout({
     process.env.NODE_ENV === "production" ? "production" : "sandbox";
 
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="font-serif antialiased bg-background text-foreground min-h-screen">
+    <html
+      lang="en"
+      className={`${plusJakarta.variable} ${crimsonPro.variable}`}
+    >
+      <body className="font-sans antialiased bg-background text-foreground min-h-screen">
         <PaddleProvider environment={paddleEnvironment}>
           {children}
         </PaddleProvider>

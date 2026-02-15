@@ -353,36 +353,36 @@ export function VerbalCheckPhase({
                         ))}
                       </div>
                       <p className="text-xs text-muted-foreground font-light">
-                        Try using these French words in your next response!
+                        Try using these French words in your next response! 🌟
                       </p>
                     </div>
                   </div>
                 )}
 
               {/* Actions */}
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button
                   onClick={deleteRecording}
-                  className="flex-1 bg-transparent border border-border hover:bg-card text-foreground font-light rounded-xl py-4 px-6 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                  className="flex-1 bg-transparent border-2 border-border hover:bg-card hover:border-library-brass/50 text-foreground font-light rounded-2xl py-5 px-6 flex items-center justify-center gap-3 transition-all btn-bounce disabled:opacity-50 min-h-touch"
                   disabled={hasSubmitted}
                 >
-                  <Trash2 className="h-4 w-4" />
-                  {needsReRecord ? "Try Again" : "Re-record"}
+                  <Trash2 className="h-5 w-5" />
+                  {needsReRecord ? "Let's try again! 💪" : "Re-record"}
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="flex-1 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-xl py-4 px-6 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                  className="flex-1 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-2xl py-5 px-6 flex items-center justify-center gap-3 transition-all btn-bounce disabled:opacity-50 min-h-touch"
                   disabled={!canSubmit}
                 >
                   {hasSubmitted ? (
                     <>
-                      <CheckCircle2 className="h-4 w-4" />
-                      Submitted
+                      <CheckCircle2 className="h-5 w-5" />
+                      Great job! ✨
                     </>
                   ) : needsReRecord ? (
-                    "Record Again"
+                    "Record Again 🎤"
                   ) : (
-                    "Submit Response"
+                    "Submit Response 🚀"
                   )}
                 </button>
               </div>
@@ -392,15 +392,25 @@ export function VerbalCheckPhase({
       </div>
 
       {/* Tips */}
-      <div className="bg-card border border-border rounded-2xl p-6">
-        <h3 className="font-medium mb-3">Tips for your response:</h3>
-        <ul className="text-sm text-muted-foreground font-light space-y-2">
-          <li>• Try to answer completely in French</li>
-          <li>
-            • Using a few English words is okay - we'll help you learn them
+      <div className="bg-card border border-border rounded-3xl p-7 shadow-soft">
+        <h3 className="font-medium mb-4 text-lg">Tips for your response: 💡</h3>
+        <ul className="text-base text-muted-foreground font-light space-y-3">
+          <li className="flex items-start gap-3">
+            <span className="text-library-brass">•</span>
+            Try to answer completely in French 🇫🇷
           </li>
-          <li>• Don't worry about perfect grammar or pronunciation</li>
-          <li>• Describe the overall situation or feeling</li>
+          <li className="flex items-start gap-3">
+            <span className="text-library-brass">•</span>
+            Using a few English words is okay - we'll help you learn them! 📚
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="text-library-brass">•</span>
+            Don't worry about perfect grammar or pronunciation 👍
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="text-library-brass">•</span>
+            Describe the overall situation or feeling 🎯
+          </li>
         </ul>
       </div>
 
@@ -409,19 +419,19 @@ export function VerbalCheckPhase({
         onClick={onPhaseComplete}
         disabled={!hasSubmitted}
         className={cn(
-          "w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors",
+          "w-full py-5 px-8 rounded-2xl font-medium flex items-center justify-center gap-3 transition-all min-h-touch text-lg",
           hasSubmitted
-            ? "bg-library-brass hover:bg-library-brass/90 text-background"
-            : "bg-card border border-border text-muted-foreground cursor-not-allowed",
+            ? "bg-library-brass hover:bg-library-brass/90 text-background btn-bounce shadow-soft"
+            : "bg-card border-2 border-border text-muted-foreground cursor-not-allowed",
         )}
       >
         {hasSubmitted ? (
           <>
-            Continue to Conversation
-            <ArrowRight className="h-5 w-5" />
+            Continue to Conversation ✨
+            <ArrowRight className="h-6 w-6" />
           </>
         ) : (
-          "Record and submit your response first"
+          "Record and submit your response first 🎤"
         )}
       </button>
     </div>

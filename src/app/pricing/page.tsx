@@ -103,33 +103,33 @@ export default function PricingPage() {
   return (
     <main className="bg-background text-foreground antialiased min-h-screen">
       {/* ========== NAVIGATION ========== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-library-forest/20">
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b-2 border-library-forest">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 bg-library-forest rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-library-brass">
+              <div className="w-9 h-9 bg-library-forest rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-library-gold">
                 <span className="text-foreground font-serif font-semibold text-lg">
                   L
                 </span>
               </div>
-              <span className="text-lg font-light">Lingua</span>
+              <span className="text-lg font-medium">Lingua</span>
             </Link>
 
-            <div className="flex items-center gap-2">
-              <Link href="/auth/login">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="font-light text-muted-foreground hover:text-foreground"
-                >
-                  Sign in
-                </Button>
+            <div className="flex items-center gap-6">
+              <Link
+                href="/pricing"
+                className="text-sm font-medium text-library-gold transition-colors duration-300"
+              >
+                Pricing
+              </Link>
+              <Link
+                href="/auth/login"
+                className="text-sm font-medium text-muted-foreground hover:text-library-gold transition-colors duration-300"
+              >
+                Sign in
               </Link>
               <Link href="/auth/signup">
-                <Button
-                  size="sm"
-                  className="bg-library-forest hover:bg-library-forest-light text-foreground font-light rounded-full px-5 transition-all duration-300"
-                >
+                <Button size="sm" className="rounded-full px-5 font-medium">
                   Get started
                 </Button>
               </Link>
@@ -290,8 +290,9 @@ export default function PricingPage() {
                   ) : (
                     <Link href={plan.href} className="block">
                       <Button
+                        variant="accent"
                         size="lg"
-                        className="w-full h-12 bg-library-forest hover:bg-library-forest-light text-foreground font-light rounded-full transition-all duration-300"
+                        className="w-full h-12 font-medium rounded-full"
                       >
                         {plan.cta}
                       </Button>
@@ -506,7 +507,7 @@ function PaddleCheckoutButton({ priceId }: { priceId?: string }) {
       size="lg"
       onClick={handleCheckout}
       disabled={loading}
-      className="w-full h-12 bg-library-brass text-background hover:bg-library-brass/90 font-light rounded-full transition-all duration-300 group"
+      className="w-full h-12 font-medium rounded-full group"
     >
       {loading ? (
         "Loading..."

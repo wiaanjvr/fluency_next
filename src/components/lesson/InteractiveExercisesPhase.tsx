@@ -18,9 +18,34 @@ import {
   RefreshCw,
   Lightbulb,
   Volume2,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generateExercisesForLesson } from "@/lib/lesson/engine";
+
+// Encouraging messages
+const SUCCESS_MESSAGES = [
+  "Great work! 🎉",
+  "Excellent! ⭐",
+  "Amazing job! 🌟",
+  "You're on fire! 🔥",
+  "Fantastic! 💪",
+  "Well done! 👏",
+  "Perfect! ✨",
+  "Superb! 🎯",
+];
+
+const ENCOURAGEMENT_MESSAGES = [
+  "Almost there! Keep going! 💪",
+  "So close! Try again! 🎯",
+  "Don't give up! You've got this! 🌟",
+  "Good effort! Let's try once more! ⭐",
+  "Learning is a journey! 🚀",
+  "Every mistake is progress! 📚",
+];
+
+const getRandomMessage = (messages: string[]) =>
+  messages[Math.floor(Math.random() * messages.length)];
 
 interface InteractiveExercisesPhaseProps {
   lesson: Lesson;
@@ -178,61 +203,63 @@ export function InteractiveExercisesPhase({
   // Complete state
   if (isComplete) {
     const percentage = Math.round((score / exercises.length) * 100);
+    const celebrationEmojis =
+      percentage >= 80 ? "🎉✨🌟" : percentage >= 60 ? "👏⭐" : "💪📚";
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-8 animate-fade-in">
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
-            <Trophy className="h-4 w-4" />
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-feedback-success/10 text-feedback-success border border-feedback-success/30">
+            <Trophy className="h-5 w-5" />
             <span className="text-sm font-medium">Exercises Complete!</span>
           </div>
         </div>
 
-        <div className="bg-card border border-library-brass/20 rounded-2xl p-8 text-center space-y-4">
-          <div className="text-6xl font-light text-library-brass">
+        <div className="bg-card border-2 border-library-brass/30 rounded-3xl p-10 text-center space-y-6 shadow-soft-lg">
+          <div className="text-7xl font-light text-library-brass animate-scale-bounce">
             {percentage}%
           </div>
-          <div className="text-xl font-medium">
-            {score} of {exercises.length} correct
+          <div className="text-2xl font-medium">
+            {score} of {exercises.length} correct {celebrationEmojis}
           </div>
-          <p className="text-muted-foreground font-light">
+          <p className="text-lg text-muted-foreground font-light max-w-md mx-auto">
             {percentage >= 80
-              ? "Excellent work! You've mastered this content."
+              ? "Outstanding work! You've truly mastered this content! 🌟"
               : percentage >= 60
-                ? "Good job! Keep practicing to improve."
-                : "Nice effort! Review the lesson to strengthen your understanding."}
+                ? "Great progress! You're getting the hang of it! Keep it up! 💪"
+                : "Good effort! Practice makes perfect. Every step forward counts! 📚"}
           </p>
         </div>
 
         {/* Results Summary */}
-        <div className="bg-card border border-border rounded-2xl">
-          <div className="p-6 border-b border-border">
-            <h2 className="text-lg font-light">Results Summary</h2>
+        <div className="bg-card border border-border rounded-3xl shadow-soft">
+          <div className="p-7 border-b border-border">
+            <h2 className="text-xl font-light">Your Results ✨</h2>
           </div>
-          <div className="p-6">
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
-              <div className="p-3 sm:p-4 bg-green-50 dark:bg-green-950/30 rounded-xl">
-                <div className="text-xl sm:text-2xl font-bold text-green-600">
+          <div className="p-7">
+            <div className="grid grid-cols-3 gap-3 sm:gap-6 text-center">
+              <div className="p-4 sm:p-6 bg-feedback-success/10 border border-feedback-success/20 rounded-2xl">
+                <div className="text-2xl sm:text-3xl font-bold text-feedback-success">
                   {score}
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground font-light">
-                  Correct
+                <div className="text-sm sm:text-base text-muted-foreground font-light mt-1">
+                  Correct 🎯
                 </div>
               </div>
-              <div className="p-3 sm:p-4 bg-red-50 dark:bg-red-950/30 rounded-xl">
-                <div className="text-xl sm:text-2xl font-bold text-red-600">
+              <div className="p-4 sm:p-6 bg-feedback-error/10 border border-feedback-error/20 rounded-2xl">
+                <div className="text-2xl sm:text-3xl font-bold text-feedback-error">
                   {exercises.length - score}
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground font-light">
-                  Incorrect
+                <div className="text-sm sm:text-base text-muted-foreground font-light mt-1">
+                  To Review 📖
                 </div>
               </div>
-              <div className="p-3 sm:p-4 bg-library-brass/10 rounded-xl">
-                <div className="text-xl sm:text-2xl font-bold text-library-brass">
+              <div className="p-4 sm:p-6 bg-library-brass/10 border border-library-brass/20 rounded-2xl">
+                <div className="text-2xl sm:text-3xl font-bold text-library-brass">
                   {exercises.length}
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground font-light">
-                  Total
+                <div className="text-sm sm:text-base text-muted-foreground font-light mt-1">
+                  Total ✅
                 </div>
               </div>
             </div>
@@ -241,7 +268,7 @@ export function InteractiveExercisesPhase({
 
         <button
           onClick={onPhaseComplete}
-          className="w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 bg-library-brass hover:bg-library-brass/90 text-background transition-colors"
+          className="w-full py-5 px-8 rounded-2xl font-medium flex items-center justify-center gap-3 bg-library-brass hover:bg-library-brass/90 text-background transition-all btn-bounce shadow-soft text-lg"
         >
           Continue to Final Assessment
           <ArrowRight className="h-5 w-5" />
@@ -270,27 +297,36 @@ export function InteractiveExercisesPhase({
       </div>
 
       {/* Progress */}
-      <div className="bg-card border border-border rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-3">
+      <div className="bg-card border border-border rounded-3xl p-7 shadow-soft">
+        <div className="flex items-center justify-between mb-4">
           <span className="text-sm font-medium">Progress</span>
           <span className="text-sm text-muted-foreground font-light">
             {currentIndex + 1} / {exercises.length}
           </span>
         </div>
-        <div className="w-full bg-background rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-background rounded-full h-3 overflow-hidden">
           <div
-            className="h-full bg-library-brass transition-all duration-300"
+            className="h-full bg-gradient-to-r from-library-brass to-library-gold rounded-full transition-all duration-700 ease-out relative overflow-hidden"
             style={{ width: `${progress}%` }}
-          />
+          >
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
+                animation: "progressShine 2s ease-in-out infinite",
+              }}
+            />
+          </div>
         </div>
 
         {/* Score indicator */}
-        <div className="flex items-center justify-end gap-4 mt-3 text-sm">
-          <span className="flex items-center gap-1 text-green-600">
-            <CheckCircle2 className="h-4 w-4" /> {score}
+        <div className="flex items-center justify-end gap-6 mt-4 text-sm">
+          <span className="flex items-center gap-2 text-feedback-success font-medium">
+            <CheckCircle2 className="h-5 w-5" /> {score} correct
           </span>
-          <span className="flex items-center gap-1 text-red-600">
-            <XCircle className="h-4 w-4" /> {results.length - score}
+          <span className="flex items-center gap-2 text-feedback-error font-medium">
+            <XCircle className="h-5 w-5" /> {results.length - score} to review
           </span>
         </div>
       </div>
@@ -342,18 +378,18 @@ export function InteractiveExercisesPhase({
                 <button
                   key={index}
                   className={cn(
-                    "w-full py-4 px-4 rounded-xl border text-left whitespace-normal flex items-center gap-3 transition-colors",
+                    "w-full py-5 px-5 rounded-2xl border-2 text-left whitespace-normal flex items-center gap-4 transition-all duration-200 min-h-touch tap-squish",
                     isSelected &&
                       !showFeedback &&
-                      "border-library-brass bg-library-brass/5",
+                      "border-library-brass bg-library-brass/10 shadow-soft",
                     showCorrect &&
-                      "border-green-500 bg-green-50 dark:bg-green-950/30",
+                      "border-feedback-success bg-feedback-success/10 glow-success",
                     showIncorrect &&
-                      "border-red-500 bg-red-50 dark:bg-red-950/30",
+                      "border-feedback-error bg-feedback-error/10 animate-shake-gentle",
                     !isSelected &&
                       !showCorrect &&
                       !showIncorrect &&
-                      "border-border hover:bg-card/80",
+                      "border-border hover:bg-card/80 hover:border-library-brass/50 hover:shadow-soft",
                     showFeedback && "cursor-default",
                   )}
                   onClick={() => handleAnswer(index)}
@@ -361,27 +397,28 @@ export function InteractiveExercisesPhase({
                 >
                   <span
                     className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm",
+                      "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-medium transition-all duration-200",
                       isSelected &&
                         !showFeedback &&
                         "bg-library-brass text-background",
-                      showCorrect && "bg-green-500 text-white",
-                      showIncorrect && "bg-red-500 text-white",
+                      showCorrect &&
+                        "bg-feedback-success text-white animate-bounce-in",
+                      showIncorrect && "bg-feedback-error text-white",
                       !isSelected &&
                         !showCorrect &&
                         !showIncorrect &&
-                        "bg-background border border-border",
+                        "bg-background border-2 border-border",
                     )}
                   >
                     {showCorrect ? (
-                      <CheckCircle2 className="h-4 w-4" />
+                      <CheckCircle2 className="h-5 w-5" />
                     ) : showIncorrect ? (
-                      <XCircle className="h-4 w-4" />
+                      <XCircle className="h-5 w-5" />
                     ) : (
                       String.fromCharCode(65 + index)
                     )}
                   </span>
-                  <span className="font-light">{option}</span>
+                  <span className="font-light text-base">{option}</span>
                 </button>
               );
             })}
@@ -391,40 +428,44 @@ export function InteractiveExercisesPhase({
           {showFeedback && (
             <div
               className={cn(
-                "p-4 rounded-xl border",
+                "p-5 rounded-2xl border-2 transition-all duration-300",
                 selectedAnswer === currentExercise.correctAnswer
-                  ? "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800"
-                  : "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800",
+                  ? "bg-feedback-success/10 border-feedback-success/30 glow-success"
+                  : "bg-feedback-error/10 border-feedback-error/30 animate-shake-gentle",
               )}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-4">
                 {selectedAnswer === currentExercise.correctAnswer ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+                  <div className="w-8 h-8 rounded-full bg-feedback-success flex items-center justify-center shrink-0 animate-bounce-in">
+                    <CheckCircle2 className="h-5 w-5 text-white" />
+                  </div>
                 ) : (
-                  <XCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+                  <div className="w-8 h-8 rounded-full bg-feedback-error flex items-center justify-center shrink-0">
+                    <XCircle className="h-5 w-5 text-white" />
+                  </div>
                 )}
-                <div>
+                <div className="flex-1">
                   <p
                     className={cn(
-                      "font-medium",
+                      "font-medium text-lg",
                       selectedAnswer === currentExercise.correctAnswer
-                        ? "text-green-800 dark:text-green-200"
-                        : "text-red-800 dark:text-red-200",
+                        ? "text-feedback-success-dark"
+                        : "text-feedback-error-dark",
                     )}
                   >
                     {selectedAnswer === currentExercise.correctAnswer
-                      ? "Correct!"
-                      : "Not quite right"}
+                      ? getRandomMessage(SUCCESS_MESSAGES)
+                      : getRandomMessage(ENCOURAGEMENT_MESSAGES)}
                   </p>
                   {currentExercise.explanation && (
-                    <p className="text-sm text-muted-foreground font-light mt-1">
+                    <p className="text-sm text-muted-foreground font-light mt-2">
                       {currentExercise.explanation}
                     </p>
                   )}
                   {currentExercise.grammarNote && (
-                    <div className="mt-2 flex items-start gap-2 text-sm">
-                      <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                      <span className="font-light">
+                    <div className="mt-3 flex items-start gap-2 text-sm bg-feedback-info/10 p-3 rounded-xl">
+                      <Lightbulb className="h-4 w-4 text-feedback-info shrink-0 mt-0.5" />
+                      <span className="font-light text-feedback-info-dark">
                         {currentExercise.grammarNote}
                       </span>
                     </div>

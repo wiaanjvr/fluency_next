@@ -51,26 +51,28 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "bg-card border border-border rounded-2xl p-6 transition-all duration-300 hover:shadow-luxury hover:-translate-y-0.5",
+        "bg-card border border-border rounded-3xl p-7 transition-all duration-300 card-hover-lift shadow-soft",
         className,
       )}
     >
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-xs font-light tracking-[0.15em] uppercase text-muted-foreground">
+      <div className="flex items-center justify-between mb-5">
+        <span className="text-xs font-medium tracking-[0.15em] uppercase text-muted-foreground">
           {label}
         </span>
-        {icon && <div className="text-muted-foreground">{icon}</div>}
+        {icon && (
+          <div className="text-muted-foreground icon-interactive">{icon}</div>
+        )}
       </div>
       <div
         className={cn(
-          "text-3xl font-light mb-1",
+          "text-4xl font-light mb-2",
           accent && "text-library-brass",
         )}
       >
         {value}
       </div>
       {subtext && (
-        <p className="text-sm text-muted-foreground font-light">{subtext}</p>
+        <p className="text-base text-muted-foreground font-light">{subtext}</p>
       )}
     </div>
   );
@@ -83,6 +85,8 @@ interface ProgressBarProps {
   valueLabel?: string;
   size?: "sm" | "md" | "lg";
   accent?: boolean;
+  animated?: boolean;
+  showShine?: boolean;
 }
 
 export function ProgressBar({
@@ -92,34 +96,53 @@ export function ProgressBar({
   valueLabel,
   size = "md",
   accent = true,
+  animated = true,
+  showShine = true,
 }: ProgressBarProps) {
   const percentage = Math.min((value / max) * 100, 100);
-  const heights = { sm: "h-1", md: "h-2", lg: "h-3" };
+  const heights = { sm: "h-1.5", md: "h-3", lg: "h-4" };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {(label || valueLabel) && (
         <div className="flex justify-between text-sm">
           {label && (
             <span className="font-light text-muted-foreground">{label}</span>
           )}
           {valueLabel && (
-            <span className={cn("font-light", accent && "text-library-brass")}>
+            <span className={cn("font-medium", accent && "text-library-brass")}>
               {valueLabel}
             </span>
           )}
         </div>
       )}
       <div
-        className={cn("bg-muted rounded-full overflow-hidden", heights[size])}
+        className={cn(
+          "bg-muted rounded-full overflow-hidden relative",
+          heights[size],
+        )}
       >
         <div
           className={cn(
-            "h-full rounded-full transition-all duration-700 ease-out",
-            accent ? "bg-library-brass" : "bg-foreground",
+            "h-full rounded-full relative overflow-hidden",
+            accent
+              ? "bg-gradient-to-r from-library-brass to-library-gold"
+              : "bg-foreground",
+            animated && "transition-all duration-1000 ease-out",
           )}
           style={{ width: `${percentage}%` }}
-        />
+        >
+          {showShine && percentage > 0 && (
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
+                animation: "progressShine 2s ease-in-out infinite",
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -145,34 +168,38 @@ export function LessonPreviewCard({
   return (
     <div
       className={cn(
-        "bg-card border border-border rounded-2xl p-6 shadow-luxury transition-all duration-300",
+        "bg-card border border-border rounded-3xl p-7 shadow-soft card-hover-lift transition-all duration-300",
         className,
       )}
     >
-      <div className="flex items-center justify-between mb-6">
-        <span className="text-xs font-light tracking-wider uppercase text-muted-foreground">
+      <div className="flex items-center justify-between mb-7">
+        <span className="text-xs font-medium tracking-wider uppercase text-muted-foreground">
           {title}
         </span>
-        <span className="text-xs text-library-brass font-light">{level}</span>
+        <span className="px-3 py-1 rounded-full bg-library-brass/10 text-xs text-library-brass font-medium">
+          {level}
+        </span>
       </div>
 
       {/* Content skeleton */}
-      <div className="space-y-3 mb-6">
-        <div className="h-3 bg-muted rounded-full w-full" />
-        <div className="h-3 bg-muted rounded-full w-4/5" />
-        <div className="h-3 bg-muted rounded-full w-3/4" />
+      <div className="space-y-4 mb-7">
+        <div className="h-3.5 bg-muted rounded-full w-full" />
+        <div className="h-3.5 bg-muted rounded-full w-4/5" />
+        <div className="h-3.5 bg-muted rounded-full w-3/4" />
       </div>
 
       {/* Audio player preview */}
-      <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
+      <div className="flex items-center gap-5 p-5 bg-muted/50 rounded-2xl">
         <div
           className={cn(
-            "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300",
-            isPlaying ? "bg-library-brass scale-110" : "bg-library-brass/80",
+            "w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 tap-squish",
+            isPlaying
+              ? "bg-library-brass scale-105"
+              : "bg-library-brass/80 hover:bg-library-brass",
           )}
         >
           <svg
-            className={cn("h-5 w-5 text-background", !isPlaying && "ml-0.5")}
+            className={cn("h-6 w-6 text-background", !isPlaying && "ml-0.5")}
             fill="currentColor"
             viewBox="0 0 24 24"
           >
@@ -184,14 +211,14 @@ export function LessonPreviewCard({
           </svg>
         </div>
         <div className="flex-1">
-          <div className="h-1.5 bg-muted-foreground/20 rounded-full overflow-hidden">
+          <div className="h-2 bg-muted-foreground/20 rounded-full overflow-hidden">
             <div
-              className="h-1.5 bg-library-brass rounded-full transition-all duration-500"
+              className="h-2 bg-gradient-to-r from-library-brass to-library-gold rounded-full transition-all duration-700"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
-        <span className="text-xs text-muted-foreground font-light">
+        <span className="text-sm text-muted-foreground font-light">
           {duration}
         </span>
       </div>
@@ -213,15 +240,15 @@ export function EmptyState({
   action,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+    <div className="flex flex-col items-center justify-center py-20 px-8 text-center">
       {icon && (
-        <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-6 text-muted-foreground">
+        <div className="w-20 h-20 rounded-3xl bg-muted/50 flex items-center justify-center mb-8 text-muted-foreground animate-scale-bounce">
           {icon}
         </div>
       )}
-      <h3 className="text-xl font-light mb-2">{title}</h3>
+      <h3 className="text-2xl font-light mb-3">{title}</h3>
       {description && (
-        <p className="text-muted-foreground font-light max-w-sm mb-6">
+        <p className="text-lg text-muted-foreground font-light max-w-md mb-8">
           {description}
         </p>
       )}
@@ -248,15 +275,15 @@ export function SectionHeader({
   return (
     <div className={cn(centered && "text-center", className)}>
       {eyebrow && (
-        <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-4">
+        <p className="text-sm font-medium tracking-[0.2em] uppercase text-muted-foreground mb-5">
           {eyebrow}
         </p>
       )}
-      <h2 className="text-3xl sm:text-4xl font-light tracking-tight mb-4">
+      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light tracking-tight mb-5">
         {title}
       </h2>
       {description && (
-        <p className="text-lg text-muted-foreground font-light max-w-2xl">
+        <p className="text-lg sm:text-xl text-muted-foreground font-light max-w-2xl leading-relaxed">
           {description}
         </p>
       )}

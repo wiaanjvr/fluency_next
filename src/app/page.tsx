@@ -65,42 +65,33 @@ export default function Home() {
   return (
     <main className="bg-background text-foreground antialiased">
       {/* ========== NAVIGATION ========== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-library-forest/20">
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b-2 border-library-forest">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 bg-library-forest rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-library-brass">
+              <div className="w-9 h-9 bg-library-forest rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-library-gold">
                 <span className="text-foreground font-serif font-semibold text-lg">
                   L
                 </span>
               </div>
-              <span className="text-lg font-light">Lingua</span>
+              <span className="text-lg font-medium">Lingua</span>
             </Link>
 
-            <div className="flex items-center gap-4">
-              <Link href="/pricing">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="font-light text-muted-foreground hover:text-foreground"
-                >
-                  Pricing
-                </Button>
+            <div className="flex items-center gap-6">
+              <Link
+                href="/pricing"
+                className="text-sm font-medium text-muted-foreground hover:text-library-gold transition-colors duration-300"
+              >
+                Pricing
               </Link>
-              <Link href="/auth/login">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="font-light text-muted-foreground hover:text-foreground"
-                >
-                  Sign in
-                </Button>
+              <Link
+                href="/auth/login"
+                className="text-sm font-medium text-muted-foreground hover:text-library-gold transition-colors duration-300"
+              >
+                Sign in
               </Link>
               <Link href="/auth/signup">
-                <Button
-                  size="sm"
-                  className="bg-library-forest hover:bg-library-forest-light text-foreground font-light rounded-full px-5 transition-all duration-300"
-                >
+                <Button size="sm" className="rounded-full px-5 font-medium">
                   Get started
                 </Button>
               </Link>
@@ -145,16 +136,16 @@ export default function Home() {
               <Link href="/auth/signup">
                 <Button
                   size="lg"
-                  className="bg-library-brass text-background hover:bg-library-brass/90 h-14 px-8 text-base font-light rounded-full group"
+                  className="h-14 px-8 text-base font-medium rounded-full group"
                 >
                   Start learning free
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="lg"
-                className="h-14 px-8 text-base font-light text-muted-foreground hover:text-library-forest border border-library-forest/20 hover:bg-library-forest/10 rounded-full group transition-all duration-300"
+                className="h-14 px-8 text-base font-medium rounded-full group transition-all duration-300"
               >
                 <Play className="mr-2 h-4 w-4" />
                 Watch demo
