@@ -1,4 +1,4 @@
-# Lingua
+# Fluency Next
 
 A listening-first language acquisition platform for solo learners.
 
