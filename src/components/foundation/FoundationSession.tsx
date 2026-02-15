@@ -64,6 +64,7 @@ export function FoundationSessionPage({
   const [sessions, setSessions] = useState<FoundationWord[][]>([]);
   const [loading, setLoading] = useState(true);
   const [targetLanguage, setTargetLanguage] = useState<SupportedLanguage>("fr");
+  const [isDynamicSession, setIsDynamicSession] = useState(false);
 
   // Session state
   const [phase, setPhase] = useState<SessionPhase>("introduction");
@@ -100,10 +101,29 @@ export function FoundationSessionPage({
         const generatedWords = generateFoundationVocabulary(
           vocabularyData.words,
         );
-        const generatedSessions = createLearningSessions(generatedWords, 4);
 
         setAllWords(generatedWords);
-        setSessions(generatedSessions);
+
+        // Check if this is a dynamic SRS-based session (sessionIndex = -1)
+        if (sessionIndex === -1) {
+          setIsDynamicSession(true);
+
+          // Get next session words based on SRS
+          const { getNextSessionWords } =
+            await import("@/lib/srs/foundation-srs");
+          const sessionData = await getNextSessionWords(
+            generatedWords,
+            language,
+            4,
+          );
+
+          // Create a single session with the dynamic words
+          setSessions([sessionData.words]);
+        } else {
+          // Use fixed session system (backward compatibility)
+          const generatedSessions = createLearningSessions(generatedWords, 4);
+          setSessions(generatedSessions);
+        }
       } catch (error) {
         console.error("Error loading vocabulary:", error);
       } finally {
@@ -112,10 +132,11 @@ export function FoundationSessionPage({
     }
 
     loadLanguageAndVocabulary();
-  }, [supabase, router]);
+  }, [supabase, router, sessionIndex]);
 
   // Get current session words
-  const currentSession = sessions[sessionIndex] || [];
+  const currentSessionIndex = isDynamicSession ? 0 : sessionIndex;
+  const currentSession = sessions[currentSessionIndex] || [];
   const imageableWords = getImageableWords(currentSession);
 
   // Handle introduction complete
@@ -126,7 +147,7 @@ export function FoundationSessionPage({
   };
 
   // Handle practice complete
-  const handlePracticeComplete = (results: ExerciseResult[]) => {
+  const handlePracticeComplete = async (results: ExerciseResult[]) => {
     setExerciseResults(results);
     playComplete();
     setPhase("results");
@@ -135,10 +156,12 @@ export function FoundationSessionPage({
     // Save results to SRS system
     processSessionResults(currentSession, results);
 
-    // Mark session as completed
+    // Mark session as completed in Supabase
     const wordIds = learnedWords.map((w) => w.id);
     const sessionResults: SessionResults = {
-      sessionId: `session-${sessionIndex}`,
+      sessionId: isDynamicSession
+        ? "dynamic-session"
+        : `session-${sessionIndex}`,
       wordsIntroduced: learnedWords.length,
       exercisesCompleted: results.length,
       correctAnswers: results.filter((r) => r.correct).length,
@@ -153,7 +176,17 @@ export function FoundationSessionPage({
       exerciseResults: results,
     };
 
-    completeSession(sessionIndex, wordIds, sessionResults);
+    try {
+      await completeSession(
+        isDynamicSession ? 0 : sessionIndex,
+        wordIds,
+        sessionResults,
+        targetLanguage,
+        currentSession, // Pass session words for SRS tracking
+      );
+    } catch (error) {
+      console.error("Error completing session:", error);
+    }
   };
 
   // Calculate session stats
@@ -288,25 +321,29 @@ export function FoundationSessionPage({
           {/* Action Buttons */}
           <div className="flex flex-col gap-3 mt-8">
             <FadeIn delay={500}>
-              {sessionIndex < sessions.length - 1 ? (
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={() =>
-                    router.push(`/learn/foundation/session/${sessionIndex + 1}`)
+              <Button
+                size="lg"
+                className="w-full"
+                onClick={() => {
+                  if (isDynamicSession) {
+                    // Return to foundation page for next dynamic session
+                    router.push("/learn/foundation");
+                  } else {
+                    // Continue to next numbered session
+                    if (sessionIndex < sessions.length - 1) {
+                      router.push(
+                        `/learn/foundation/session/${sessionIndex + 1}`,
+                      );
+                    } else {
+                      router.push("/learn/foundation");
+                    }
                   }
-                >
-                  Continue to Next Session
-                </Button>
-              ) : (
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={() => router.push("/learn/foundation")}
-                >
-                  Complete Foundation
-                </Button>
-              )}
+                }}
+              >
+                {isDynamicSession || sessionIndex >= sessions.length - 1
+                  ? "Back to Foundation"
+                  : "Continue to Next Session"}
+              </Button>
             </FadeIn>
 
             <FadeIn delay={600}>
@@ -344,8 +381,10 @@ export function FoundationSessionPage({
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="font-medium">
-            Session {sessionIndex + 1} -{" "}
-            {phase === "introduction" ? "New Words" : "Practice"}
+            {isDynamicSession
+              ? "Learning Session"
+              : `Session ${sessionIndex + 1}`}{" "}
+            - {phase === "introduction" ? "New Words" : "Practice"}
           </h1>
           <div className="w-10" />
         </div>

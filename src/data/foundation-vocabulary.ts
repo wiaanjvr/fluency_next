@@ -825,8 +825,9 @@ const translations: Record<string, string> = {
 };
 
 // Image keywords for each word (for image search)
+// For abstract words (articles, pronouns, prepositions), we use related concepts or fallback
 const imageKeywords: Record<string, string> = {
-  // These map French words to English keywords that work well with image search
+  // People - concrete
   homme: "man",
   femme: "woman",
   fille: "girl",
@@ -835,6 +836,13 @@ const imageKeywords: Record<string, string> = {
   ami: "friend",
   père: "father",
   mère: "mother",
+  roi: "king",
+  personne: "person",
+  monsieur: "sir",
+  peuple: "people",
+  gens: "people",
+
+  // Body parts - concrete
   main: "hand",
   œil: "eye",
   tête: "head",
@@ -843,30 +851,31 @@ const imageKeywords: Record<string, string> = {
   corps: "body",
   bras: "arm",
   sang: "blood",
+  front: "face",
+
+  // Places - concrete
   maison: "house",
   ville: "city",
   rue: "street",
   porte: "door",
   chambre: "room",
   terre: "earth",
+  monde: "world",
+  pays: "country",
+  place: "place",
+  lieu: "place",
+
+  // Nature - concrete
   ciel: "sky",
   soleil: "sun",
   eau: "water",
   air: "air",
   lumière: "light",
+  nature: "nature",
+
+  // Time - semi-concrete (clock/calendar images)
   nuit: "night",
   jour: "day",
-  livre: "book",
-  lettre: "letter",
-  voix: "speak",
-  monde: "world",
-  pays: "country",
-  roi: "king",
-  guerre: "war",
-  dieu: "god",
-  famille: "family",
-  vie: "life",
-  mort: "death",
   temps: "time",
   heure: "hour",
   an: "year",
@@ -874,22 +883,84 @@ const imageKeywords: Record<string, string> = {
   semaine: "week",
   matin: "morning",
   soir: "evening",
-  être: "person",
-  avoir: "take",
-  faire: "work",
-  dire: "speak",
-  aller: "walk",
-  voir: "see",
-  vouloir: "want",
-  pouvoir: "power",
-  savoir: "know",
-  prendre: "take",
-  donner: "give",
-  parler: "speak",
-  écrire: "write",
-  lire: "read",
-  jouer: "play",
-  ouvrir: "open",
+  moment: "moment",
+  fois: "one",
+
+  // Objects - concrete
+  livre: "book",
+  lettre: "letter",
+  chose: "thing",
+  objet: "object",
+  pièce: "room",
+  image: "image",
+  route: "road",
+
+  // Actions/Verbs - represented by people doing them
+  être: "person", // abstract but use person as fallback
+  avoir: "hold", // having = holding
+  faire: "work", // doing = working
+  dire: "speak", // saying = speaking
+  aller: "go", // going
+  voir: "see", // seeing
+  vouloir: "want", // wanting
+  pouvoir: "power", // can/power
+  savoir: "know", // knowing (lightbulb/brain)
+  prendre: "take", // taking/grabbing
+  donner: "give", // giving
+  parler: "speak", // speaking
+  écrire: "write", // writing
+  lire: "read", // reading
+  jouer: "play", // playing
+  ouvrir: "open", // opening door
+  venir: "come", // coming/arriving
+  sortir: "leave", // leaving/exiting
+  croire: "think", // believing = thinking
+  demander: "ask", // asking
+  trouver: "find", // finding/searching
+  rendre: "return", // returning
+  poser: "question", // to pose a question
+  partir: "leave", // leaving
+  devenir: "new", // becoming = transformation
+  tenir: "hold", // holding
+  devoir: "work", // must/duty
+  passer: "walk", // passing by
+  mettre: "hand", // putting
+  reprendre: "take", // taking back
+  sentir: "feel", // feeling
+  attendre: "wait", // waiting
+  porter: "carry", // carrying
+  entendre: "listen", // hearing
+  suivre: "follow", // following
+  connaître: "friend", // knowing someone
+  comprendre: "know", // understanding
+  laisser: "leave", // leaving
+  revenir: "return", // coming back
+  sembler: "think", // seeming
+  appeler: "call", // calling
+  penser: "think", // thinking
+  arriver: "come", // arriving
+  perdre: "lose", // losing
+  vivre: "live", // living
+  mourir: "die", // dying
+  jeter: "throw", // throwing - needs specific image
+  tomber: "fall", // falling
+  tirer: "pull", // pulling - needs specific image
+  servir: "give", // serving
+  commencer: "beginning", // starting
+  crier: "speak", // shouting
+  lever: "hand", // raising
+  garder: "hold", // keeping
+  chercher: "search", // searching
+  répondre: "answer", // answering
+  toucher: "touch", // touching
+  aimer: "love", // loving
+  recevoir: "give", // receiving
+  permettre: "hand", // allowing
+  entrer: "enter", // entering
+  rester: "stay", // staying
+  falloir: "need", // necessary
+
+  // Adjectives - use visual examples
   grand: "big",
   petit: "small",
   nouveau: "new",
@@ -898,26 +969,187 @@ const imageKeywords: Record<string, string> = {
   beau: "beautiful",
   blanc: "white",
   noir: "black",
+  autre: "two", // other = multiple things
+  certain: "certain",
+  premier: "first",
+  dernier: "last",
+  long: "long",
+  seul: "alone",
+  naturel: "natural",
+  général: "general",
+  présent: "present",
+  propre: "own",
+  simple: "simple",
+  plein: "full",
+  français: "french",
+  haut: "high",
+  public: "public",
+  bas: "low",
+  possible: "possible",
+  vrai: "true",
+  ancien: "old",
+
+  // Numbers - show quantity
   deux: "two",
   trois: "three",
   quatre: "four",
   cinq: "five",
   dix: "ten",
+
+  // Abstract concepts - use symbolic representations
   travail: "work",
   idée: "idea",
   histoire: "story",
   question: "question",
   problème: "problem",
-  route: "road",
-  place: "place",
-  image: "image",
   forme: "form",
-  nature: "nature",
   amour: "love",
   bonheur: "happiness",
   force: "force",
   sens: "sense",
   raison: "reason",
+  vie: "life",
+  mort: "death",
+  voix: "voice",
+  guerre: "war",
+  dieu: "god",
+  famille: "family",
+  esprit: "spirit",
+  pensée: "thought",
+  mot: "word",
+  nom: "name",
+  cas: "case",
+  bout: "end",
+  part: "part",
+  point: "point",
+  état: "state",
+  fait: "truth",
+  compte: "account",
+  milieu: "middle",
+  côté: "side",
+  suite: "follow",
+  fond: "end",
+  effet: "effect",
+  genre: "kind",
+  ordre: "order",
+  face: "face",
+  action: "action",
+  politique: "politics",
+  rapport: "report",
+  besoin: "need",
+  société: "society",
+  figure: "figure",
+  affaire: "affair",
+  fin: "end",
+  manière: "way",
+  parole: "voice",
+  intérêt: "interest",
+  âme: "soul",
+  mal: "pain",
+  tour: "tour",
+  cause: "cause",
+  début: "beginning",
+  étude: "study",
+  droit: "right",
+  gouvernement: "government",
+  mouvement: "movement",
+  peine: "pain",
+  coup: "force",
+
+  // Function words - use abstract visuals or fallback
+  // Articles, pronouns, prepositions, conjunctions typically get fallback Picsum images
+  le: "the",
+  de: "point",
+  un: "one",
+  du: "bread",
+  au: "house",
+  il: "man",
+  je: "person",
+  son: "person",
+  que: "question",
+  se: "person",
+  qui: "person",
+  ce: "point",
+  dans: "house",
+  en: "house",
+  elle: "woman",
+  vous: "person",
+  par: "way",
+  sur: "hand",
+  me: "person",
+  on: "people",
+  mon: "person",
+  lui: "person",
+  nous: "people",
+  comme: "two",
+  mais: "hand",
+  avec: "people",
+  tout: "group",
+  y: "point",
+  sans: "alone",
+  tu: "person",
+  ou: "two",
+  leur: "people",
+  si: "question",
+  moi: "person",
+  notre: "people",
+  aussi: "two",
+  très: "force",
+  ces: "group",
+  celui: "person",
+  quelque: "thing",
+  rien: "alone",
+  tant: "group",
+  peu: "small",
+  même: "two",
+  toujours: "time",
+  alors: "time",
+  après: "time",
+  chez: "house",
+  encore: "time",
+  ne: "hand",
+  pas: "walk",
+  plus: "group",
+  bien: "good",
+  où: "place",
+  jamais: "time",
+  trop: "group",
+  "là-bas": "place",
+  voilà: "hand",
+  pourquoi: "question",
+  maintenant: "time",
+  surtout: "force",
+  ensemble: "people",
+  cependant: "hand",
+  tard: "night",
+  "aujourd'hui": "day",
+  ailleurs: "place",
+  presque: "group",
+  ainsi: "way",
+  moins: "small",
+  déjà: "time",
+  enfin: "end",
+  autour: "people",
+  loin: "road",
+  mieux: "good",
+  oui: "yes",
+  seulement: "one",
+  à: "point",
+  et: "group",
+  pour: "gift", // for = giving
+  depuis: "time",
+  contre: "force",
+  sous: "low",
+  vers: "road",
+  devant: "front",
+  avant: "beginning",
+  entre: "middle",
+  parce: "reason",
+  puisque: "reason",
+  quand: "time",
+  soit: "two",
+  chaque: "one",
+  ton: "person",
 };
 
 /**

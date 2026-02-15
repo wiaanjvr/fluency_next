@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import {
@@ -69,10 +70,14 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 bg-library-forest rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-library-gold">
-                <span className="text-foreground font-serif font-semibold text-lg">
-                  F
-                </span>
+              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105">
+                <Image
+                  src="/logo.png"
+                  alt="Fluency Next"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="text-lg font-medium">Fluency Next</span>
             </Link>
@@ -695,7 +700,7 @@ export default function Home() {
 
               <div className="mt-8 pt-8 border-t border-border">
                 <p className="text-sm text-muted-foreground font-light text-center max-w-2xl mx-auto">
-                  Lingua automatically schedules vocabulary reviews at
+                  Fluency Next automatically schedules vocabulary reviews at
                   scientifically optimal intervals — right before you'd forget.
                   This keeps words accessible while minimizing review time.
                 </p>
@@ -827,10 +832,14 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-library-forest rounded-lg flex items-center justify-center">
-                <span className="text-foreground font-serif font-semibold">
-                  F
-                </span>
+              <div className="w-8 h-8 rounded-lg overflow-hidden">
+                <Image
+                  src="/logo.png"
+                  alt="Fluency Next"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="font-light">Fluency Next</span>
             </div>

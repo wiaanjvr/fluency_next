@@ -32,7 +32,7 @@ export default function MicroStoriesSessionPage() {
     const loadVocabulary = async () => {
       try {
         // Get foundation progress
-        const progress = getFoundationProgress();
+        const progress = await getFoundationProgress();
         const wordCount = progress?.totalWordsLearned || 0;
 
         // Check unlock status

@@ -13,6 +13,9 @@ import {
   Star,
   Target,
   Brain,
+  RefreshCw,
+  Sparkles,
+  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,114 +36,69 @@ import { getVocabularyData } from "@/lib/languages/data-loader";
 import { FadeIn, CircularProgress } from "@/components/ui/animations";
 import { createClient } from "@/lib/supabase/client";
 import type { SupportedLanguage } from "@/lib/languages";
+import { getNextSessionWords, getUserWords } from "@/lib/srs/foundation-srs";
 
 export default function FoundationPage() {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
-  const [sessions, setSessions] = useState<FoundationWord[][]>([]);
-  const [completedSessions, setCompletedSessions] = useState<number[]>([]);
-  const [userWordCount, setUserWordCount] = useState(0);
-  const [alreadyKnowsFoundation, setAlreadyKnowsFoundation] = useState(false);
+  const [allWords, setAllWords] = useState<FoundationWord[]>([]);
+  const [nextSessionData, setNextSessionData] = useState<{
+    reviewCount: number;
+    newCount: number;
+    totalLearned: number;
+    allWordsLearned: boolean;
+  } | null>(null);
   const [targetLanguage, setTargetLanguage] = useState<SupportedLanguage>("fr");
+  const [wordsDueCount, setWordsDueCount] = useState(0);
 
-  // Load completed sessions from localStorage and check user's word count
+  // Load progress and next session
   useEffect(() => {
     async function loadProgress() {
-      // Check user's word count from database
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
-        if (user) {
-          // Get user's target language from profile
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("target_language")
-            .eq("id", user.id)
-            .single();
-
-          const language = (profile?.target_language ||
-            "fr") as SupportedLanguage;
-          setTargetLanguage(language);
-
-          // Generate vocabulary sessions for the user's language
-          const vocabularyData = getVocabularyData(language);
-          const words = generateFoundationVocabulary(vocabularyData.words);
-          const generatedSessions = createLearningSessions(words, 4);
-          setSessions(generatedSessions);
-
-          const { count } = await supabase
-            .from("user_words")
-            .select("*", { count: "exact", head: true })
-            .eq("user_id", user.id)
-            .eq("language", language);
-
-          const wordCount = count || 0;
-          setUserWordCount(wordCount);
-
-          // If user has 100+ words (A1 or above from placement test),
-          // they already know foundation vocabulary
-          if (wordCount >= 100) {
-            setAlreadyKnowsFoundation(true);
-            // Auto-complete all foundation sessions
-            const allSessionIndices = generatedSessions.map((_, i) => i);
-            const stored = localStorage.getItem("foundationProgress");
-            let existingProgress = { completedSessions: [] };
-
-            if (stored) {
-              try {
-                existingProgress = JSON.parse(stored);
-              } catch (e) {
-                // Ignore parse errors
-              }
-            }
-
-            // Merge and save
-            const mergedCompleted = Array.from(
-              new Set([
-                ...(existingProgress.completedSessions || []),
-                ...allSessionIndices,
-              ]),
-            );
-
-            localStorage.setItem(
-              "foundationProgress",
-              JSON.stringify({
-                ...existingProgress,
-                completedSessions: mergedCompleted,
-                totalWordsLearned: 100,
-                lastSessionDate: new Date().toISOString(),
-              }),
-            );
-
-            setCompletedSessions(mergedCompleted);
-          } else {
-            // Load from localStorage as normal
-            const stored = localStorage.getItem("foundationProgress");
-            if (stored) {
-              try {
-                const progress = JSON.parse(stored);
-                setCompletedSessions(progress.completedSessions || []);
-              } catch (e) {
-                // Ignore parse errors
-              }
-            }
-          }
+        if (!user) {
+          setLoading(false);
+          return;
         }
+
+        // Get user's target language from profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("target_language")
+          .eq("id", user.id)
+          .single();
+
+        const language = (profile?.target_language ||
+          "fr") as SupportedLanguage;
+        setTargetLanguage(language);
+
+        // Generate vocabulary for the user's language
+        const vocabularyData = getVocabularyData(language);
+        const words = generateFoundationVocabulary(vocabularyData.words);
+        setAllWords(words);
+
+        // Get next session data
+        const sessionData = await getNextSessionWords(words, language, 4);
+        setNextSessionData({
+          reviewCount: sessionData.reviewCount,
+          newCount: sessionData.newCount,
+          totalLearned: sessionData.totalLearned,
+          allWordsLearned: sessionData.allWordsLearned,
+        });
+
+        // Count words due for review
+        const userWords = await getUserWords(language);
+        const now = new Date();
+        const dueCount = userWords.filter(
+          (w) => new Date(w.next_review) <= now,
+        ).length;
+        setWordsDueCount(dueCount);
       } catch (error) {
         console.error("Error loading foundation progress:", error);
-        // Fallback to localStorage only
-        const stored = localStorage.getItem("foundationProgress");
-        if (stored) {
-          try {
-            const progress = JSON.parse(stored);
-            setCompletedSessions(progress.completedSessions || []);
-          } catch (e) {
-            // Ignore parse errors
-          }
-        }
       }
 
       setLoading(false);
@@ -150,11 +108,8 @@ export default function FoundationPage() {
   }, [supabase]);
 
   // Calculate progress
-  const totalWords = sessions.reduce((sum, s) => sum + s.length, 0);
-  const learnedWords = completedSessions.reduce(
-    (sum, idx) => sum + (sessions[idx]?.length || 0),
-    0,
-  );
+  const totalWords = allWords.length; // 100 words
+  const learnedWords = nextSessionData?.totalLearned || 0;
   const progressPercentage =
     totalWords > 0 ? Math.round((learnedWords / totalWords) * 100) : 0;
 
@@ -183,8 +138,8 @@ export default function FoundationPage() {
         </div>
       </div>
 
-      {/* Already Knows Foundation Banner */}
-      {alreadyKnowsFoundation && (
+      {/* Already Completed Banner */}
+      {nextSessionData?.allWordsLearned && (
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-b border-green-200 dark:border-green-900">
           <div className="max-w-4xl mx-auto px-4 py-6">
             <div className="flex items-start gap-4">
@@ -193,13 +148,12 @@ export default function FoundationPage() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-green-900 dark:text-green-100 mb-1">
-                  Foundation Already Mastered! 🎉
+                  Foundation Complete! 🎉
                 </h3>
                 <p className="text-sm text-green-700 dark:text-green-300 mb-3">
-                  Based on your placement test results (A1 or above), you
-                  already know these {totalWords} foundational words. All
-                  sessions have been automatically marked as complete. You can
-                  review them anytime or move on to more advanced content.
+                  You've learned all {totalWords} foundational words! Keep
+                  reviewing them to maintain your knowledge, or move on to more
+                  advanced content.
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -246,9 +200,9 @@ export default function FoundationPage() {
                   Master the First 100 Words
                 </h2>
                 <p className="text-muted-foreground mb-4">
-                  Build your foundation with the most frequent French words.
-                  Each session introduces 4 new words with images, audio, and
-                  practice exercises.
+                  Build your foundation with the most frequent words. Each
+                  session adapts to your learning using spaced repetition for
+                  optimal retention.
                 </p>
 
                 <div className="flex flex-wrap gap-4 justify-center md:justify-start">
@@ -256,13 +210,13 @@ export default function FoundationPage() {
                     <BookOpen className="w-5 h-5 text-primary" />
                     <span className="text-sm">
                       <strong>{learnedWords}</strong> / {totalWords} words
+                      learned
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-green-500" />
+                    <RefreshCw className="w-5 h-5 text-orange-500" />
                     <span className="text-sm">
-                      <strong>{completedSessions.length}</strong> /{" "}
-                      {sessions.length} sessions
+                      <strong>{wordsDueCount}</strong> due for review
                     </span>
                   </div>
                 </div>
@@ -272,103 +226,103 @@ export default function FoundationPage() {
         </div>
       </div>
 
-      {/* Sessions List */}
+      {/* Next Session Card */}
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-6">
-          <h3 className="text-xl font-semibold mb-2">Learning Sessions</h3>
+          <h3 className="text-xl font-semibold mb-2">Your Next Session</h3>
           <p className="text-muted-foreground">
-            Complete sessions in order. Each session builds on the previous one.
+            Sessions dynamically adapt based on spaced repetition. Review words
+            when they're due, or learn new ones when you're ready.
           </p>
         </div>
 
-        <div className="grid gap-4">
-          {sessions.map((session, index) => {
-            const isCompleted = completedSessions.includes(index);
-            const isLocked =
-              index > 0 &&
-              !completedSessions.includes(index - 1) &&
-              !isCompleted;
-            const isNext = !isLocked && !isCompleted;
-
-            // Get representative words for this session
-            const previewWords = session
-              .slice(0, 4)
-              .map((w) => w.word)
-              .join(", ");
-
-            return (
-              <FadeIn key={index} delay={index * 50}>
-                <Card
-                  className={cn(
-                    "transition-all",
-                    isLocked && "opacity-60",
-                    isNext && "ring-2 ring-primary ring-offset-2",
-                    isCompleted && "bg-green-50/50 dark:bg-green-950/20",
+        <FadeIn>
+          <Card
+            className={cn(
+              "transition-all ring-2 ring-primary ring-offset-2",
+              nextSessionData?.allWordsLearned &&
+                "bg-green-50/50 dark:bg-green-950/20",
+            )}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  {nextSessionData?.allWordsLearned ? (
+                    <Trophy className="w-8 h-8 text-green-600" />
+                  ) : nextSessionData?.reviewCount ? (
+                    <RefreshCw className="w-7 h-7 text-primary" />
+                  ) : (
+                    <Sparkles className="w-7 h-7 text-primary" />
                   )}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      {/* Status Icon */}
-                      <div
-                        className={cn(
-                          "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
-                          isCompleted && "bg-green-100 dark:bg-green-900",
-                          isLocked && "bg-muted",
-                          isNext && "bg-primary/10",
-                        )}
-                      >
-                        {isCompleted ? (
-                          <Check className="w-6 h-6 text-green-600" />
-                        ) : isLocked ? (
-                          <Lock className="w-5 h-5 text-muted-foreground" />
-                        ) : (
-                          <span className="text-lg font-bold text-primary">
-                            {index + 1}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  {nextSessionData?.allWordsLearned ? (
+                    <>
+                      <h4 className="font-semibold text-lg mb-1">
+                        All Words Learned!
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {wordsDueCount > 0
+                          ? `You have ${wordsDueCount} words ready for review to keep your knowledge fresh.`
+                          : "No reviews needed right now. Great work!"}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="font-semibold text-lg mb-1">
+                        {nextSessionData?.reviewCount
+                          ? "Review Session"
+                          : "New Words Session"}
+                      </h4>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {nextSessionData?.reviewCount
+                          ? `${nextSessionData.reviewCount} word${nextSessionData.reviewCount > 1 ? "s" : ""} ready for review`
+                          : `Learn ${nextSessionData?.newCount || 4} new word${nextSessionData?.newCount !== 1 ? "s" : ""}`}
+                        {nextSessionData?.reviewCount &&
+                        nextSessionData?.newCount
+                          ? ` + ${nextSessionData.newCount} new word${nextSessionData.newCount > 1 ? "s" : ""}`
+                          : ""}
+                      </p>
+                      <div className="flex gap-2">
+                        {nextSessionData?.reviewCount ? (
+                          <span className="px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-xs rounded-full flex items-center gap-1">
+                            <RefreshCw className="w-3 h-3" />
+                            Review Priority
                           </span>
-                        )}
+                        ) : null}
+                        {nextSessionData?.newCount ? (
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs rounded-full flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" />
+                            New Content
+                          </span>
+                        ) : null}
                       </div>
+                    </>
+                  )}
+                </div>
 
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold">Session {index + 1}</h4>
-                          {isCompleted && (
-                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
-                              Completed
-                            </span>
-                          )}
-                          {isNext && (
-                            <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs rounded-full animate-pulse">
-                              Next
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {session.length} words: {previewWords}...
-                        </p>
-                      </div>
-
-                      {/* Action */}
-                      <Button
-                        variant={
-                          isCompleted ? "outline" : isNext ? "default" : "ghost"
-                        }
-                        size="sm"
-                        disabled={isLocked}
-                        onClick={() =>
-                          router.push(`/learn/foundation/session/${index}`)
-                        }
-                      >
-                        {isCompleted ? "Review" : isNext ? "Start" : "Locked"}
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </FadeIn>
-            );
-          })}
-        </div>
+                {/* Action */}
+                <Button
+                  variant="default"
+                  size="lg"
+                  onClick={() => router.push("/learn/foundation/session/next")}
+                  className="shrink-0"
+                  disabled={
+                    nextSessionData?.allWordsLearned && wordsDueCount === 0
+                  }
+                >
+                  {nextSessionData?.allWordsLearned && wordsDueCount > 0
+                    ? "Review"
+                    : "Start Session"}
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </FadeIn>
       </div>
 
       {/* Learning Tips */}
@@ -378,37 +332,38 @@ export default function FoundationPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Brain className="w-5 h-5 text-primary" />
-                Learning Tips
+                How Spaced Repetition Works
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex gap-3">
                 <Star className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium">Multi-modal learning</p>
+                  <p className="font-medium">Adaptive learning</p>
                   <p className="text-sm text-muted-foreground">
-                    Each word is presented with images, audio, and sentences to
-                    help it stick.
+                    Words you struggle with appear more frequently, while words
+                    you know well have longer intervals between reviews.
                   </p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Star className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium">Spaced repetition</p>
+                  <p className="font-medium">Optimal timing</p>
                   <p className="text-sm text-muted-foreground">
-                    Words you learn will be reviewed at optimal intervals for
-                    long-term retention.
+                    Each session prioritizes words that are due for review,
+                    ensuring you practice at the perfect moment for long-term
+                    retention.
                   </p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Star className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium">Active practice</p>
+                  <p className="font-medium">Steady progress</p>
                   <p className="text-sm text-muted-foreground">
-                    Different exercise types keep you engaged and test various
-                    aspects of word knowledge.
+                    New words are introduced when you're ready, balancing review
+                    and learning to maximize efficiency.
                   </p>
                 </div>
               </div>

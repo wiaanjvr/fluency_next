@@ -41,6 +41,17 @@ import {
   Sparkles,
   CheckCircle2,
   Globe,
+  Target,
+  Brain,
+  Volume2,
+  MessageSquare,
+  GraduationCap,
+  Image,
+  Layers,
+  Zap,
+  Star,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import {
   SupportedLanguage,
@@ -56,6 +67,7 @@ type OnboardingStep =
   | "reading-test"
   | "results"
   | "interests"
+  | "roadmap"
   | "complete";
 
 export default function OnboardingPage() {
@@ -136,7 +148,7 @@ export default function OnboardingPage() {
     }
   }, []); // Empty dependency array - only run once on mount
 
-  const totalSteps = 6;
+  const totalSteps = 7;
   const currentStepNumber = {
     "language-select": 1,
     welcome: 2,
@@ -144,7 +156,8 @@ export default function OnboardingPage() {
     "reading-test": 4,
     results: 5,
     interests: 6,
-    complete: 6,
+    roadmap: 7,
+    complete: 7,
   }[step];
 
   // Handle audio test answer
@@ -339,7 +352,7 @@ export default function OnboardingPage() {
       <div className="container mx-auto max-w-3xl">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Welcome to Lingua</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome to Fluency Next</h1>
           <p className="text-muted-foreground">
             {step === "language-select" && "Choose your target language"}
             {step === "welcome" &&
@@ -348,6 +361,7 @@ export default function OnboardingPage() {
             {step === "reading-test" && "Read and answer"}
             {step === "results" && "Your assessment is complete!"}
             {step === "interests" && "Almost there!"}
+            {step === "roadmap" && "Your personalized learning journey"}
           </p>
         </div>
 
@@ -634,29 +648,297 @@ export default function OnboardingPage() {
               {error && (
                 <p className="text-sm text-red-500 text-center">{error}</p>
               )}
-              <div className="flex gap-3 mt-6">
+              <div className="mt-6">
                 <Button
-                  variant="outline"
-                  onClick={() => setStep("results")}
+                  onClick={() => {
+                    if (selectedInterests.length < 3) {
+                      setError(
+                        "Please select at least 3 interests to continue.",
+                      );
+                      return;
+                    }
+                    setError(null);
+                    setStep("roadmap");
+                  }}
+                  disabled={selectedInterests.length < 3}
                   className="w-full"
-                  disabled={saving}
+                  size="lg"
                 >
-                  Back
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Continue to Roadmap
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 6: Learning Roadmap */}
+        {step === "roadmap" && testResults && (
+          <Card className="overflow-hidden">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-2xl flex items-center justify-center gap-2">
+                <Target className="h-6 w-6" />
+                Your Path to B2 Fluency
+              </CardTitle>
+              <CardDescription className="text-base">
+                Based on your{" "}
+                <span
+                  className={cn(
+                    "font-semibold",
+                    getLevelColor(testResults.determinedLevel),
+                  )}
+                >
+                  {testResults.determinedLevel}
+                </span>{" "}
+                level, here's your learning journey
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {/* Starting Point Banner */}
+              <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-l-4 border-primary">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Trophy className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">
+                      Starting at {testResults.determinedLevel}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {testResults.determinedLevel === "A0" &&
+                        "You'll begin with the fundamentals"}
+                      {testResults.determinedLevel === "A1" &&
+                        "Building on your basic foundation"}
+                      {testResults.determinedLevel === "A2" &&
+                        "Expanding your solid foundation"}
+                      {testResults.determinedLevel === "B1" &&
+                        "You're already halfway to B2!"}
+                      {testResults.determinedLevel === "B2" &&
+                        "Perfect! Focus on mastery"}
+                      {(testResults.determinedLevel === "C1" ||
+                        testResults.determinedLevel === "C2") &&
+                        "Advanced learning awaits"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Roadmap with Nodes */}
+              <div className="relative py-6">
+                {/* Mobile/Tablet optimized vertical path */}
+                <div className="flex flex-col items-center space-y-0">
+                  {/* Node 1: Foundation Vocabulary */}
+                  <div className="flex flex-col items-center w-full">
+                    <div className="relative z-10 group">
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-library-forest to-library-forest-dark flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer border-4 border-background">
+                        <div className="text-center">
+                          <Image className="h-8 w-8 text-library-parchment mx-auto" />
+                          <div className="text-xs text-library-parchment font-bold mt-1">
+                            START
+                          </div>
+                        </div>
+                      </div>
+                      {/* Unlock indicator */}
+                      <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-background border-2 border-primary flex items-center justify-center">
+                        <Unlock className="h-4 w-4 text-primary" />
+                      </div>
+                    </div>
+                    {/* Info Card */}
+                    <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-library-forest/30 max-w-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-semibold text-foreground">
+                          Foundation Vocabulary
+                        </h4>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-library-forest/20 text-library-forest-light border border-library-forest/30">
+                          0-300 words
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Learn essential words with images and audio. Build your
+                        core vocabulary foundation.
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
+                          <Volume2 className="h-3 w-3" />
+                          Audio
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
+                          <Image className="h-3 w-3" />
+                          Images
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
+                          <Brain className="h-3 w-3" />
+                          SRS
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Connecting Line */}
+                  <div className="w-1 h-12 bg-gradient-to-b from-library-forest to-library-brass" />
+
+                  {/* Node 2: Sentence Practice */}
+                  <div className="flex flex-col items-center w-full">
+                    <div className="relative z-10 group">
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-library-brass to-library-brass/80 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer border-4 border-background">
+                        <MessageSquare className="h-10 w-10 text-background" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-background border-2 border-library-brass flex items-center justify-center">
+                        <Star className="h-4 w-4 text-library-brass fill-library-brass" />
+                      </div>
+                    </div>
+                    <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-library-brass/30 max-w-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-semibold text-foreground">
+                          Sentence Practice
+                        </h4>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-library-brass/20 text-library-brass-light border border-library-brass/30">
+                          100-300 words
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Build sentences with your vocabulary. Learn natural
+                        patterns and structures.
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
+                          <MessageSquare className="h-3 w-3" />
+                          Sentences
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
+                          <Zap className="h-3 w-3" />
+                          Patterns
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Connecting Line */}
+                  <div className="w-1 h-12 bg-gradient-to-b from-library-brass to-accent" />
+
+                  {/* Node 3: Micro Stories */}
+                  <div className="flex flex-col items-center w-full">
+                    <div className="relative z-10 group">
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer border-4 border-background">
+                        <BookOpen className="h-10 w-10 text-accent-foreground" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-background border-2 border-accent flex items-center justify-center">
+                        <Star className="h-4 w-4 text-accent fill-accent" />
+                      </div>
+                    </div>
+                    <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-accent/30 max-w-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-semibold text-foreground">
+                          Micro Stories
+                        </h4>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent border border-accent/30">
+                          300-500 words
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Short stories with 95%+ known words. Learn through
+                        engaging context.
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
+                          <BookOpen className="h-3 w-3" />
+                          Stories
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
+                          <Headphones className="h-3 w-3" />
+                          Listen
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Connecting Line */}
+                  <div className="w-1 h-12 bg-gradient-to-b from-accent to-primary" />
+
+                  {/* Node 4: Full Acquisition */}
+                  <div className="flex flex-col items-center w-full">
+                    <div className="relative z-10 group">
+                      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary via-library-gold to-library-brass flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 cursor-pointer border-4 border-background ring-4 ring-primary/20">
+                        <div className="text-center">
+                          <GraduationCap className="h-10 w-10 text-background mx-auto" />
+                          <div className="text-xs text-background font-bold mt-1">
+                            B2 GOAL
+                          </div>
+                        </div>
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-background border-2 border-primary flex items-center justify-center">
+                        <Trophy className="h-5 w-5 text-primary" />
+                      </div>
+                      {/* Sparkles effect */}
+                      <Sparkles className="absolute -top-2 -left-2 h-6 w-6 text-primary animate-pulse" />
+                      <Sparkles className="absolute -bottom-2 -right-2 h-6 w-6 text-library-gold animate-pulse" />
+                    </div>
+                    <div className="mt-4 p-4 rounded-xl bg-muted/50 border-2 border-primary/40 max-w-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-semibold text-foreground">
+                          Full Acquisition Mode
+                        </h4>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                          500+ words → B2
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Complete immersion with full stories tailored to your
+                        interests. Natural language acquisition.
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
+                          <Volume2 className="h-3 w-3" />
+                          Listen
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
+                          <MessageSquare className="h-3 w-3" />
+                          Speak
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
+                          <BookOpen className="h-3 w-3" />
+                          Read
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Info Card */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-primary/30">
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Brain className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-semibold">Smart Progress System</p>
+                    <p className="text-sm text-muted-foreground">
+                      Your path adapts to you! Our SRS system unlocks new phases
+                      as you master vocabulary. Progress at your own pace with
+                      content that matches your level.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <div className="pt-2">
                 <Button
                   onClick={handleComplete}
-                  disabled={selectedInterests.length < 3 || saving}
+                  disabled={saving}
                   className="w-full"
+                  size="lg"
                 >
                   {saving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
+                      Setting up...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Complete Setup
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Start Your Journey!
                     </>
                   )}
                 </Button>

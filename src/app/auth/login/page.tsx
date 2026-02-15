@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { login, signInWithOAuth } from "../actions";
@@ -45,12 +46,18 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center">
-              <span className="text-foreground font-serif font-bold text-xl">
-                L
-              </span>
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-background">
+              <Image
+                src="/logo.png"
+                alt="Fluency Next"
+                width={40}
+                height={40}
+                className="w-full h-full object-contain"
+              />
             </div>
-            <span className="text-2xl font-light tracking-tight">Lingua</span>
+            <span className="text-2xl font-light tracking-tight">
+              Fluency Next
+            </span>
           </Link>
         </div>
 
@@ -61,14 +68,14 @@ export default function LoginPage() {
             <span className="font-serif italic">your journey</span>
           </h1>
           <p className="text-lg font-light text-background/80 max-w-md">
-            Continue mastering any language through the natural art of listening
-            and comprehension.
+            Continue building fluency through consistent practice and
+            comprehensible input.
           </p>
         </div>
 
         <div className="relative z-10">
           <p className="text-sm font-light text-background/60">
-            © 2026 Lingua. Premium language education.
+            © 2026 Fluency Next. Discipline now. Fluency next.
           </p>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import {
@@ -107,12 +108,16 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 bg-library-forest rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-library-gold">
-                <span className="text-foreground font-serif font-semibold text-lg">
-                  L
-                </span>
+              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105">
+                <Image
+                  src="/logo.png"
+                  alt="Fluency Next"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <span className="text-lg font-medium">Lingua</span>
+              <span className="text-lg font-medium">Fluency Next</span>
             </Link>
 
             <div className="flex items-center gap-6">
@@ -406,8 +411,8 @@ export default function PricingPage() {
 
           <ScrollReveal delay={100}>
             <p className="text-lg text-muted-foreground font-light mb-10 max-w-xl mx-auto">
-              Join thousands of learners who've transformed their language
-              skills with Lingua.
+              Join learners committed to building fluency through discipline and
+              consistent practice.
             </p>
           </ScrollReveal>
 
@@ -435,13 +440,18 @@ export default function PricingPage() {
       <footer className="py-12 px-6 border-t border-border/30">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-library-forest rounded-lg flex items-center justify-center">
-              <span className="text-foreground font-serif font-semibold">
-                L
-              </span>
+            <div className="w-8 h-8 rounded-lg overflow-hidden">
+              <Image
+                src="/logo.png"
+                alt="Fluency Next"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-sm font-light text-muted-foreground">
-              &copy; {new Date().getFullYear()} Lingua. All rights reserved.
+              &copy; {new Date().getFullYear()} Fluency Next. All rights
+              reserved.
             </span>
           </div>
           <div className="flex items-center gap-6 text-sm font-light text-muted-foreground">

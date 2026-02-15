@@ -311,6 +311,20 @@ const PEXELS_IMAGES: Record<string, string> = {
   thought:
     "https://images.pexels.com/photos/3808063/pexels-photo-3808063.jpeg?auto=compress&cs=tinysrgb&w=400",
 
+  throw:
+    "https://images.pexels.com/photos/3856433/pexels-photo-3856433.jpeg?auto=compress&cs=tinysrgb&w=400",
+  pull: "https://images.pexels.com/photos/4498362/pexels-photo-4498362.jpeg?auto=compress&cs=tinysrgb&w=400",
+  receive:
+    "https://images.pexels.com/photos/5691625/pexels-photo-5691625.jpeg?auto=compress&cs=tinysrgb&w=400",
+  understand:
+    "https://images.pexels.com/photos/3861958/pexels-photo-3861958.jpeg?auto=compress&cs=tinysrgb&w=400",
+  believe:
+    "https://images.pexels.com/photos/3808063/pexels-photo-3808063.jpeg?auto=compress&cs=tinysrgb&w=400",
+  allow:
+    "https://images.pexels.com/photos/6256105/pexels-photo-6256105.jpeg?auto=compress&cs=tinysrgb&w=400",
+  serve:
+    "https://images.pexels.com/photos/4253312/pexels-photo-4253312.jpeg?auto=compress&cs=tinysrgb&w=400",
+
   // Responses
   yes: "https://images.pexels.com/photos/3184416/pexels-photo-3184416.jpeg?auto=compress&cs=tinysrgb&w=400",
   no: "https://images.pexels.com/photos/6478886/pexels-photo-6478886.jpeg?auto=compress&cs=tinysrgb&w=400",

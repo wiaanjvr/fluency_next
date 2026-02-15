@@ -17,15 +17,21 @@ const crimsonPro = Crimson_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "Lingua — Master French Through Immersive Listening",
+  title: "Fluency Next — Discipline Now. Fluency Next.",
   description:
-    "An intellectual journey through French language mastery. Premium listening-first education crafted for the discerning learner.",
+    "Build fluency through consistent practice and comprehensible input. Master any language with discipline, not shortcuts.",
   keywords: [
-    "French learning",
+    "language learning",
+    "fluency",
     "language acquisition",
-    "immersive learning",
-    "premium education",
+    "comprehensible input",
+    "spaced repetition",
   ],
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

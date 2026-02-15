@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Volume2, ChevronRight, Loader2 } from "lucide-react";
+import { Volume2, ChevronRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -49,6 +49,7 @@ export function WordIntroduction({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayedAudio, setHasPlayedAudio] = useState(false);
+  const [showEnglish, setShowEnglish] = useState(false);
 
   const imageResult = getImageForWord(word.imageKeyword);
   const langConfig = getLanguageConfig(language);
@@ -189,9 +190,21 @@ export function WordIntroduction({
       {/* Translation Section */}
       <FadeIn delay={200}>
         <div className="text-center">
-          <p className="text-2xl md:text-3xl font-medium text-foreground">
-            {word.translation}
-          </p>
+          {showEnglish ? (
+            <p className="text-2xl md:text-3xl font-medium text-foreground">
+              {word.translation}
+            </p>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEnglish(true)}
+              className="gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              Show Translation
+            </Button>
+          )}
         </div>
       </FadeIn>
 
@@ -201,9 +214,23 @@ export function WordIntroduction({
           <p className="text-lg md:text-xl font-medium text-center mb-2">
             &ldquo;{getExampleSentenceText(word.exampleSentence)}&rdquo;
           </p>
-          <p className="text-muted-foreground text-center">
-            {word.exampleSentence.english}
-          </p>
+          {showEnglish ? (
+            <p className="text-muted-foreground text-center">
+              {word.exampleSentence.english}
+            </p>
+          ) : (
+            <div className="flex justify-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowEnglish(true)}
+                className="gap-2 text-xs"
+              >
+                <Eye className="w-3 h-3" />
+                Show English
+              </Button>
+            </div>
+          )}
         </Card>
       </FadeIn>
 

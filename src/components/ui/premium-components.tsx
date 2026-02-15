@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface PremiumNavProps {
@@ -16,12 +17,16 @@ export function PremiumNav({ showLogo = true, rightContent }: PremiumNavProps) {
         <div className="flex items-center justify-between h-16">
           {showLogo && (
             <Link href="/dashboard" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 bg-library-brass rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-                <span className="text-background font-serif font-semibold text-lg">
-                  L
-                </span>
+              <div className="w-9 h-9 rounded-lg overflow-hidden transition-transform duration-300 group-hover:scale-105">
+                <Image
+                  src="/logo.png"
+                  alt="Fluency Next"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <span className="text-lg font-light">Lingua</span>
+              <span className="text-lg font-light">Fluency Next</span>
             </Link>
           )}
           {rightContent}

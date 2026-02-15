@@ -46,18 +46,22 @@ export default function MicroStoriesPage() {
 
   // Load progress on mount
   useEffect(() => {
-    const progress = getFoundationProgress();
-    if (progress) {
-      setFoundationProgress({
-        totalWordsLearned: progress.totalWordsLearned,
-        completedSessions: progress.completedSessions,
-      });
+    async function loadProgress() {
+      const progress = await getFoundationProgress();
+      if (progress) {
+        setFoundationProgress({
+          totalWordsLearned: progress.totalWordsLearned,
+          completedSessions: progress.completedSessions,
+        });
+      }
+
+      const storyProgress = getMicroStoryProgress();
+      setMicroStoryProgress(storyProgress);
+
+      setLoading(false);
     }
 
-    const storyProgress = getMicroStoryProgress();
-    setMicroStoryProgress(storyProgress);
-
-    setLoading(false);
+    loadProgress();
   }, []);
 
   // Check if user has unlocked micro-stories (300+ words)

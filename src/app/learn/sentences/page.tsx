@@ -40,25 +40,29 @@ export default function SentenceLearningPage() {
 
   // Load progress on mount
   useEffect(() => {
-    const progress = getFoundationProgress();
-    if (progress) {
-      setFoundationProgress({
-        totalWordsLearned: progress.totalWordsLearned,
-        completedSessions: progress.completedSessions,
-      });
-    }
-
-    // Load sentence progress from localStorage
-    try {
-      const saved = localStorage.getItem("sentence-transition-progress");
-      if (saved) {
-        setSentenceProgress(JSON.parse(saved));
+    async function loadProgress() {
+      const progress = await getFoundationProgress();
+      if (progress) {
+        setFoundationProgress({
+          totalWordsLearned: progress.totalWordsLearned,
+          completedSessions: progress.completedSessions,
+        });
       }
-    } catch (e) {
-      console.error("Failed to load sentence progress:", e);
+
+      // Load sentence progress from localStorage
+      try {
+        const saved = localStorage.getItem("sentence-transition-progress");
+        if (saved) {
+          setSentenceProgress(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error("Failed to load sentence progress:", e);
+      }
+
+      setLoading(false);
     }
 
-    setLoading(false);
+    loadProgress();
   }, []);
 
   // Check if user has unlocked sentence learning (100+ words)
