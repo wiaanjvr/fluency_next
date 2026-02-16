@@ -5,7 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LeftSidebar, RightSidebar } from "@/components/dashboard";
+import {
+  LeftSidebar,
+  RightSidebar,
+  VocabularyViewer,
+} from "@/components/dashboard";
 import { MilestoneCelebration } from "@/components/progression";
 import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import { UsageLimitBanner } from "@/components/ui/UsageLimitBanner";
@@ -68,6 +72,7 @@ export default function DashboardPage() {
     useState<ProgressMilestone | null>(null);
   const [previousWordCount, setPreviousWordCount] = useState<number>(0);
   const [dbError, setDbError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string>("");
 
   useEffect(() => {
     const fetchUserStats = async () => {
@@ -79,6 +84,8 @@ export default function DashboardPage() {
           router.replace("/auth/login");
           return;
         }
+
+        setUserId(user.id);
 
         const justCompletedOnboarding =
           typeof window !== "undefined" &&
@@ -422,6 +429,13 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">Mastered Words</p>
             </div>
           </div>
+
+          {/* Vocabulary Viewer */}
+          {userId && stats.wordsEncountered > 0 && (
+            <div className="mb-8">
+              <VocabularyViewer userId={userId} language={targetLanguage} />
+            </div>
+          )}
 
           {/* Premium CTA */}
           {stats.totalSessions >= 3 && (

@@ -121,12 +121,13 @@ export function AudioListeningTest({
                 variant={isPlaying ? "secondary" : "default"}
                 onClick={handlePlay}
                 disabled={playCount >= maxPlays && !isPlaying}
-                className="rounded-full h-16 w-16"
+                className="rounded-full h-16 w-16 p-0"
+                aria-label={isPlaying ? "Pause audio" : "Play audio"}
               >
                 {isPlaying ? (
-                  <Pause className="h-6 w-6" />
+                  <Pause className="h-8 w-8" strokeWidth={2.5} />
                 ) : (
-                  <Play className="h-6 w-6 ml-1" />
+                  <Play className="h-8 w-8 ml-0.5" strokeWidth={2.5} />
                 )}
               </Button>
 
