@@ -279,7 +279,7 @@ export function ConversationFeedbackPhase({
     <div className="space-y-6">
       {/* Phase Header */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ocean-turquoise/10 text-ocean-turquoise">
           <MessageCircle className="h-4 w-4" />
           <span className="text-sm font-medium">
             Phase 3: Teacher Conversation
@@ -287,7 +287,7 @@ export function ConversationFeedbackPhase({
         </div>
         <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
           Let's{" "}
-          <span className="font-serif italic text-library-brass">Discuss</span>{" "}
+          <span className="font-serif italic text-ocean-turquoise">Discuss</span>{" "}
           What You Heard
         </h1>
         <p className="text-muted-foreground font-light max-w-md mx-auto">
@@ -310,9 +310,9 @@ export function ConversationFeedbackPhase({
               className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all",
                 userTurnCount >= turn
-                  ? "bg-library-brass text-background"
+                  ? "bg-ocean-turquoise text-background"
                   : userTurnCount === turn - 1
-                    ? "bg-library-brass/20 text-library-brass ring-2 ring-library-brass ring-offset-2"
+                    ? "bg-ocean-turquoise/20 text-ocean-turquoise ring-2 ring-ocean-turquoise ring-offset-2"
                     : "bg-card border border-border text-muted-foreground",
               )}
             >
@@ -326,7 +326,7 @@ export function ConversationFeedbackPhase({
               <div
                 className={cn(
                   "w-8 h-0.5",
-                  userTurnCount >= turn ? "bg-library-brass" : "bg-border",
+                  userTurnCount >= turn ? "bg-ocean-turquoise" : "bg-border",
                 )}
               />
             )}
@@ -342,8 +342,8 @@ export function ConversationFeedbackPhase({
       {/* Chat Area */}
       <div className="bg-card border border-border rounded-2xl min-h-[300px] sm:min-h-[400px] max-h-[55vh] sm:max-h-[450px] flex flex-col">
         <div className="p-6 border-b border-border shrink-0 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
-            <Bot className="h-5 w-5 text-library-brass" />
+          <div className="w-10 h-10 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center">
+            <Bot className="h-5 w-5 text-ocean-turquoise" />
           </div>
           <span className="font-light">Your French Teacher</span>
         </div>
@@ -357,8 +357,8 @@ export function ConversationFeedbackPhase({
               )}
             >
               {turn.role === "assistant" && (
-                <div className="w-8 h-8 rounded-xl bg-library-brass/10 flex items-center justify-center shrink-0">
-                  <Bot className="h-4 w-4 text-library-brass" />
+                <div className="w-8 h-8 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center shrink-0">
+                  <Bot className="h-4 w-4 text-ocean-turquoise" />
                 </div>
               )}
 
@@ -366,11 +366,11 @@ export function ConversationFeedbackPhase({
                 className={cn(
                   "max-w-[80%] rounded-2xl px-4 py-3",
                   turn.role === "user"
-                    ? "bg-library-brass text-background"
+                    ? "bg-ocean-turquoise text-background"
                     : "bg-background border border-border",
                   turn.questionType === "scenario" &&
                     turn.role === "assistant" &&
-                    "border-l-4 border-library-brass",
+                    "border-l-4 border-ocean-turquoise",
                   turn.questionType === "wrap-up" &&
                     turn.role === "assistant" &&
                     "border-l-4 border-green-400 bg-green-50 dark:bg-green-950/30",
@@ -386,7 +386,7 @@ export function ConversationFeedbackPhase({
               </div>
 
               {turn.role === "user" && (
-                <div className="w-8 h-8 rounded-xl bg-library-brass flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-ocean-turquoise flex items-center justify-center shrink-0">
                   <User className="h-4 w-4 text-background" />
                 </div>
               )}
@@ -477,7 +477,7 @@ export function ConversationFeedbackPhase({
                 "h-14 w-14 rounded-full shrink-0 flex items-center justify-center transition-colors",
                 isRecording
                   ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
-                  : "bg-library-brass hover:bg-library-brass/90 text-background",
+                  : "bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background",
                 isProcessing && "opacity-50 cursor-not-allowed",
               )}
               disabled={isProcessing}
@@ -532,7 +532,7 @@ export function ConversationFeedbackPhase({
         className={cn(
           "w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors",
           conversationComplete
-            ? "bg-library-brass hover:bg-library-brass/90 text-background"
+            ? "bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background"
             : "bg-card border border-border text-muted-foreground cursor-not-allowed",
         )}
       >

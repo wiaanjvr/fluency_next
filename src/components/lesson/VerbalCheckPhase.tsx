@@ -174,7 +174,7 @@ export function VerbalCheckPhase({
     <div className="space-y-6">
       {/* Phase Header */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ocean-turquoise/10 text-ocean-turquoise">
           <MessageCircle className="h-4 w-4" />
           <span className="text-sm font-medium">
             Phase 2: Comprehension Check
@@ -182,7 +182,7 @@ export function VerbalCheckPhase({
         </div>
         <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
           What did you{" "}
-          <span className="font-serif italic text-library-brass">
+          <span className="font-serif italic text-ocean-turquoise">
             understand
           </span>
           ?
@@ -196,8 +196,8 @@ export function VerbalCheckPhase({
       {/* Question Prompt */}
       <div className="bg-card border border-border rounded-2xl p-6">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center shrink-0">
-            <Lightbulb className="h-5 w-5 text-library-brass" />
+          <div className="w-10 h-10 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center shrink-0">
+            <Lightbulb className="h-5 w-5 text-ocean-turquoise" />
           </div>
           <div className="space-y-2">
             <p className="text-lg font-medium">
@@ -222,7 +222,7 @@ export function VerbalCheckPhase({
             {!isRecording && !audioBlob && (
               <button
                 onClick={startRecording}
-                className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-library-brass hover:bg-library-brass/90 text-background flex items-center justify-center transition-colors"
+                className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background flex items-center justify-center transition-colors"
               >
                 <Mic className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
@@ -278,7 +278,7 @@ export function VerbalCheckPhase({
               {/* Transcript */}
               {isTranscribing ? (
                 <div className="flex items-center justify-center gap-2 py-4">
-                  <Loader2 className="h-4 w-4 animate-spin text-library-brass" />
+                  <Loader2 className="h-4 w-4 animate-spin text-ocean-turquoise" />
                   <span className="text-sm text-muted-foreground font-light">
                     Analyzing your response...
                   </span>
@@ -323,13 +323,13 @@ export function VerbalCheckPhase({
               {feedback &&
                 feedback.isValid &&
                 feedback.englishWords.length > 0 && (
-                  <div className="bg-card border border-library-brass/50 rounded-2xl p-6">
+                  <div className="bg-card border border-ocean-turquoise/50 rounded-2xl p-6">
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
-                          <BookOpen className="h-5 w-5 text-library-brass" />
+                        <div className="w-10 h-10 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center">
+                          <BookOpen className="h-5 w-5 text-ocean-turquoise" />
                         </div>
-                        <p className="font-medium text-library-brass">
+                        <p className="font-medium text-ocean-turquoise">
                           {feedback.message ||
                             "Great effort! Here are some French words to help you:"}
                         </p>
@@ -346,7 +346,7 @@ export function VerbalCheckPhase({
                             <span className="text-sm text-muted-foreground">
                               →
                             </span>
-                            <span className="text-sm font-medium text-library-brass">
+                            <span className="text-sm font-medium text-ocean-turquoise">
                               {word.translation}
                             </span>
                           </div>
@@ -363,7 +363,7 @@ export function VerbalCheckPhase({
               <div className="flex gap-4">
                 <button
                   onClick={deleteRecording}
-                  className="flex-1 bg-transparent border-2 border-border hover:bg-card hover:border-library-brass/50 text-foreground font-light rounded-2xl py-5 px-6 flex items-center justify-center gap-3 transition-all btn-bounce disabled:opacity-50 min-h-touch"
+                  className="flex-1 bg-transparent border-2 border-border hover:bg-card hover:border-ocean-turquoise/50 text-foreground font-light rounded-2xl py-5 px-6 flex items-center justify-center gap-3 transition-all btn-bounce disabled:opacity-50 min-h-touch"
                   disabled={hasSubmitted}
                 >
                   <Trash2 className="h-5 w-5" />
@@ -371,7 +371,7 @@ export function VerbalCheckPhase({
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="flex-1 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-2xl py-5 px-6 flex items-center justify-center gap-3 transition-all btn-bounce disabled:opacity-50 min-h-touch"
+                  className="flex-1 bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background font-medium rounded-2xl py-5 px-6 flex items-center justify-center gap-3 transition-all btn-bounce disabled:opacity-50 min-h-touch"
                   disabled={!canSubmit}
                 >
                   {hasSubmitted ? (
@@ -396,19 +396,19 @@ export function VerbalCheckPhase({
         <h3 className="font-medium mb-4 text-lg">Tips for your response: 💡</h3>
         <ul className="text-base text-muted-foreground font-light space-y-3">
           <li className="flex items-start gap-3">
-            <span className="text-library-brass">•</span>
+            <span className="text-ocean-turquoise">•</span>
             Try to answer completely in French 🇫🇷
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-library-brass">•</span>
+            <span className="text-ocean-turquoise">•</span>
             Using a few English words is okay - we'll help you learn them! 📚
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-library-brass">•</span>
+            <span className="text-ocean-turquoise">•</span>
             Don't worry about perfect grammar or pronunciation 👍
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-library-brass">•</span>
+            <span className="text-ocean-turquoise">•</span>
             Describe the overall situation or feeling 🎯
           </li>
         </ul>
@@ -421,7 +421,7 @@ export function VerbalCheckPhase({
         className={cn(
           "w-full py-5 px-8 rounded-2xl font-medium flex items-center justify-center gap-3 transition-all min-h-touch text-lg",
           hasSubmitted
-            ? "bg-library-brass hover:bg-library-brass/90 text-background btn-bounce shadow-soft"
+            ? "bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background btn-bounce shadow-soft"
             : "bg-card border-2 border-border text-muted-foreground cursor-not-allowed",
         )}
       >

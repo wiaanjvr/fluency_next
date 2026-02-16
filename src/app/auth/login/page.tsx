@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { login, signInWithOAuth } from "../actions";
+import { Waves } from "lucide-react";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -46,18 +46,17 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-xl overflow-hidden bg-background">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-foreground flex items-center justify-center">
               <Image
                 src="/logo.png"
-                alt="Fluency Next"
-                width={40}
-                height={40}
-                className="w-full h-full object-contain"
+                alt="Fluensea Logo"
+                width={32}
+                height={32}
+                className="w-8 h-8 object-contain"
+                priority
               />
             </div>
-            <span className="text-2xl font-light tracking-tight">
-              Fluency Next
-            </span>
+            <span className="text-2xl font-light tracking-tight">Fluensea</span>
           </Link>
         </div>
 
@@ -65,17 +64,16 @@ export default function LoginPage() {
           <h1 className="text-5xl font-light leading-tight">
             Welcome back to
             <br />
-            <span className="font-serif italic">your journey</span>
+            <span className="font-serif italic">the depths</span>
           </h1>
           <p className="text-lg font-light text-background/80 max-w-md">
-            Continue building fluency through consistent practice and
-            comprehensible input.
+            Continue your immersive journey. Dive back into fluency.
           </p>
         </div>
 
         <div className="relative z-10">
           <p className="text-sm font-light text-background/60">
-            © 2026 Fluency Next. Discipline now. Fluency next.
+            © 2026 Fluensea. Dive into fluency.
           </p>
         </div>
       </div>

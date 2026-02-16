@@ -17,15 +17,16 @@ const crimsonPro = Crimson_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "Fluency Next — Discipline Now. Fluency Next.",
+  title: "Fluensea — Dive Into Fluency",
   description:
-    "Build fluency through consistent practice and comprehensible input. Master any language with discipline, not shortcuts.",
+    "Immerse yourself in language learning like diving into the ocean. Master any language through flow, depth, and discovery.",
   keywords: [
     "language learning",
     "fluency",
     "language acquisition",
     "comprehensible input",
     "spaced repetition",
+    "immersive learning",
   ],
   icons: {
     icon: "/logo.png",

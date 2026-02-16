@@ -607,15 +607,15 @@ export default function LessonPage() {
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="max-w-lg w-full text-center space-y-10">
           {/* Icon */}
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-library-brass/10 flex items-center justify-center">
-            <RefreshCw className="h-10 w-10 text-library-brass" />
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-ocean-turquoise/10 flex items-center justify-center">
+            <RefreshCw className="h-10 w-10 text-ocean-turquoise" />
           </div>
 
           {/* Heading */}
           <div className="space-y-4">
             <h1 className="text-4xl sm:text-5xl font-light tracking-tight">
               Ready to{" "}
-              <span className="font-serif italic text-library-brass">
+              <span className="font-serif italic text-ocean-turquoise">
                 learn
               </span>
               ?
@@ -625,7 +625,7 @@ export default function LessonPage() {
               progress.
             </p>
             {canCustomize && (
-              <p className="text-sm text-library-brass/80 font-medium">
+              <p className="text-sm text-ocean-turquoise/80 font-medium">
                 🎉 {vocabularyCount} words learned — custom topics unlocked!
               </p>
             )}
@@ -647,7 +647,7 @@ export default function LessonPage() {
                   {/* Custom Topic Input */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4 text-library-brass" />
+                      <MessageSquare className="h-4 w-4 text-ocean-turquoise" />
                       What&apos;s on your mind?
                     </label>
                     <p className="text-xs text-muted-foreground">
@@ -657,7 +657,7 @@ export default function LessonPage() {
                       value={customPrompt}
                       onChange={(e) => setCustomPrompt(e.target.value)}
                       placeholder="e.g., ordering at a café, my trip to Paris, discussing the weather..."
-                      className="w-full p-3 rounded-xl bg-muted/50 border border-border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-library-brass/50 min-h-[80px]"
+                      className="w-full p-3 rounded-xl bg-muted/50 border border-border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ocean-turquoise/50 min-h-[80px]"
                       maxLength={200}
                     />
                     <div className="text-xs text-muted-foreground text-right">
@@ -682,8 +682,8 @@ export default function LessonPage() {
                           }
                           className={`p-3 rounded-xl border text-left transition-all ${
                             selectedContentType === type.id
-                              ? "border-library-brass bg-library-brass/10"
-                              : "border-border hover:border-library-brass/50"
+                              ? "border-ocean-turquoise bg-ocean-turquoise/10"
+                              : "border-border hover:border-ocean-turquoise/50"
                           }`}
                         >
                           <div className="text-sm font-medium">
@@ -706,7 +706,7 @@ export default function LessonPage() {
             <button
               onClick={() => handleGenerateLesson()}
               disabled={generating}
-              className="w-full py-4 px-8 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 px-8 bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-ocean-midnight font-medium rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generating ? (
                 <span className="flex items-center justify-center gap-3">

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { Waves } from "lucide-react";
 
 interface PremiumNavProps {
   currentPath?: string;
@@ -12,21 +12,24 @@ interface PremiumNavProps {
 
 export function PremiumNav({ showLogo = true, rightContent }: PremiumNavProps) {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
+    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-ocean-turquoise/20">
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {showLogo && (
             <Link href="/dashboard" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 rounded-lg overflow-hidden transition-transform duration-300 group-hover:scale-105">
+              <div className="w-9 h-9 rounded-lg overflow-hidden transition-transform duration-300 group-hover:scale-105 bg-background/80 border-b border-ocean-turquoise/20 flex items-center justify-center">
                 <Image
                   src="/logo.png"
-                  alt="Fluency Next"
-                  width={36}
-                  height={36}
-                  className="w-full h-full object-contain"
+                  alt="Fluensea Logo"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 object-contain"
+                  priority
                 />
               </div>
-              <span className="text-lg font-light">Fluency Next</span>
+              <span className="text-lg font-light text-gradient-turquoise">
+                Fluensea
+              </span>
             </Link>
           )}
           {rightContent}
@@ -71,7 +74,7 @@ export function StatCard({
       <div
         className={cn(
           "text-4xl font-light mb-2",
-          accent && "text-library-brass",
+          accent && "text-ocean-turquoise",
         )}
       >
         {value}
@@ -115,7 +118,9 @@ export function ProgressBar({
             <span className="font-light text-muted-foreground">{label}</span>
           )}
           {valueLabel && (
-            <span className={cn("font-medium", accent && "text-library-brass")}>
+            <span
+              className={cn("font-medium", accent && "text-ocean-turquoise")}
+            >
               {valueLabel}
             </span>
           )}
@@ -131,7 +136,7 @@ export function ProgressBar({
           className={cn(
             "h-full rounded-full relative overflow-hidden",
             accent
-              ? "bg-gradient-to-r from-library-brass to-library-gold"
+              ? "bg-gradient-to-r from-ocean-turquoise to-ocean-teal"
               : "bg-foreground",
             animated && "transition-all duration-1000 ease-out",
           )}
@@ -181,7 +186,7 @@ export function LessonPreviewCard({
         <span className="text-xs font-medium tracking-wider uppercase text-muted-foreground">
           {title}
         </span>
-        <span className="px-3 py-1 rounded-full bg-library-brass/10 text-xs text-library-brass font-medium">
+        <span className="px-3 py-1 rounded-full bg-ocean-turquoise/10 text-xs text-ocean-turquoise font-medium">
           {level}
         </span>
       </div>
@@ -199,8 +204,8 @@ export function LessonPreviewCard({
           className={cn(
             "w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 tap-squish",
             isPlaying
-              ? "bg-library-brass scale-105"
-              : "bg-library-brass/80 hover:bg-library-brass",
+              ? "bg-ocean-turquoise scale-105"
+              : "bg-ocean-turquoise/80 hover:bg-ocean-turquoise",
           )}
         >
           <svg
@@ -218,7 +223,7 @@ export function LessonPreviewCard({
         <div className="flex-1">
           <div className="h-2 bg-muted-foreground/20 rounded-full overflow-hidden">
             <div
-              className="h-2 bg-gradient-to-r from-library-brass to-library-gold rounded-full transition-all duration-700"
+              className="h-2 bg-gradient-to-r from-ocean-turquoise to-ocean-teal rounded-full transition-all duration-700"
               style={{ width: `${progress}%` }}
             />
           </div>

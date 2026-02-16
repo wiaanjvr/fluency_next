@@ -9,21 +9,23 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border-primary btn-bounce hover:shadow-[0_0_20px_rgba(230,201,74,0.3)] active:scale-[0.98]",
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border-primary btn-bounce hover:shadow-[0_0_20px_rgba(42,169,160,0.3)] active:scale-[0.98]",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/90 border-secondary shadow-sm btn-bounce hover:shadow-[0_0_15px_rgba(191,165,99,0.2)] active:scale-[0.98]",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/90 border-secondary shadow-sm btn-bounce hover:shadow-[0_0_15px_rgba(29,111,111,0.2)] active:scale-[0.98]",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm border-destructive btn-bounce active:scale-[0.98]",
         outline:
-          "border-border bg-background hover:bg-muted/50 hover:border-library-brass btn-bounce active:scale-[0.98]",
+          "border-border bg-background hover:bg-muted/50 hover:border-ocean-turquoise btn-bounce active:scale-[0.98]",
         ghost:
           "hover:bg-muted/50 border-transparent btn-bounce active:scale-[0.98]",
         link: "underline-offset-4 hover:underline border-transparent",
         accent:
           "bg-accent text-accent-foreground hover:bg-accent/90 border-accent shadow-sm btn-bounce active:scale-[0.98]",
-        // New friendly variants
+        // Ocean-themed variants
         success:
           "bg-feedback-success text-white hover:bg-feedback-success-dark border-feedback-success shadow-sm btn-bounce hover:shadow-[0_0_20px_rgba(95,212,160,0.3)] active:scale-[0.98]",
+        ocean:
+          "bg-ocean-turquoise text-white hover:bg-ocean-turquoise/90 border-ocean-turquoise shadow-sm btn-bounce hover:shadow-[0_0_20px_rgba(42,169,160,0.4)] active:scale-[0.98]",
         // 3D push button effect
         "3d": "bg-primary text-primary-foreground border-primary btn-3d",
         "3d-success":

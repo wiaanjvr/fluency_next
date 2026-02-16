@@ -100,7 +100,7 @@ export function AudioComprehensionPhase({
     <div className="space-y-8">
       {/* Phase Header */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ocean-turquoise/10 text-ocean-turquoise">
           <Headphones className="h-4 w-4" />
           <span className="text-sm font-medium">
             Phase 1: Listen & Understand
@@ -108,7 +108,7 @@ export function AudioComprehensionPhase({
         </div>
         <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
           Listen to the{" "}
-          <span className="font-serif italic text-library-brass">audio</span>
+          <span className="font-serif italic text-ocean-turquoise">audio</span>
         </h1>
         <p className="text-muted-foreground font-light max-w-md mx-auto">
           Focus on understanding the meaning. Don't worry about every word.
@@ -130,7 +130,7 @@ export function AudioComprehensionPhase({
           <audio ref={audioRef} src={lesson.audioUrl} preload="metadata" />
 
           {/* Visualizer */}
-          <div className="h-28 bg-gradient-to-r from-library-brass/5 via-library-brass/10 to-library-brass/5 rounded-xl flex items-center justify-center">
+          <div className="h-28 bg-gradient-to-r from-ocean-turquoise/5 via-ocean-turquoise/10 to-ocean-turquoise/5 rounded-xl flex items-center justify-center">
             <div
               className={cn(
                 "flex items-center gap-1.5",
@@ -141,7 +141,7 @@ export function AudioComprehensionPhase({
                 <div
                   key={i}
                   className={cn(
-                    "w-1.5 bg-library-brass/60 rounded-full transition-all duration-300",
+                    "w-1.5 bg-ocean-turquoise/60 rounded-full transition-all duration-300",
                   )}
                   style={{
                     height: isPlaying ? `${Math.random() * 48 + 16}px` : "16px",
@@ -156,7 +156,7 @@ export function AudioComprehensionPhase({
           <div className="space-y-2">
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-library-brass rounded-full transition-all duration-150"
+                className="h-full bg-ocean-turquoise rounded-full transition-all duration-150"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -177,7 +177,7 @@ export function AudioComprehensionPhase({
 
             <button
               onClick={togglePlayPause}
-              className="h-16 w-16 rounded-2xl bg-library-brass hover:bg-library-brass/90 flex items-center justify-center transition-all duration-300 shadow-luxury"
+              className="h-16 w-16 rounded-2xl bg-ocean-turquoise hover:bg-ocean-turquoise/90 flex items-center justify-center transition-all duration-300 shadow-luxury"
             >
               {isPlaying ? (
                 <Pause className="h-7 w-7 text-background" />
@@ -204,7 +204,7 @@ export function AudioComprehensionPhase({
                 className={cn(
                   "h-8 px-3 rounded-lg text-sm transition-all duration-200",
                   playbackRate === speed
-                    ? "bg-library-brass text-background"
+                    ? "bg-ocean-turquoise text-background"
                     : "bg-muted hover:bg-muted/80",
                 )}
               >
@@ -263,8 +263,8 @@ export function AudioComprehensionPhase({
       {/* Tips */}
       <div className="bg-card border border-border rounded-2xl p-6">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center flex-shrink-0">
-            <Lightbulb className="h-5 w-5 text-library-brass" />
+          <div className="w-10 h-10 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center flex-shrink-0">
+            <Lightbulb className="h-5 w-5 text-ocean-turquoise" />
           </div>
           <div>
             <h3 className="font-medium mb-3">Listening Tips</h3>
@@ -285,7 +285,7 @@ export function AudioComprehensionPhase({
         className={cn(
           "w-full py-4 px-8 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2",
           canProceed
-            ? "bg-library-brass hover:bg-library-brass/90 text-background"
+            ? "bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background"
             : "bg-muted text-muted-foreground cursor-not-allowed",
         )}
       >

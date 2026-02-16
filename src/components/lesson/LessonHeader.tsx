@@ -49,12 +49,12 @@ const PHASE_CONFIG: Record<LessonPhase, PhaseConfig> = {
   "audio-text": {
     icon: Headphones,
     label: "Listen",
-    color: "text-library-brass",
+    color: "text-ocean-turquoise",
   },
   "first-recall": {
     icon: MessageCircle,
     label: "Recall",
-    color: "text-library-forest",
+    color: "text-ocean-teal",
   },
   "transcript-reveal": {
     icon: FileText,
@@ -74,7 +74,7 @@ const PHASE_CONFIG: Record<LessonPhase, PhaseConfig> = {
   shadowing: {
     icon: Mic,
     label: "Shadow",
-    color: "text-library-forest-light",
+    color: "text-ocean-turquoise",
   },
   "second-recall": {
     icon: MessagesSquare,
@@ -90,12 +90,12 @@ const PHASE_CONFIG: Record<LessonPhase, PhaseConfig> = {
   "audio-comprehension": {
     icon: Headphones,
     label: "Listen",
-    color: "text-library-brass",
+    color: "text-ocean-turquoise",
   },
   "verbal-check": {
     icon: MessageCircle,
     label: "Speak",
-    color: "text-library-forest",
+    color: "text-ocean-teal",
   },
   "conversation-feedback": {
     icon: MessagesSquare,
@@ -162,11 +162,11 @@ export function LessonHeader({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center bg-library-brass/10",
+                "w-8 h-8 rounded-lg flex items-center justify-center bg-ocean-turquoise/10",
               )}
             >
               <Icon
-                className={cn("h-4 w-4", config?.color || "text-library-brass")}
+                className={cn("h-4 w-4", config?.color || "text-ocean-turquoise")}
               />
             </div>
             <div className="hidden sm:block">
@@ -179,7 +179,7 @@ export function LessonHeader({
 
           {/* Level Badge */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-library-brass font-light px-3 py-1 rounded-full bg-library-brass/10">
+            <span className="text-xs text-ocean-turquoise font-light px-3 py-1 rounded-full bg-ocean-turquoise/10">
               {lesson.level}
             </span>
           </div>
@@ -189,7 +189,7 @@ export function LessonHeader({
         <div className="pb-4">
           <div className="h-1 bg-muted rounded-full overflow-hidden">
             <div
-              className="h-full bg-library-brass rounded-full transition-all duration-700 ease-out"
+              className="h-full bg-ocean-turquoise rounded-full transition-all duration-700 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -207,8 +207,8 @@ export function LessonHeader({
                 key={phase}
                 className={cn(
                   "flex-1 h-1 rounded-full transition-all duration-300",
-                  isCompleted && "bg-library-brass",
-                  isActive && "bg-library-brass/50",
+                  isCompleted && "bg-ocean-turquoise",
+                  isActive && "bg-ocean-turquoise/50",
                   !isActive && !isCompleted && "bg-muted",
                 )}
               />

@@ -189,7 +189,7 @@ export function TextRevealPhase({
     <div className="space-y-6">
       {/* Phase Header */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ocean-turquoise/10 text-ocean-turquoise">
           <Eye className="h-4 w-4" />
           <span className="text-sm font-medium">
             Phase 4: Text & Vocabulary
@@ -197,7 +197,7 @@ export function TextRevealPhase({
         </div>
         <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
           Read & Rate Your{" "}
-          <span className="font-serif italic text-library-brass">
+          <span className="font-serif italic text-ocean-turquoise">
             Knowledge
           </span>
         </h1>
@@ -217,7 +217,7 @@ export function TextRevealPhase({
         </div>
         <div className="w-full bg-background rounded-full h-2 overflow-hidden">
           <div
-            className="h-full bg-library-brass transition-all duration-300"
+            className="h-full bg-ocean-turquoise transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -230,7 +230,7 @@ export function TextRevealPhase({
       </div>
 
       {/* Audio Player */}
-      <div className="bg-card border border-library-brass/20 rounded-2xl p-6">
+      <div className="bg-card border border-ocean-turquoise/20 rounded-2xl p-6">
         <audio
           ref={audioRef}
           src={lesson.audioUrl}
@@ -259,8 +259,8 @@ export function TextRevealPhase({
       {/* Text Display */}
       <div className="bg-card border border-border rounded-2xl">
         <div className="p-6 border-b border-border flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
-            <BookOpen className="h-5 w-5 text-library-brass" />
+          <div className="w-10 h-10 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center">
+            <BookOpen className="h-5 w-5 text-ocean-turquoise" />
           </div>
           <h2 className="text-lg font-light">{lesson.title}</h2>
         </div>
@@ -290,11 +290,11 @@ export function TextRevealPhase({
       {/* Word Rating Modal */}
       {selectedWord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-card border border-library-brass rounded-2xl shadow-lg w-full max-w-md">
+          <div className="bg-card border border-ocean-turquoise rounded-2xl shadow-lg w-full max-w-md">
             <div className="p-6 border-b border-border text-center">
               <h2 className="text-lg sm:text-xl font-light">
                 How well do you know:{" "}
-                <span className="text-library-brass font-serif italic">
+                <span className="text-ocean-turquoise font-serif italic">
                   "{selectedWord.word}"
                 </span>
                 ?
@@ -368,7 +368,7 @@ export function TextRevealPhase({
         className={cn(
           "w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors",
           allWordsRated
-            ? "bg-library-brass hover:bg-library-brass/90 text-background"
+            ? "bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background"
             : "bg-card border border-border text-muted-foreground cursor-not-allowed",
         )}
       >

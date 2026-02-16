@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Settings,
@@ -14,7 +13,9 @@ import {
   Clock,
   LogOut,
   User,
+  Anchor,
 } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -77,18 +78,21 @@ export function LeftSidebar({
       )}
     >
       {/* Logo & Brand */}
-      <div className="p-6 relative after:absolute after:bottom-0 after:left-4 after:right-4 after:h-px after:bg-gradient-to-r after:from-transparent after:via-border/50 after:to-transparent">
+      <div className="p-6 relative after:absolute after:bottom-0 after:left-4 after:right-4 after:h-px after:bg-gradient-to-r after:from-transparent after:via-ocean-turquoise/30 after:to-transparent">
         <Link href="/dashboard" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105">
+          <div className="w-10 h-10 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 bg-background/90 border-b border-ocean-turquoise/20 flex items-center justify-center">
             <Image
               src="/logo.png"
-              alt="Fluency Next"
-              width={40}
-              height={40}
-              className="w-full h-full object-contain"
+              alt="Fluensea Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8 object-contain"
+              priority
             />
           </div>
-          <span className="text-lg font-medium">Fluency Next</span>
+          <span className="text-lg font-medium text-gradient-turquoise">
+            Fluensea
+          </span>
         </Link>
       </div>
 

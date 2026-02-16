@@ -46,7 +46,7 @@ export function LinguaLoadingAnimation({
             cy="60"
             r="30"
             fill="none"
-            stroke="hsl(var(--library-brass))"
+            stroke="hsl(var(--ocean-turquoise))"
             strokeWidth="2"
             opacity={drawProgress > 0.9 ? (drawProgress - 0.9) * 10 : 0}
           />
@@ -55,7 +55,7 @@ export function LinguaLoadingAnimation({
             y1="30"
             x2="250"
             y2="90"
-            stroke="hsl(var(--library-brass))"
+            stroke="hsl(var(--ocean-turquoise))"
             strokeWidth="2"
             opacity={drawProgress > 0.9 ? (drawProgress - 0.9) * 10 : 0}
           />
@@ -64,7 +64,7 @@ export function LinguaLoadingAnimation({
             y1="60"
             x2="280"
             y2="60"
-            stroke="hsl(var(--library-brass))"
+            stroke="hsl(var(--ocean-turquoise))"
             strokeWidth="2"
             opacity={drawProgress > 0.9 ? (drawProgress - 0.9) * 10 : 0}
           />
@@ -74,7 +74,7 @@ export function LinguaLoadingAnimation({
             rx="15"
             ry="30"
             fill="none"
-            stroke="hsl(var(--library-brass))"
+            stroke="hsl(var(--ocean-turquoise))"
             strokeWidth="2"
             opacity={drawProgress > 0.9 ? (drawProgress - 0.9) * 10 : 0}
           />
@@ -383,17 +383,17 @@ export function LinguaLoadingAnimation({
         {showProgress && (
           <div className="w-[300px] max-w-[90%] h-1 bg-muted rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-library-brass to-library-gold transition-all duration-100 linear"
+              className="h-full bg-gradient-to-r from-ocean-turquoise to-ocean-teal transition-all duration-100 linear"
               style={{
                 width: `${progress}%`,
-                boxShadow: "0 0 10px hsl(var(--library-brass) / 0.5)",
+                boxShadow: "0 0 10px hsl(var(--ocean-turquoise) / 0.5)",
               }}
             />
           </div>
         )}
 
         {/* Loading text */}
-        <p className="text-library-brass text-lg font-light tracking-wider">
+        <p className="text-ocean-turquoise text-lg font-light tracking-wider">
           {message}
         </p>
 

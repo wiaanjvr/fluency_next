@@ -71,14 +71,14 @@ export function LessonComplete({
       <div className="container max-w-2xl mx-auto px-6 py-16 space-y-12">
         {/* Celebration Header */}
         <div className="text-center space-y-8 animate-fade-in">
-          <div className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-library-brass/20 to-library-gold/10 border border-library-brass/30 flex items-center justify-center animate-celebration shadow-soft-lg">
-            <Trophy className="h-12 w-12 text-library-brass" />
+          <div className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-ocean-turquoise/20 to-ocean-teal/10 border border-ocean-turquoise/30 flex items-center justify-center animate-celebration shadow-soft-lg">
+            <Trophy className="h-12 w-12 text-ocean-turquoise" />
           </div>
 
           <div className="space-y-4">
             <h1 className="text-4xl sm:text-5xl font-light tracking-tight">
               Lesson{" "}
-              <span className="font-serif italic text-library-brass">
+              <span className="font-serif italic text-ocean-turquoise">
                 complete! 🎉
               </span>
             </h1>
@@ -89,14 +89,14 @@ export function LessonComplete({
         </div>
 
         {/* Overall Score Card */}
-        <div className="bg-card border-2 border-library-brass/30 rounded-3xl p-10 text-center relative overflow-hidden shadow-soft-lg animate-scale-bounce">
+        <div className="bg-card border-2 border-ocean-turquoise/30 rounded-3xl p-10 text-center relative overflow-hidden shadow-soft-lg animate-scale-bounce">
           {/* Ambient glow */}
-          <div className="absolute inset-0 bg-gradient-to-br from-library-brass/5 via-transparent to-luxury-bronze/5" />
+          <div className="absolute inset-0 bg-gradient-to-br from-ocean-turquoise/5 via-transparent to-ocean-teal/5" />
           {/* Shimmer effect */}
           <div className="absolute inset-0 shimmer-gold" />
 
           <div className="relative space-y-3">
-            <div className="text-8xl font-light text-library-brass">
+            <div className="text-8xl font-light text-ocean-turquoise">
               {overallScore}
               <span className="text-4xl">%</span>
             </div>
@@ -111,12 +111,12 @@ export function LessonComplete({
           {/* Vocabulary Stats */}
           <div className="bg-card border border-border rounded-3xl p-7 card-hover-lift">
             <div className="flex items-center gap-2 text-muted-foreground mb-5">
-              <div className="w-8 h-8 rounded-xl bg-library-brass/10 flex items-center justify-center">
-                <BookOpen className="h-4 w-4 text-library-brass" />
+              <div className="w-8 h-8 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center">
+                <BookOpen className="h-4 w-4 text-ocean-turquoise" />
               </div>
               <span className="text-sm font-medium">Vocabulary</span>
             </div>
-            <div className="text-5xl font-light text-library-brass mb-2">
+            <div className="text-5xl font-light text-ocean-turquoise mb-2">
               {wordsLearned}
             </div>
             <p className="text-base text-muted-foreground font-light">
@@ -133,12 +133,12 @@ export function LessonComplete({
           {/* Exercises Stats */}
           <div className="bg-card border border-border rounded-3xl p-7 card-hover-lift">
             <div className="flex items-center gap-2 text-muted-foreground mb-5">
-              <div className="w-8 h-8 rounded-xl bg-library-brass/10 flex items-center justify-center">
-                <Brain className="h-4 w-4 text-library-brass" />
+              <div className="w-8 h-8 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center">
+                <Brain className="h-4 w-4 text-ocean-turquoise" />
               </div>
               <span className="text-sm font-medium">Exercises</span>
             </div>
-            <div className="text-5xl font-light text-library-brass mb-2">
+            <div className="text-5xl font-light text-ocean-turquoise mb-2">
               {exerciseScore}%
             </div>
             <p className="text-base text-muted-foreground font-light">
@@ -191,8 +191,8 @@ export function LessonComplete({
         {/* Next Steps */}
         <div className="bg-card border border-border rounded-3xl p-7 shadow-soft">
           <div className="flex items-start gap-5">
-            <div className="w-12 h-12 rounded-2xl bg-library-brass/10 flex items-center justify-center flex-shrink-0">
-              <TrendingUp className="h-6 w-6 text-library-brass" />
+            <div className="w-12 h-12 rounded-2xl bg-ocean-turquoise/10 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="h-6 w-6 text-ocean-turquoise" />
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">
@@ -211,7 +211,7 @@ export function LessonComplete({
         <div className="space-y-4">
           <button
             onClick={onStartNewLesson}
-            className="w-full py-5 px-8 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-2xl transition-all btn-bounce shadow-soft text-lg flex items-center justify-center gap-3"
+            className="w-full py-5 px-8 bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background font-medium rounded-2xl transition-all btn-bounce shadow-soft text-lg flex items-center justify-center gap-3"
           >
             <Sparkles className="h-6 w-6" />
             Start Another Lesson ✨
@@ -219,7 +219,7 @@ export function LessonComplete({
 
           <button
             onClick={onExit}
-            className="w-full py-5 px-8 bg-transparent border-2 border-border hover:bg-card hover:border-library-brass/50 text-foreground font-light rounded-2xl transition-all btn-bounce flex items-center justify-center gap-3 text-lg"
+            className="w-full py-5 px-8 bg-transparent border-2 border-border hover:bg-card hover:border-ocean-turquoise/50 text-foreground font-light rounded-2xl transition-all btn-bounce flex items-center justify-center gap-3 text-lg"
           >
             <Home className="h-6 w-6" />
             Return to Dashboard
@@ -229,7 +229,7 @@ export function LessonComplete({
         {/* Motivation Footer */}
         <div className="text-center text-base text-muted-foreground font-light pt-8 border-t border-border">
           <p className="flex items-center justify-center gap-3">
-            <Calendar className="h-5 w-5 text-library-brass" />
+            <Calendar className="h-5 w-5 text-ocean-turquoise" />
             Consistency is key! Come back tomorrow to continue your journey 🌟
           </p>
         </div>

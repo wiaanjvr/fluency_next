@@ -46,7 +46,6 @@ import {
   Volume2,
   MessageSquare,
   GraduationCap,
-  Image,
   Layers,
   Zap,
   Star,
@@ -54,6 +53,7 @@ import {
   Unlock,
   Loader2,
 } from "lucide-react";
+import Image from "next/image";
 import {
   SupportedLanguage,
   getLanguageConfig,
@@ -344,11 +344,11 @@ export default function OnboardingPage() {
       <div className="container mx-auto max-w-3xl">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Welcome to Fluency Next</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome to Fluensea</h1>
           <p className="text-muted-foreground">
             {step === "language-select" && "Choose your target language"}
             {step === "welcome" &&
-              `Let's find your perfect starting point in ${languageConfig.name}`}
+              `Let's discover your depth in ${languageConfig.name}`}
             {step === "audio-test" && "Listen carefully and answer"}
             {step === "reading-test" && "Read and answer"}
             {step === "results" && "Your assessment is complete!"}
@@ -722,10 +722,17 @@ export default function OnboardingPage() {
                   {/* Node 1: Foundation Vocabulary */}
                   <div className="flex flex-col items-center w-full">
                     <div className="relative z-10 group">
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-library-forest to-library-forest-dark flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer border-4 border-background">
+                      <div className="w-24 h-24 rounded-full bg-background flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer border-4 border-background">
                         <div className="text-center">
-                          <Image className="h-8 w-8 text-library-parchment mx-auto" />
-                          <div className="text-xs text-library-parchment font-bold mt-1">
+                          <Image
+                            src="/logo.png"
+                            alt="Fluensea Logo"
+                            width={32}
+                            height={32}
+                            className="h-8 w-8 mx-auto object-contain"
+                            priority
+                          />
+                          <div className="text-xs text-ocean-sand font-bold mt-1">
                             START
                           </div>
                         </div>
@@ -736,12 +743,12 @@ export default function OnboardingPage() {
                       </div>
                     </div>
                     {/* Info Card */}
-                    <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-library-forest/30 max-w-sm">
+                    <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-ocean-teal/30 max-w-sm">
                       <div className="flex items-center gap-2 mb-2">
                         <h4 className="font-semibold text-foreground">
                           Foundation Vocabulary
                         </h4>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-library-forest/20 text-library-forest-light border border-library-forest/30">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-ocean-teal/20 text-ocean-turquoise border border-ocean-teal/30">
                           0-100 words
                         </span>
                       </div>
@@ -755,7 +762,13 @@ export default function OnboardingPage() {
                           Audio
                         </span>
                         <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
-                          <Image className="h-3 w-3" />
+                          <Image
+                            src="/logo.png"
+                            alt="Fluensea Logo"
+                            width={12}
+                            height={12}
+                            className="h-3 w-3 object-contain"
+                          />
                           Images
                         </span>
                         <span className="text-xs px-2 py-1 rounded-full bg-background/60 border border-border/30 flex items-center gap-1">
@@ -767,24 +780,24 @@ export default function OnboardingPage() {
                   </div>
 
                   {/* Connecting Line */}
-                  <div className="w-1 h-12 bg-gradient-to-b from-library-forest to-library-brass" />
+                  <div className="w-1 h-12 bg-gradient-to-b from-ocean-teal to-ocean-turquoise" />
 
                   {/* Node 2: Sentence Practice */}
                   <div className="flex flex-col items-center w-full">
                     <div className="relative z-10 group">
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-library-brass to-library-brass/80 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer border-4 border-background">
-                        <MessageSquare className="h-10 w-10 text-background" />
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-ocean-turquoise to-ocean-turquoise/80 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer border-4 border-background">
+                        <MessageSquare className="h-10 w-10 text-ocean-midnight" />
                       </div>
-                      <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-background border-2 border-library-brass flex items-center justify-center">
-                        <Star className="h-4 w-4 text-library-brass fill-library-brass" />
+                      <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-background border-2 border-ocean-turquoise flex items-center justify-center">
+                        <Star className="h-4 w-4 text-ocean-turquoise fill-ocean-turquoise" />
                       </div>
                     </div>
-                    <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-library-brass/30 max-w-sm">
+                    <div className="mt-4 p-4 rounded-xl bg-muted/50 border border-ocean-turquoise/30 max-w-sm">
                       <div className="flex items-center gap-2 mb-2">
                         <h4 className="font-semibold text-foreground">
                           Sentence Practice
                         </h4>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-library-brass/20 text-library-brass-light border border-library-brass/30">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-ocean-turquoise/20 text-ocean-turquoise border border-ocean-turquoise/30">
                           100-300 words
                         </span>
                       </div>
@@ -806,7 +819,7 @@ export default function OnboardingPage() {
                   </div>
 
                   {/* Connecting Line */}
-                  <div className="w-1 h-12 bg-gradient-to-b from-library-brass to-accent" />
+                  <div className="w-1 h-12 bg-gradient-to-b from-ocean-turquoise to-ocean-coral" />
 
                   {/* Node 3: Micro Stories */}
                   <div className="flex flex-col items-center w-full">
@@ -850,7 +863,7 @@ export default function OnboardingPage() {
                   {/* Node 4: Full Acquisition */}
                   <div className="flex flex-col items-center w-full">
                     <div className="relative z-10 group">
-                      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary via-library-gold to-library-brass flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 cursor-pointer border-4 border-background ring-4 ring-primary/20">
+                      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary via-ocean-turquoise to-ocean-teal flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 cursor-pointer border-4 border-background ring-4 ring-primary/20">
                         <div className="text-center">
                           <GraduationCap className="h-10 w-10 text-background mx-auto" />
                           <div className="text-xs text-background font-bold mt-1">
@@ -863,7 +876,7 @@ export default function OnboardingPage() {
                       </div>
                       {/* Sparkles effect */}
                       <Sparkles className="absolute -top-2 -left-2 h-6 w-6 text-primary animate-pulse" />
-                      <Sparkles className="absolute -bottom-2 -right-2 h-6 w-6 text-library-gold animate-pulse" />
+                      <Sparkles className="absolute -bottom-2 -right-2 h-6 w-6 text-ocean-turquoise animate-pulse" />
                     </div>
                     <div className="mt-4 p-4 rounded-xl bg-muted/50 border-2 border-primary/40 max-w-sm">
                       <div className="flex items-center gap-2 mb-2">

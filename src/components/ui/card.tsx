@@ -8,7 +8,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-3xl border-[1.5px] border-library-brass/60 bg-card text-card-foreground shadow-soft transition-all duration-300",
+      "rounded-3xl border-[1.5px] border-ocean-turquoise/60 bg-card text-card-foreground shadow-soft transition-all duration-300",
       className,
     )}
     {...props}
@@ -24,7 +24,7 @@ const CardInteractive = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-3xl border-[1.5px] border-library-brass/60 bg-card text-card-foreground shadow-soft card-hover-lift cursor-pointer",
+      "rounded-3xl border-[1.5px] border-ocean-turquoise/60 bg-card text-card-foreground shadow-soft card-hover-lift cursor-pointer",
       className,
     )}
     {...props}

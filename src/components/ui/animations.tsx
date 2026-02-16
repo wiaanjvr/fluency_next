@@ -542,7 +542,7 @@ export function AnimatedProgressBar({
           {label && (
             <span className="font-light text-muted-foreground">{label}</span>
           )}
-          <span className="font-medium text-library-brass">
+          <span className="font-medium text-ocean-turquoise">
             {Math.round(percentage)}%
           </span>
         </div>
@@ -555,7 +555,7 @@ export function AnimatedProgressBar({
       >
         <div
           className={cn(
-            "h-full rounded-full bg-gradient-to-r from-library-brass to-library-gold",
+            "h-full rounded-full bg-gradient-to-r from-ocean-turquoise to-ocean-teal",
             animated && "transition-all duration-1000 ease-out",
           )}
           style={{ width: `${percentage}%` }}
@@ -731,7 +731,7 @@ export function CompletionCelebration({
       <SparkleEffect active={showSparkles}>
         <div
           className={cn(
-            "p-6 rounded-3xl bg-gradient-to-br from-library-brass/20 to-library-gold/10 border border-library-brass/30",
+            "p-6 rounded-3xl bg-gradient-to-br from-ocean-turquoise/20 to-ocean-teal/10 border border-ocean-turquoise/30",
             showSparkles && "animate-celebration glow-success",
           )}
         >

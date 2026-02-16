@@ -80,7 +80,7 @@ export function ProgressPathVisualizer({
           </p>
         </div>
         <div className="text-right">
-          <div className="text-3xl font-light text-library-brass">
+          <div className="text-3xl font-light text-ocean-turquoise">
             {wordCount}
           </div>
           <div className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -94,7 +94,7 @@ export function ProgressPathVisualizer({
         {/* Connection line */}
         <div className="absolute top-4 left-4 right-4 h-0.5 bg-border" />
         <div
-          className="absolute top-4 left-4 h-0.5 bg-library-brass transition-all duration-500"
+          className="absolute top-4 left-4 h-0.5 bg-ocean-turquoise transition-all duration-500"
           style={{
             width: `${Math.min(100, (wordCount / 1000) * 100)}%`,
             maxWidth: "calc(100% - 2rem)",
@@ -126,9 +126,9 @@ export function ProgressPathVisualizer({
                   className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center relative z-10 transition-all duration-300",
                     isActive
-                      ? "bg-library-brass text-background"
+                      ? "bg-ocean-turquoise text-background"
                       : "bg-card border-2 border-border text-muted-foreground",
-                    isCurrent && "ring-4 ring-library-brass/30 scale-110",
+                    isCurrent && "ring-4 ring-ocean-turquoise/30 scale-110",
                   )}
                 >
                   {node.milestone?.badge ? (
@@ -236,7 +236,7 @@ function FeatureUnlockCard({
       className={cn(
         "flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300",
         isUnlocked
-          ? "bg-library-brass/5 border-library-brass/30"
+          ? "bg-ocean-turquoise/5 border-ocean-turquoise/30"
           : "bg-card border-border opacity-60",
         className,
       )}
@@ -245,7 +245,7 @@ function FeatureUnlockCard({
         className={cn(
           "w-10 h-10 rounded-xl flex items-center justify-center",
           isUnlocked
-            ? "bg-library-brass/20 text-library-brass"
+            ? "bg-ocean-turquoise/20 text-ocean-turquoise"
             : "bg-muted text-muted-foreground",
         )}
       >
@@ -265,7 +265,7 @@ function FeatureUnlockCard({
           >
             {FEATURE_LABELS[feature]}
           </span>
-          {isUnlocked && <Unlock className="w-3 h-3 text-library-brass" />}
+          {isUnlocked && <Unlock className="w-3 h-3 text-ocean-turquoise" />}
         </div>
         <p className="text-xs text-muted-foreground truncate">
           {isUnlocked
@@ -352,7 +352,7 @@ export function GraduationStatusCard({
     <div
       className={cn(
         "bg-card border rounded-3xl p-6 transition-all duration-300",
-        isReady ? "border-library-brass bg-library-brass/5" : "border-border",
+        isReady ? "border-ocean-turquoise bg-ocean-turquoise/5" : "border-border",
         className,
       )}
     >
@@ -362,7 +362,7 @@ export function GraduationStatusCard({
             <GraduationCap
               className={cn(
                 "w-5 h-5",
-                isReady ? "text-library-brass" : "text-muted-foreground",
+                isReady ? "text-ocean-turquoise" : "text-muted-foreground",
               )}
             />
             <h3 className="text-lg font-medium">
@@ -378,7 +378,7 @@ export function GraduationStatusCard({
         <div
           className={cn(
             "text-2xl font-light",
-            isReady ? "text-library-brass" : "text-foreground",
+            isReady ? "text-ocean-turquoise" : "text-foreground",
           )}
         >
           {overallProgress}%
@@ -392,7 +392,7 @@ export function GraduationStatusCard({
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
                 {req.isMet ? (
-                  <CheckCircle2 className="w-4 h-4 text-library-brass" />
+                  <CheckCircle2 className="w-4 h-4 text-ocean-turquoise" />
                 ) : (
                   <Circle className="w-4 h-4 text-muted-foreground" />
                 )}
@@ -407,7 +407,7 @@ export function GraduationStatusCard({
               <span
                 className={cn(
                   "font-medium",
-                  req.isMet ? "text-library-brass" : "text-muted-foreground",
+                  req.isMet ? "text-ocean-turquoise" : "text-muted-foreground",
                 )}
               >
                 {Math.round(req.currentValue)} / {req.targetValue}
@@ -447,7 +447,7 @@ export function GraduationStatusCard({
 
       {/* Ready to graduate button */}
       {isReady && (
-        <button className="w-full mt-4 py-3 bg-library-brass text-background font-medium rounded-xl hover:bg-library-brass/90 transition-colors flex items-center justify-center gap-2">
+        <button className="w-full mt-4 py-3 bg-ocean-turquoise text-background font-medium rounded-xl hover:bg-ocean-turquoise/90 transition-colors flex items-center justify-center gap-2">
           <Sparkles className="w-4 h-4" />
           Start Acquisition Mode
         </button>
@@ -478,13 +478,13 @@ export function LearningStatsCard({
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-muted/50 rounded-xl p-4 text-center">
-          <div className="text-2xl font-light text-library-brass">
+          <div className="text-2xl font-light text-ocean-turquoise">
             {stats.wordsLearnedToday}
           </div>
           <div className="text-xs text-muted-foreground">Words Learned</div>
         </div>
         <div className="bg-muted/50 rounded-xl p-4 text-center">
-          <div className="text-2xl font-light text-library-brass">
+          <div className="text-2xl font-light text-ocean-turquoise">
             {stats.wordsReviewedToday}
           </div>
           <div className="text-xs text-muted-foreground">Words Reviewed</div>
@@ -547,17 +547,17 @@ export function MilestoneCelebration({
       onClick={onClose}
     >
       <div
-        className="bg-card border border-library-brass/30 rounded-3xl p-8 max-w-md mx-4 text-center shadow-2xl animate-in zoom-in-95"
+        className="bg-card border border-ocean-turquoise/30 rounded-3xl p-8 max-w-md mx-4 text-center shadow-2xl animate-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Badge */}
-        <div className="w-20 h-20 mx-auto mb-4 bg-library-brass/20 rounded-full flex items-center justify-center">
+        <div className="w-20 h-20 mx-auto mb-4 bg-ocean-turquoise/20 rounded-full flex items-center justify-center">
           <span className="text-4xl">{milestone.badge}</span>
         </div>
 
         {/* Title */}
         <h2 className="text-2xl font-medium mb-2">{milestone.title}</h2>
-        <p className="text-lg text-library-brass mb-4">
+        <p className="text-lg text-ocean-turquoise mb-4">
           {milestone.wordTarget} words mastered!
         </p>
 
@@ -578,7 +578,7 @@ export function MilestoneCelebration({
                   key={feature}
                   className="flex items-center gap-2 text-sm text-foreground"
                 >
-                  <Unlock className="w-4 h-4 text-library-brass" />
+                  <Unlock className="w-4 h-4 text-ocean-turquoise" />
                   {FEATURE_LABELS[feature]}
                 </div>
               ))}
@@ -589,7 +589,7 @@ export function MilestoneCelebration({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="w-full py-3 bg-library-brass text-background font-medium rounded-xl hover:bg-library-brass/90 transition-colors"
+          className="w-full py-3 bg-ocean-turquoise text-background font-medium rounded-xl hover:bg-ocean-turquoise/90 transition-colors"
         >
           Continue Learning
         </button>

@@ -140,13 +140,13 @@ export function FinalAssessmentPhase({
     <div className="space-y-6">
       {/* Phase Header */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ocean-turquoise/10 text-ocean-turquoise">
           <GraduationCap className="h-4 w-4" />
           <span className="text-sm font-medium">Phase 6: Final Assessment</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
           Show What You{" "}
-          <span className="font-serif italic text-library-brass">Learned</span>
+          <span className="font-serif italic text-ocean-turquoise">Learned</span>
         </h1>
         <p className="text-muted-foreground font-light max-w-md mx-auto">
           Listen to the audio one more time, then summarize everything you
@@ -155,7 +155,7 @@ export function FinalAssessmentPhase({
       </div>
 
       {/* Listen Again Card */}
-      <div className="bg-card border border-library-brass/20 rounded-2xl">
+      <div className="bg-card border border-ocean-turquoise/20 rounded-2xl">
         <div className="p-6 border-b border-border">
           <h2 className="text-lg font-light">Step 1: Listen Again</h2>
         </div>
@@ -173,7 +173,7 @@ export function FinalAssessmentPhase({
                 "h-14 px-8 rounded-xl flex items-center justify-center gap-2 transition-colors",
                 hasListened
                   ? "bg-transparent border border-border hover:bg-card text-foreground font-light"
-                  : "bg-library-brass hover:bg-library-brass/90 text-background font-medium",
+                  : "bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background font-medium",
               )}
             >
               {isPlaying ? (
@@ -232,7 +232,7 @@ export function FinalAssessmentPhase({
                   className={cn(
                     "h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center transition-colors",
                     hasListened
-                      ? "bg-library-brass hover:bg-library-brass/90 text-background"
+                      ? "bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background"
                       : "bg-card border border-border text-muted-foreground opacity-50 cursor-not-allowed",
                   )}
                 >
@@ -292,7 +292,7 @@ export function FinalAssessmentPhase({
               {/* Transcript */}
               {isTranscribing && (
                 <div className="flex items-center justify-center gap-2 py-4">
-                  <Loader2 className="h-4 w-4 animate-spin text-library-brass" />
+                  <Loader2 className="h-4 w-4 animate-spin text-ocean-turquoise" />
                   <span className="text-sm text-muted-foreground font-light">
                     Processing...
                   </span>
@@ -321,7 +321,7 @@ export function FinalAssessmentPhase({
                 <button
                   onClick={handleSubmit}
                   disabled={hasSubmitted || isTranscribing}
-                  className="flex-1 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-xl py-4 px-6 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                  className="flex-1 bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background font-medium rounded-xl py-4 px-6 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                 >
                   {hasSubmitted ? (
                     <>
@@ -345,7 +345,7 @@ export function FinalAssessmentPhase({
           <li>• The main topic or situation from the audio</li>
           <li>
             • New vocabulary words you learned:{" "}
-            <span className="font-medium text-library-brass">
+            <span className="font-medium text-ocean-turquoise">
               {lesson.words
                 .filter((w) => w.isNew)
                 .slice(0, 3)
@@ -365,7 +365,7 @@ export function FinalAssessmentPhase({
         className={cn(
           "w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors",
           hasSubmitted
-            ? "bg-library-brass hover:bg-library-brass/90 text-background"
+            ? "bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background"
             : "bg-card border border-border text-muted-foreground cursor-not-allowed",
         )}
       >

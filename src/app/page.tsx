@@ -13,23 +13,32 @@ import {
   RotateCcw,
   Check,
   Quote,
+  Waves,
+  Anchor,
 } from "lucide-react";
 
 /* =============================================================================
-   DESIGN SYSTEM DOCUMENTATION
+   FLUENSEA DESIGN SYSTEM
    
-   Visual Direction: "Classic Library" - Forest green walls, mahogany furniture, brass accents
+   Visual Direction: "Ocean Immersion" - Deep sea depths, turquoise currents, sandy warmth
+   
+   BRAND PHILOSOPHY:
+   - Learning as immersion: Dive into language like exploring the ocean
+   - Flow & waves: Language ebbs and flows like ocean currents
+   - Depth & discovery: The deeper you go, the more richness you uncover
+   - Currents & guidance: The app guides users along structured learning currents
    
    COLOR PHILOSOPHY:
-   - Background: Deep mahogany & forest green
-   - Text: Warm parchment (#f5e6d3) - never pure white  
-   - Primary: Forest green for main UI elements
-   - Accent: Brass/gold - used sparingly for emphasis only
+   - Background: Deep midnight navy (#0B1C2C) - ocean depths
+   - Text: Warm sand (#F5E6D3) - never pure white
+   - Primary: Turquoise (#2AA9A0) - clarity, energy, learning
+   - Secondary: Teal (#1D6F6F) - balance, calm, comprehension
+   - Accent: Sand/coral - warmth, used sparingly for emphasis
    - Never more than 3 colors visible at once
    
    TYPOGRAPHY:
    - Headlines: font-light (300) for elegance, tracking-tight
-   - Body: serif font for classic library feel
+   - Body: serif font for classic feel with modern twist
    - Accents: font-serif italic for emotional moments
    - Scale: 14px base, 1.5 line height
    - Hero headlines: 72-96px, single powerful statement
@@ -44,21 +53,20 @@ import {
    MOTION SYSTEM:
    - Easing: cubic-bezier(0.16, 1, 0.3, 1) - Apple's ease-out
    - Duration: 600-1000ms for reveals, 300ms for interactions
-   - Stagger: 100ms between sequential elements
-   - Scroll reveals: fade + translateY(40px)
+   - Wave-like staggering for sequential elements
+   - Ocean-inspired transitions: dive-in, ripple, current-flow
    
-   DESIGN PRINCIPLES:
-   1. One idea per section
-   2. Generous negative space
-   3. Restrained color usage - forest green & brass accents
-   4. Subtle, purposeful motion
-   5. Zero visual clutter
-   6. Tactile, library-like borders and textures
+   OCEAN METAPHORS IN UX:
+   - Wave-like lesson progression
+   - Currents for AI-guided paths
+   - Dive animation when starting lessons
+   - Bubble/ripple effects for feedback
+   - Depth levels: surface → mid-water → deep ocean
    
    UI COPY TONE:
-   - Concise, confident, restrained
-   - No exclamation marks
-   - Short sentences
+   - Calming, immersive, encouraging
+   - Ocean metaphors where natural
+   - Short, flowing sentences
    - Action-oriented CTAs
 ============================================================================= */
 
@@ -66,38 +74,41 @@ export default function Home() {
   return (
     <main className="bg-background text-foreground antialiased">
       {/* ========== NAVIGATION ========== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b-2 border-library-forest">
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b border-ocean-turquoise/20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105">
+              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 bg-background/90 border-b border-ocean-turquoise/20 flex items-center justify-center">
                 <Image
                   src="/logo.png"
-                  alt="Fluency Next"
-                  width={36}
-                  height={36}
-                  className="w-full h-full object-contain"
+                  alt="Fluensea Logo"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 object-contain"
+                  priority
                 />
               </div>
-              <span className="text-lg font-medium">Fluency Next</span>
+              <span className="text-lg font-medium text-gradient-turquoise">
+                Fluensea
+              </span>
             </Link>
 
             <div className="flex items-center gap-6">
               <Link
                 href="/pricing"
-                className="text-sm font-medium text-muted-foreground hover:text-library-gold transition-colors duration-300"
+                className="text-sm font-medium text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
               >
                 Pricing
               </Link>
               <Link
                 href="/auth/login"
-                className="text-sm font-medium text-muted-foreground hover:text-library-gold transition-colors duration-300"
+                className="text-sm font-medium text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
               >
                 Sign in
               </Link>
               <Link href="/auth/signup">
                 <Button size="sm" className="rounded-full px-5 font-medium">
-                  Get started
+                  Dive in
                 </Button>
               </Link>
             </div>
@@ -107,32 +118,34 @@ export default function Home() {
 
       {/* ========== HERO SECTION ========== */}
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-16 overflow-hidden">
-        {/* Ambient background */}
+        {/* Ocean ambient background */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-library-brass/[0.03] rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-library-forest/[0.04] rounded-full blur-[100px]" />
+          <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-ocean-turquoise/[0.05] rounded-full blur-[120px] animate-pulse-glow" />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-ocean-teal/[0.06] rounded-full blur-[100px]" />
+          <div className="absolute top-2/3 right-1/3 w-[300px] h-[300px] bg-ocean-turquoise/[0.03] rounded-full blur-[80px] animate-float" />
         </div>
 
         <div className="max-w-4xl mx-auto text-center">
           <ScrollReveal delay={100}>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-8">
-              Language Acquisition
+            <p className="text-sm font-light tracking-[0.2em] uppercase text-ocean-turquoise mb-8">
+              Immersive Language Learning
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight leading-[1.1] mb-8">
-              Discipline now.
+              Dive into
               <br />
-              <span className="font-serif italic text-library-brass">
-                Fluency next.
+              <span className="font-serif italic text-gradient-turquoise">
+                fluency.
               </span>
             </h1>
           </ScrollReveal>
 
           <ScrollReveal delay={400}>
             <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-xl mx-auto mb-12 leading-relaxed">
-              Build consistency. Master comprehension. Speak with confidence.
+              Immerse yourself in language. Flow with the currents of
+              comprehension. Surface with confidence.
             </p>
           </ScrollReveal>
 
@@ -143,7 +156,7 @@ export default function Home() {
                   size="lg"
                   className="h-14 px-8 text-base font-medium rounded-full group"
                 >
-                  Start learning free
+                  Start your journey
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
@@ -179,27 +192,27 @@ export default function Home() {
       <section className="py-40 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <ScrollReveal>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-8">
-              The Problem
+            <p className="text-sm font-light tracking-[0.2em] uppercase text-ocean-turquoise mb-8">
+              The Philosophy
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={100}>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.3] mb-8">
-              Fluency isn't magic.
+              Language flows like the ocean.
               <br />
               <span className="text-muted-foreground">
-                It's daily discipline.
+                Immerse yourself completely.
               </span>
             </h2>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
             <p className="text-lg text-muted-foreground font-light leading-relaxed">
-              Fluency Next is built on proven science and consistent practice.
-              Show up daily, embrace comprehensible input, and speak from real
-              understanding. The work you put in today becomes the fluency you
-              have tomorrow.
+              Fluensea is built on the science of immersion. Just like diving
+              into the ocean, you'll be surrounded by comprehensible input. The
+              waves of practice ebb and flow, and with each session, you dive
+              deeper into fluency.
             </p>
           </ScrollReveal>
         </div>
@@ -209,14 +222,14 @@ export default function Home() {
       <section className="py-32 px-6 bg-muted/30">
         <div className="max-w-5xl mx-auto">
           <ScrollReveal>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-8 text-center">
+            <p className="text-sm font-light tracking-[0.2em] uppercase text-ocean-turquoise mb-8 text-center">
               How It Works
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={100}>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-light text-center mb-20">
-              Four steps. Every lesson.
+              Four waves. Every lesson.
             </h2>
           </ScrollReveal>
 
@@ -224,30 +237,30 @@ export default function Home() {
           <ScrollReveal delay={200}>
             <div className="relative">
               {/* Demo Preview */}
-              <div className="bg-card border border-border rounded-3xl p-8 md:p-12 shadow-luxury-xl overflow-hidden">
+              <div className="bg-card border border-ocean-turquoise/20 rounded-3xl p-8 md:p-12 shadow-luxury-xl overflow-hidden">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                   {/* Left: Steps */}
                   <div className="space-y-8">
                     {[
                       {
                         icon: Volume2,
-                        title: "Listen first",
-                        desc: "Hear the story before seeing text",
+                        title: "Listen & absorb",
+                        desc: "Let the language wash over you first",
                       },
                       {
                         icon: Brain,
-                        title: "Understand in context",
-                        desc: "95% familiar, 5% new — the sweet spot",
+                        title: "Flow with context",
+                        desc: "95% familiar, 5% new — ride the current",
                       },
                       {
                         icon: Mic,
-                        title: "Speak from meaning",
-                        desc: "Not memorized phrases, real comprehension",
+                        title: "Surface & speak",
+                        desc: "Express from real understanding",
                       },
                       {
                         icon: RotateCcw,
-                        title: "Review and grow",
-                        desc: "Spaced repetition locks it in",
+                        title: "Dive deeper",
+                        desc: "Spaced repetition guides your depth",
                       },
                     ].map((step, i) => (
                       <ScrollReveal
@@ -256,8 +269,8 @@ export default function Home() {
                         direction="left"
                       >
                         <div className="flex items-start gap-5 group">
-                          <div className="w-12 h-12 rounded-xl bg-library-brass/10 flex items-center justify-center flex-shrink-0 transition-colors duration-300 group-hover:bg-library-brass/20">
-                            <step.icon className="h-5 w-5 text-library-brass" />
+                          <div className="w-12 h-12 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center flex-shrink-0 transition-colors duration-300 group-hover:bg-ocean-turquoise/20">
+                            <step.icon className="h-5 w-5 text-ocean-turquoise" />
                           </div>
                           <div>
                             <h3 className="text-lg font-medium mb-1">
@@ -274,12 +287,12 @@ export default function Home() {
 
                   {/* Right: Lesson Preview */}
                   <ScrollReveal delay={400} direction="right">
-                    <div className="bg-background rounded-2xl border border-border p-6 shadow-luxury">
+                    <div className="bg-background rounded-2xl border border-ocean-turquoise/20 p-6 shadow-luxury">
                       <div className="flex items-center justify-between mb-6">
                         <span className="text-xs font-light tracking-wider uppercase text-muted-foreground">
                           Lesson Preview
                         </span>
-                        <span className="text-xs text-library-brass">
+                        <span className="text-xs text-ocean-turquoise">
                           A1 • Beginner
                         </span>
                       </div>
@@ -291,12 +304,12 @@ export default function Home() {
                       </div>
 
                       <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
-                        <div className="w-10 h-10 rounded-full bg-library-brass flex items-center justify-center">
-                          <Play className="h-4 w-4 text-background ml-0.5" />
+                        <div className="w-10 h-10 rounded-full bg-ocean-turquoise flex items-center justify-center">
+                          <Play className="h-4 w-4 text-ocean-midnight ml-0.5" />
                         </div>
                         <div className="flex-1">
                           <div className="h-1.5 bg-muted-foreground/20 rounded-full">
-                            <div className="h-1.5 bg-library-brass rounded-full w-1/3" />
+                            <div className="h-1.5 bg-ocean-turquoise rounded-full w-1/3" />
                           </div>
                         </div>
                         <span className="text-xs text-muted-foreground">
@@ -327,7 +340,7 @@ export default function Home() {
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
                   Put in the reps.
                   <br />
-                  <span className="font-serif italic text-library-brass">
+                  <span className="font-serif italic text-ocean-turquoise">
                     Earn the results.
                   </span>
                 </h2>
@@ -345,13 +358,13 @@ export default function Home() {
               <ScrollReveal delay={300}>
                 <div className="flex items-center gap-6 pt-4">
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-library-brass" />
+                    <Check className="h-4 w-4 text-ocean-turquoise" />
                     <span className="text-sm font-light">
                       Comprehensible input
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-library-brass" />
+                    <Check className="h-4 w-4 text-ocean-turquoise" />
                     <span className="text-sm font-light">
                       Spaced repetition
                     </span>
@@ -364,7 +377,7 @@ export default function Home() {
               <div className="relative">
                 <div className="bg-card border border-border rounded-2xl p-8 shadow-luxury">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-2 h-2 rounded-full bg-library-brass" />
+                    <div className="w-2 h-2 rounded-full bg-ocean-turquoise" />
                     <span className="text-sm text-muted-foreground font-light">
                       Your progress
                     </span>
@@ -374,37 +387,37 @@ export default function Home() {
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span className="font-light">Known vocabulary</span>
-                        <span className="text-library-brass">847 words</span>
+                        <span className="text-ocean-turquoise">847 words</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full">
-                        <div className="h-2 bg-library-brass rounded-full w-3/4 transition-all duration-1000" />
+                        <div className="h-2 bg-ocean-turquoise rounded-full w-3/4 transition-all duration-1000" />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span className="font-light">Comprehension</span>
-                        <span className="text-library-brass">A2</span>
+                        <span className="text-ocean-turquoise">A2</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full">
-                        <div className="h-2 bg-library-brass rounded-full w-1/2 transition-all duration-1000" />
+                        <div className="h-2 bg-ocean-turquoise rounded-full w-1/2 transition-all duration-1000" />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span className="font-light">Speaking confidence</span>
-                        <span className="text-library-brass">72%</span>
+                        <span className="text-ocean-turquoise">72%</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full">
-                        <div className="h-2 bg-library-brass rounded-full w-[72%] transition-all duration-1000" />
+                        <div className="h-2 bg-ocean-turquoise rounded-full w-[72%] transition-all duration-1000" />
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Decorative glow */}
-                <div className="absolute -inset-4 bg-library-brass/5 rounded-3xl blur-2xl -z-10" />
+                <div className="absolute -inset-4 bg-ocean-turquoise/5 rounded-3xl blur-2xl -z-10" />
               </div>
             </ScrollReveal>
           </div>
@@ -425,7 +438,7 @@ export default function Home() {
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
                 Decades of research.
                 <br />
-                <span className="font-serif italic text-library-brass">
+                <span className="font-serif italic text-ocean-turquoise">
                   One proven method.
                 </span>
               </h2>
@@ -444,8 +457,8 @@ export default function Home() {
           {/* Core Principles Grid */}
           <div className="grid md:grid-cols-3 gap-6 mb-20">
             <ScrollReveal delay={300}>
-              <div className="bg-card border border-library-forest/20 rounded-2xl p-8 hover:border-library-forest/40 transition-colors duration-300">
-                <div className="text-4xl font-light text-library-forest mb-4">
+              <div className="bg-card border border-ocean-teal/20 rounded-2xl p-8 hover:border-ocean-teal/40 transition-colors duration-300">
+                <div className="text-4xl font-light text-ocean-teal mb-4">
                   95-98%
                 </div>
                 <h3 className="text-lg font-medium mb-3">
@@ -460,7 +473,7 @@ export default function Home() {
 
             <ScrollReveal delay={400}>
               <div className="bg-card border border-border rounded-2xl p-8">
-                <div className="text-4xl font-light text-library-brass mb-4">
+                <div className="text-4xl font-light text-ocean-turquoise mb-4">
                   95%+
                 </div>
                 <h3 className="text-lg font-medium mb-3">Retention Rate</h3>
@@ -472,8 +485,8 @@ export default function Home() {
             </ScrollReveal>
 
             <ScrollReveal delay={500}>
-              <div className="bg-card border border-library-forest/20 rounded-2xl p-8 hover:border-library-forest/40 transition-colors duration-300">
-                <div className="text-4xl font-light text-library-forest mb-4">
+              <div className="bg-card border border-ocean-teal/20 rounded-2xl p-8 hover:border-ocean-teal/40 transition-colors duration-300">
+                <div className="text-4xl font-light text-ocean-teal mb-4">
                   3x
                 </div>
                 <h3 className="text-lg font-medium mb-3">Faster Proficiency</h3>
@@ -491,7 +504,7 @@ export default function Home() {
               <div className="mb-8">
                 <h3 className="text-2xl font-light mb-2">
                   The{" "}
-                  <span className="font-serif italic text-library-brass">
+                  <span className="font-serif italic text-ocean-turquoise">
                     forgetting curve
                   </span>
                 </h3>
@@ -596,7 +609,7 @@ export default function Home() {
                     <path
                       d="M 80 50 Q 140 80, 200 140"
                       fill="none"
-                      stroke="hsl(var(--library-brass))"
+                      stroke="hsl(var(--ocean-turquoise))"
                       strokeWidth="3"
                       className="opacity-80"
                     />
@@ -604,7 +617,7 @@ export default function Home() {
                     <path
                       d="M 200 140 L 200 55 Q 280 85, 360 145"
                       fill="none"
-                      stroke="hsl(var(--library-brass))"
+                      stroke="hsl(var(--ocean-turquoise))"
                       strokeWidth="3"
                       className="opacity-80"
                     />
@@ -612,7 +625,7 @@ export default function Home() {
                     <path
                       d="M 360 145 L 360 60 Q 460 90, 540 150"
                       fill="none"
-                      stroke="hsl(var(--library-brass))"
+                      stroke="hsl(var(--ocean-turquoise))"
                       strokeWidth="3"
                       className="opacity-80"
                     />
@@ -620,34 +633,19 @@ export default function Home() {
                     <path
                       d="M 540 150 L 540 65 Q 640 85, 720 115"
                       fill="none"
-                      stroke="hsl(var(--library-brass))"
+                      stroke="hsl(var(--ocean-turquoise))"
                       strokeWidth="3"
                       className="opacity-80"
                     />
                   </g>
 
                   {/* Review point markers */}
-                  <circle
-                    cx="200"
-                    cy="55"
-                    r="4"
-                    className="fill-library-forest"
-                  />
-                  <circle
-                    cx="360"
-                    cy="60"
-                    r="4"
-                    className="fill-library-forest"
-                  />
-                  <circle
-                    cx="540"
-                    cy="65"
-                    r="4"
-                    className="fill-library-forest"
-                  />
+                  <circle cx="200" cy="55" r="4" className="fill-ocean-teal" />
+                  <circle cx="360" cy="60" r="4" className="fill-ocean-teal" />
+                  <circle cx="540" cy="65" r="4" className="fill-ocean-teal" />
 
                   {/* Annotations */}
-                  <g className="text-[11px] fill-library-forest font-light">
+                  <g className="text-[11px] fill-ocean-teal font-light">
                     <text x="210" y="45">
                       Review 1
                     </text>
@@ -666,7 +664,7 @@ export default function Home() {
                       y1="0"
                       x2="30"
                       y2="0"
-                      stroke="hsl(var(--library-brass))"
+                      stroke="hsl(var(--ocean-turquoise))"
                       strokeWidth="3"
                     />
                     <text
@@ -700,7 +698,7 @@ export default function Home() {
 
               <div className="mt-8 pt-8 border-t border-border">
                 <p className="text-sm text-muted-foreground font-light text-center max-w-2xl mx-auto">
-                  Fluency Next automatically schedules vocabulary reviews at
+                  Fluensea automatically schedules vocabulary reviews at
                   scientifically optimal intervals — right before you'd forget.
                   This keeps words accessible while minimizing review time.
                 </p>
@@ -723,7 +721,7 @@ export default function Home() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
               Your commitment matters.
               <br />
-              <span className="font-serif italic text-library-brass">
+              <span className="font-serif italic text-ocean-turquoise">
                 We reward it.
               </span>
             </h2>
@@ -750,7 +748,7 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground font-light mb-1">
                   Your reward
                 </p>
-                <p className="text-2xl font-light text-library-brass">
+                <p className="text-2xl font-light text-ocean-turquoise">
                   50% cashback
                 </p>
               </div>
@@ -764,11 +762,11 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <ScrollReveal>
             <div className="relative">
-              <Quote className="h-12 w-12 text-library-brass/20 mb-8" />
+              <Quote className="h-12 w-12 text-ocean-turquoise/20 mb-8" />
 
               <blockquote className="text-2xl sm:text-3xl md:text-4xl font-light leading-relaxed mb-8">
                 I stopped looking for shortcuts and just showed up every day.
-                <span className="font-serif italic text-library-brass">
+                <span className="font-serif italic text-ocean-turquoise">
                   {" "}
                   Six months later
                 </span>
@@ -793,23 +791,24 @@ export default function Home() {
       <section className="py-40 px-6 relative overflow-hidden">
         {/* Ambient background */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-library-brass/[0.03] rounded-full blur-[150px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-ocean-turquoise/[0.03] rounded-full blur-[150px]" />
         </div>
 
         <div className="max-w-3xl mx-auto text-center">
           <ScrollReveal>
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light leading-[1.2] mb-8">
-              Ready to commit?
+              Ready to dive in?
               <br />
-              <span className="font-serif italic text-library-brass">
-                Start today.
+              <span className="font-serif italic text-gradient-turquoise">
+                Take the plunge.
               </span>
             </h2>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
             <p className="text-lg text-muted-foreground font-light mb-12 max-w-lg mx-auto">
-              Your first lesson is waiting. No credit card. Just discipline.
+              Your first lesson awaits beneath the surface. No credit card
+              required.
             </p>
           </ScrollReveal>
 
@@ -817,7 +816,7 @@ export default function Home() {
             <Link href="/auth/signup">
               <Button
                 size="lg"
-                className="bg-library-brass text-background hover:bg-library-brass/90 h-16 px-12 text-lg font-light rounded-full group"
+                className="h-16 px-12 text-lg font-light rounded-full group"
               >
                 Begin your journey
                 <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
@@ -828,51 +827,54 @@ export default function Home() {
       </section>
 
       {/* ========== FOOTER ========== */}
-      <footer className="py-16 px-6 border-t border-border/50">
+      <footer className="py-16 px-6 border-t border-ocean-turquoise/20">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg overflow-hidden">
+              <div className="w-8 h-8 rounded-lg overflow-hidden bg-background flex items-center justify-center">
                 <Image
                   src="/logo.png"
-                  alt="Fluency Next"
-                  width={32}
-                  height={32}
-                  className="w-full h-full object-contain"
+                  alt="Fluensea Logo"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6 object-contain"
+                  priority
                 />
               </div>
-              <span className="font-light">Fluency Next</span>
+              <span className="font-light text-gradient-turquoise">
+                Fluensea
+              </span>
             </div>
 
             <div className="flex items-center gap-8">
               <Link
                 href="/about"
-                className="text-sm text-muted-foreground hover:text-foreground font-light transition-colors"
+                className="text-sm text-muted-foreground hover:text-ocean-turquoise font-light transition-colors"
               >
                 About
               </Link>
               <Link
                 href="/pricing"
-                className="text-sm text-muted-foreground hover:text-foreground font-light transition-colors"
+                className="text-sm text-muted-foreground hover:text-ocean-turquoise font-light transition-colors"
               >
                 Pricing
               </Link>
               <Link
                 href="/blog"
-                className="text-sm text-muted-foreground hover:text-foreground font-light transition-colors"
+                className="text-sm text-muted-foreground hover:text-ocean-turquoise font-light transition-colors"
               >
                 Blog
               </Link>
               <Link
                 href="/support"
-                className="text-sm text-muted-foreground hover:text-foreground font-light transition-colors"
+                className="text-sm text-muted-foreground hover:text-ocean-turquoise font-light transition-colors"
               >
                 Support
               </Link>
             </div>
 
             <p className="text-sm text-muted-foreground/60 font-light">
-              © 2026 Fluency Next
+              © 2026 Fluensea
             </p>
           </div>
         </div>

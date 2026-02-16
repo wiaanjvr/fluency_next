@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signup, signInWithOAuth } from "../actions";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Waves } from "lucide-react";
 
 export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
@@ -104,36 +103,35 @@ export default function SignUpPage() {
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-xl overflow-hidden bg-background">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-foreground flex items-center justify-center">
               <Image
                 src="/logo.png"
-                alt="Fluency Next"
-                width={40}
-                height={40}
-                className="w-full h-full object-contain"
+                alt="Fluensea Logo"
+                width={32}
+                height={32}
+                className="w-8 h-8 object-contain"
+                priority
               />
             </div>
-            <span className="text-2xl font-light tracking-tight">
-              Fluency Next
-            </span>
+            <span className="text-2xl font-light tracking-tight">Fluensea</span>
           </Link>
         </div>
 
         <div className="relative z-10 space-y-6">
           <h1 className="text-5xl font-light leading-tight">
-            Begin your journey to
+            Dive into
             <br />
-            <span className="font-serif italic">Language mastery</span>
+            <span className="font-serif italic">language mastery</span>
           </h1>
           <p className="text-lg font-light text-background/80 max-w-md">
-            Join a community of committed learners building fluency through
-            discipline and comprehensible input.
+            Join a community of learners immersing themselves in language. Flow
+            with the currents of comprehension.
           </p>
         </div>
 
         <div className="relative z-10">
           <p className="text-sm font-light text-background/60">
-            © 2026 Fluency Next. Discipline now. Fluency next.
+            © 2026 Fluensea. Dive into fluency.
           </p>
         </div>
       </div>
@@ -146,7 +144,7 @@ export default function SignUpPage() {
               Create account
             </h2>
             <p className="text-muted-foreground font-light">
-              Start your French learning journey today
+              Start your immersive learning journey today
             </p>
           </div>
 

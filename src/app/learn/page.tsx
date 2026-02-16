@@ -223,7 +223,7 @@ export default function LearnPage() {
           <div className="space-y-3">
             <h1 className="text-4xl sm:text-5xl font-light tracking-tight">
               Practice{" "}
-              <span className="font-serif italic text-library-brass">
+              <span className="font-serif italic text-ocean-turquoise">
                 session
               </span>
             </h1>
@@ -245,15 +245,15 @@ export default function LearnPage() {
           <div className="mb-12">
             <div className="bg-card border border-border rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 rounded-xl bg-library-forest/10 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-library-forest" />
+                <div className="w-10 h-10 rounded-xl bg-ocean-teal/10 flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-ocean-teal" />
                 </div>
                 <h2 className="text-xl font-medium">Vocabulary Progress</h2>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div className="p-5 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="text-3xl font-light text-library-brass mb-1">
+                  <div className="text-3xl font-light text-ocean-turquoise mb-1">
                     {stats.total}
                   </div>
                   <div className="text-sm text-muted-foreground font-light">
@@ -262,7 +262,7 @@ export default function LearnPage() {
                 </div>
 
                 <div className="p-5 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="text-3xl font-light text-library-brass mb-1">
+                  <div className="text-3xl font-light text-ocean-turquoise mb-1">
                     {stats.learning}
                   </div>
                   <div className="text-sm text-muted-foreground font-light">
@@ -271,7 +271,7 @@ export default function LearnPage() {
                 </div>
 
                 <div className="p-5 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="text-3xl font-light text-library-brass mb-1">
+                  <div className="text-3xl font-light text-ocean-turquoise mb-1">
                     {stats.known}
                   </div>
                   <div className="text-sm text-muted-foreground font-light">
@@ -280,7 +280,7 @@ export default function LearnPage() {
                 </div>
 
                 <div className="p-5 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="text-3xl font-light text-library-brass mb-1">
+                  <div className="text-3xl font-light text-ocean-turquoise mb-1">
                     {stats.mastered}
                   </div>
                   <div className="text-sm text-muted-foreground font-light flex items-center gap-1.5">
@@ -290,7 +290,7 @@ export default function LearnPage() {
                 </div>
 
                 <div className="p-5 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="text-3xl font-light text-library-brass mb-1">
+                  <div className="text-3xl font-light text-ocean-turquoise mb-1">
                     {stats.ignored || 0}
                   </div>
                   <div className="text-sm text-muted-foreground font-light">
@@ -350,10 +350,10 @@ export default function LearnPage() {
         {/* Generate New Story */}
         <div className="bg-card border border-border rounded-2xl p-10 relative overflow-hidden mb-12">
           {/* Ambient gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-library-brass/5 via-transparent to-luxury-bronze/5" />
+          <div className="absolute inset-0 bg-gradient-to-br from-ocean-turquoise/5 via-transparent to-ocean-teal/5" />
 
           <div className="relative z-10 space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-forest/10 text-library-forest">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ocean-teal/10 text-ocean-teal">
               <Target className="h-4 w-4" />
               <span className="text-sm font-medium">Ready to Learn</span>
             </div>
@@ -361,7 +361,7 @@ export default function LearnPage() {
             <div className="space-y-3">
               <h2 className="text-3xl font-light tracking-tight">
                 Begin your{" "}
-                <span className="font-serif italic text-library-brass">
+                <span className="font-serif italic text-ocean-turquoise">
                   session
                 </span>
               </h2>
@@ -371,7 +371,7 @@ export default function LearnPage() {
                 prioritizing words due for review.
               </p>
               {stats && stats.total >= VOCABULARY_THRESHOLD && (
-                <p className="text-sm text-library-brass/80 font-medium">
+                <p className="text-sm text-ocean-turquoise/80 font-medium">
                   🎉 {stats.total} words learned — custom topics unlocked!
                 </p>
               )}
@@ -393,7 +393,7 @@ export default function LearnPage() {
                     {/* Custom Topic Input */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium flex items-center gap-2">
-                        <MessageSquare className="h-4 w-4 text-library-brass" />
+                        <MessageSquare className="h-4 w-4 text-ocean-turquoise" />
                         What&apos;s on your mind?
                       </label>
                       <p className="text-xs text-muted-foreground">
@@ -403,7 +403,7 @@ export default function LearnPage() {
                         value={customPrompt}
                         onChange={(e) => setCustomPrompt(e.target.value)}
                         placeholder="e.g., going to the cinema, cooking dinner, a day at the beach..."
-                        className="w-full p-3 rounded-xl bg-muted/50 border border-border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-library-brass/50 min-h-[80px]"
+                        className="w-full p-3 rounded-xl bg-muted/50 border border-border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ocean-turquoise/50 min-h-[80px]"
                         maxLength={200}
                       />
                       <div className="text-xs text-muted-foreground text-right">
@@ -430,8 +430,8 @@ export default function LearnPage() {
                             }
                             className={`p-3 rounded-xl border text-left transition-all ${
                               selectedContentType === type.id
-                                ? "border-library-brass bg-library-brass/10"
-                                : "border-border hover:border-library-brass/50"
+                                ? "border-ocean-turquoise bg-ocean-turquoise/10"
+                                : "border-border hover:border-ocean-turquoise/50"
                             }`}
                           >
                             <div className="text-sm font-medium">
@@ -452,7 +452,7 @@ export default function LearnPage() {
             <button
               onClick={handleGenerateStory}
               disabled={generating}
-              className="py-4 px-8 bg-library-brass hover:bg-library-brass/90 text-background font-medium rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50"
+              className="py-4 px-8 bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-ocean-midnight font-medium rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50"
             >
               {generating ? (
                 <>
@@ -480,7 +480,7 @@ export default function LearnPage() {
               <div className="p-5 rounded-xl bg-muted/50 border border-border">
                 <p className="text-sm font-light text-muted-foreground">
                   You have{" "}
-                  <span className="text-library-brass font-medium">
+                  <span className="text-ocean-turquoise font-medium">
                     {stats.dueForReview}
                   </span>{" "}
                   word
@@ -496,16 +496,16 @@ export default function LearnPage() {
         <div className="bg-card border border-border rounded-2xl p-8">
           <h3 className="text-2xl font-light tracking-tight mb-10">
             The{" "}
-            <span className="font-serif italic text-library-brass">method</span>
+            <span className="font-serif italic text-ocean-turquoise">
+              method
+            </span>
           </h3>
 
           <div className="space-y-10">
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-xl bg-library-forest/10 flex items-center justify-center">
-                  <span className="text-lg font-light text-library-forest">
-                    01
-                  </span>
+                <div className="w-12 h-12 rounded-xl bg-ocean-teal/10 flex items-center justify-center">
+                  <span className="text-lg font-light text-ocean-teal">01</span>
                 </div>
               </div>
               <div className="pt-1">
@@ -521,10 +521,8 @@ export default function LearnPage() {
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-xl bg-library-forest/10 flex items-center justify-center">
-                  <span className="text-lg font-light text-library-forest">
-                    02
-                  </span>
+                <div className="w-12 h-12 rounded-xl bg-ocean-teal/10 flex items-center justify-center">
+                  <span className="text-lg font-light text-ocean-teal">02</span>
                 </div>
               </div>
               <div className="pt-1">
@@ -540,10 +538,8 @@ export default function LearnPage() {
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-xl bg-library-forest/10 flex items-center justify-center">
-                  <span className="text-lg font-light text-library-forest">
-                    03
-                  </span>
+                <div className="w-12 h-12 rounded-xl bg-ocean-teal/10 flex items-center justify-center">
+                  <span className="text-lg font-light text-ocean-teal">03</span>
                 </div>
               </div>
               <div className="pt-1">

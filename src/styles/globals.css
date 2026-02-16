@@ -4,115 +4,147 @@
 
 @layer base {
   :root {
-    /* Classic Library Theme - Forest green walls with rich mahogany */
-    --background: 28 28% 18%; /* #3a2c1c - Deep mahogany base */
-    --foreground: 40 35% 95%; /* #f5e6d3 - Parchment for primary text */
-    --muted: 155 25% 22%; /* #2c3a2c - Elevated surfaces (cards/sidebars) */
+    /* Fluensea Ocean Theme - Immersive learning experience */
+    --background: 205 60% 8%; /* #0B1C2C - Deep midnight ocean base */
+    --foreground: 40 35% 95%; /* #f5e6d3 - Warm sand for primary text */
+    --muted: 190 40% 15%; /* Deep ocean surfaces (cards/sidebars) */
     --muted-foreground: 40 20% 75%; /* #d3c6a3 - Secondary text */
-    --popover: 28 30% 16%;
+    --popover: 205 55% 10%;
     --popover-foreground: 40 35% 95%;
-    --card: 155 25% 22%; /* Use muted for cards - creates subtle elevation */
+    --card: 195 45% 14%; /* Ocean surface cards - creates subtle elevation */
     --card-foreground: 40 35% 95%;
-    --border: 45 60% 58%; /* Brass borders for premium feel */
-    --input: 28 22% 20%;
+    --border: 175 50% 45%; /* Turquoise borders for ocean feel */
+    --input: 205 45% 12%;
 
-    /* Premium accent colors - Gold primary, Brass secondary */
-    --primary: 42 70% 65%; /* #e6c94a - Gold for primary CTAs */
-    --primary-foreground: 28 28% 18%; /* Dark text on gold */
-    --secondary: 45 60% 58%; /* #bfa563 - Brass for secondary actions */
-    --secondary-foreground: 28 28% 18%; /* Dark text on brass */
-    --accent: 155 35% 32%; /* Forest green for accents/active states */
-    --accent-foreground: 40 35% 95%;
+    /* Primary CTAs - Turquoise for clarity and energy */
+    --primary: 175 55% 50%; /* #2AA9A0 - Turquoise for primary CTAs */
+    --primary-foreground: 205 60% 8%; /* Dark text on turquoise */
+    --secondary: 180 35% 35%; /* #1D6F6F - Teal for secondary actions */
+    --secondary-foreground: 40 35% 95%; /* Light text on teal */
+    --accent: 175 55% 50%; /* Turquoise for accents/active states */
+    --accent-foreground: 205 60% 8%;
 
-    --destructive: 0 45% 20%; /* #4a1c1c - Oxblood for errors */
+    --destructive: 0 45% 35%; /* Coral red for errors */
     --destructive-foreground: 40 35% 95%;
-    --ring: 42 70% 65%; /* Gold ring for focus states */
-    --radius: 1rem; /* Increased from 0.75rem for rounder corners */
+    --ring: 175 55% 50%; /* Turquoise ring for focus states */
+    --radius: 1rem;
 
-    /* Classic library palette - Forest green & mahogany */
-    --library-forest: 155 35% 32%; /* #2c5a3a - Active states, success */
-    --library-forest-light: 155 30% 42%;
-    --library-forest-dark: 155 40% 22%;
-    --library-mahogany: 28 35% 22%; /* #5a3c2c - Use sparingly, large blocks only */
-    --library-mahogany-light: 28 30% 32%;
-    --library-mahogany-dark: 28 40% 15%;
-    --library-brass: 45 60% 58%; /* #bfa563 - Secondary buttons, borders */
-    --library-brass-light: 45 55% 68%;
-    --library-gold: 42 70% 65%; /* #e6c94a - Primary CTAs */
-    --library-parchment: 40 45% 90%; /* #f5e6d3 - Primary text */
-    --library-oxblood: 0 45% 20%; /* #4a1c1c - Danger/errors */
+    /* Ocean palette - Deep sea to surface */
+    --ocean-midnight: 205 60% 10%; /* Deep navy - trust, depth */
+    --ocean-midnight-light: 205 50% 20%;
+    --ocean-midnight-dark: 205 70% 5%;
+    --ocean-turquoise: 175 55% 50%; /* Turquoise - clarity, energy, learning */
+    --ocean-turquoise-light: 175 50% 60%;
+    --ocean-turquoise-dark: 175 60% 40%;
+    --ocean-teal: 180 55% 35%; /* Teal - balance, calm, comprehension */
+    --ocean-teal-light: 180 45% 45%;
+    --ocean-teal-dark: 180 60% 25%;
+    --ocean-sand: 38 45% 85%; /* Warm sand - accents, warmth */
+    --ocean-sand-light: 38 50% 92%;
+    --ocean-foam: 0 0% 98%; /* Wave foam - highlights, readability */
+    --ocean-coral: 16 80% 60%; /* Coral accent - warm highlights */
+    --ocean-abyss: 210 70% 5%; /* Deep abyss - darkest backgrounds */
+
+    /* Legacy library mappings for compatibility */
+    --library-forest: 180 55% 35%; /* Maps to teal */
+    --library-forest-light: 180 45% 45%;
+    --library-forest-dark: 180 60% 25%;
+    --library-mahogany: 205 60% 10%; /* Maps to midnight */
+    --library-mahogany-light: 205 50% 20%;
+    --library-mahogany-dark: 205 70% 5%;
+    --library-brass: 175 55% 50%; /* Maps to turquoise */
+    --library-brass-light: 175 50% 60%;
+    --library-gold: 38 45% 85%; /* Maps to sand */
+    --library-parchment: 40 35% 95%;
+    --library-oxblood: 0 45% 35%;
 
     /* Legacy luxury colors for compatibility */
-    --luxury-cognac: 45 55% 55%;
-    --luxury-cognac-light: 45 50% 65%;
-    --luxury-champagne: 40 40% 75%;
-    --luxury-carbon: 0 0% 15%;
-    --luxury-chrome: 40 20% 85%;
-    --luxury-bronze: 35 45% 50%;
-    --luxury-amber: 45 70% 60%;
-    --luxury-navy: 220 60% 30%;
-    --luxury-navy-light: 220 55% 40%;
-    --luxury-navy-dark: 220 65% 20%;
+    --luxury-cognac: 175 50% 50%;
+    --luxury-cognac-light: 175 45% 60%;
+    --luxury-champagne: 38 50% 85%;
+    --luxury-carbon: 210 50% 8%;
+    --luxury-chrome: 0 0% 95%;
+    --luxury-bronze: 175 40% 40%;
+    --luxury-amber: 38 60% 75%;
+    --luxury-navy: 205 60% 25%;
+    --luxury-navy-light: 205 50% 35%;
+    --luxury-navy-dark: 205 70% 15%;
 
     /* Success, warning, info */
-    --success: 155 35% 32%; /* Forest green for success */
+    --success: 175 55% 50%; /* Turquoise for success */
     --warning: 38 92% 50%;
-    --info: 217 91% 60%;
+    --info: 200 80% 55%;
   }
 
   .dark {
-    /* Classic Library Dark - Deep forest and mahogany */
-    --background: 28 35% 12%; /* Even deeper mahogany for dark mode */
-    --foreground: 40 35% 95%; /* Parchment */
-    --muted: 155 30% 18%; /* Elevated surfaces */
-    --muted-foreground: 40 20% 70%; /* Secondary text */
-    --popover: 28 35% 14%;
+    /* Fluensea Ocean Dark - Deep sea immersion */
+    --background: 210 70% 5%; /* Abyss - deepest ocean */
+    --foreground: 40 35% 95%; /* Warm sand text */
+    --muted: 200 50% 12%; /* Deep ocean surfaces */
+    --muted-foreground: 40 20% 70%;
+    --popover: 210 65% 7%;
     --popover-foreground: 40 35% 95%;
-    --card: 155 30% 18%; /* Use muted for cards */
+    --card: 200 50% 12%;
     --card-foreground: 40 35% 95%;
-    --border: 45 65% 60%; /* Brass borders */
-    --input: 28 25% 18%;
+    --border: 175 55% 50%; /* Turquoise borders */
+    --input: 210 55% 10%;
 
-    /* Premium accent colors for dark mode - Gold primary, Brass secondary */
-    --primary: 42 75% 68%; /* Slightly brighter gold for dark mode */
-    --primary-foreground: 28 35% 12%;
-    --secondary: 45 65% 60%; /* Brass */
-    --secondary-foreground: 28 35% 12%;
-    --accent: 155 40% 35%; /* Forest green accents */
-    --accent-foreground: 40 35% 95%;
+    /* Premium accent colors for dark mode */
+    --primary: 175 60% 55%; /* Brighter turquoise for dark mode */
+    --primary-foreground: 210 70% 5%;
+    --secondary: 180 40% 40%; /* Teal */
+    --secondary-foreground: 40 35% 95%;
+    --accent: 175 60% 55%; /* Turquoise accents */
+    --accent-foreground: 210 70% 5%;
 
-    --destructive: 0 50% 25%; /* Darker oxblood for dark mode */
+    --destructive: 0 50% 40%;
     --destructive-foreground: 40 35% 95%;
-    --ring: 42 75% 68%; /* Gold ring */
+    --ring: 175 60% 55%;
 
-    /* Classic library palette for dark mode */
-    --library-forest: 155 40% 35%; /* Active states, success */
-    --library-forest-light: 155 35% 45%;
-    --library-forest-dark: 155 45% 25%;
-    --library-mahogany: 28 40% 20%; /* Use sparingly */
-    --library-mahogany-light: 28 35% 28%;
-    --library-mahogany-dark: 28 45% 12%;
-    --library-brass: 45 65% 60%; /* Secondary buttons, borders */
-    --library-brass-light: 45 60% 70%;
-    --library-gold: 42 75% 68%; /* Primary CTAs */
-    --library-parchment: 40 50% 92%; /* Primary text */
-    --library-oxblood: 0 50% 25%; /* Danger/errors */
+    /* Ocean palette for dark mode */
+    --ocean-midnight: 205 65% 12%;
+    --ocean-midnight-light: 205 55% 22%;
+    --ocean-midnight-dark: 205 75% 6%;
+    --ocean-turquoise: 175 60% 55%;
+    --ocean-turquoise-light: 175 55% 65%;
+    --ocean-turquoise-dark: 175 65% 45%;
+    --ocean-teal: 180 50% 40%;
+    --ocean-teal-light: 180 45% 50%;
+    --ocean-teal-dark: 180 55% 30%;
+    --ocean-sand: 38 50% 88%;
+    --ocean-sand-light: 38 55% 95%;
+    --ocean-foam: 0 0% 100%;
+    --ocean-coral: 16 85% 65%;
+    --ocean-abyss: 210 75% 3%;
 
-    /* Legacy luxury colors for compatibility */
-    --luxury-cognac: 45 60% 50%;
-    --luxury-cognac-light: 45 55% 60%;
-    --luxury-champagne: 40 45% 70%;
-    --luxury-carbon: 0 0% 10%;
-    --luxury-chrome: 40 25% 85%;
-    --luxury-bronze: 35 50% 45%;
-    --luxury-amber: 45 75% 55%;
-    --luxury-navy: 220 65% 35%;
-    --luxury-navy-light: 220 60% 45%;
-    --luxury-navy-dark: 220 70% 25%;
+    /* Legacy library palette for dark mode */
+    --library-forest: 180 50% 40%;
+    --library-forest-light: 180 45% 50%;
+    --library-forest-dark: 180 55% 30%;
+    --library-mahogany: 205 65% 12%;
+    --library-mahogany-light: 205 55% 22%;
+    --library-mahogany-dark: 205 75% 6%;
+    --library-brass: 175 60% 55%;
+    --library-brass-light: 175 55% 65%;
+    --library-gold: 38 50% 88%;
+    --library-parchment: 40 50% 95%;
+    --library-oxblood: 0 50% 40%;
 
-    --success: 155 40% 35%; /* Forest green for success */
+    /* Legacy luxury colors for dark mode */
+    --luxury-cognac: 175 55% 55%;
+    --luxury-cognac-light: 175 50% 65%;
+    --luxury-champagne: 38 55% 80%;
+    --luxury-carbon: 210 60% 5%;
+    --luxury-chrome: 0 0% 95%;
+    --luxury-bronze: 175 45% 45%;
+    --luxury-amber: 38 65% 70%;
+    --luxury-navy: 205 65% 30%;
+    --luxury-navy-light: 205 55% 40%;
+    --luxury-navy-dark: 205 75% 20%;
+
+    --success: 175 60% 55%;
     --warning: 38 92% 60%;
-    --info: 217 91% 65%;
+    --info: 200 85% 60%;
   }
 
   * {
@@ -168,179 +200,291 @@
     scroll-snap-stop: always;
     min-height: 100vh;
   }
-}
+  /* removed stray closing brace */
 
-@layer utilities {
-  /* Glass morphism effect - Classic library */
-  .glass {
-    background: rgba(42, 65, 52, 0.85);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(180, 150, 100, 0.18);
-  }
+  @layer utilities {
+    /* Glass morphism effect - Ocean depth */
+    .glass {
+      background: rgba(15, 40, 55, 0.85);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(42, 169, 160, 0.18);
+    }
 
-  .glass-dark {
-    background: rgba(30, 45, 38, 0.85);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(160, 130, 80, 0.22);
-  }
+    .glass-dark {
+      background: rgba(10, 28, 38, 0.88);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(42, 169, 160, 0.22);
+    }
 
-  /* Premium frosted glass */
-  .glass-luxury {
-    background: linear-gradient(
-      135deg,
-      rgba(42, 65, 52, 0.95) 0%,
-      rgba(35, 52, 42, 0.92) 100%
-    );
-    backdrop-filter: blur(32px) saturate(200%);
-    -webkit-backdrop-filter: blur(32px) saturate(200%);
-    border: 1px solid rgba(180, 150, 100, 0.2);
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(200, 170, 120, 0.15);
-  }
+    /* Premium frosted glass - Deep ocean */
+    .glass-luxury {
+      background: linear-gradient(
+        135deg,
+        rgba(15, 45, 60, 0.95) 0%,
+        rgba(10, 35, 50, 0.92) 100%
+      );
+      backdrop-filter: blur(32px) saturate(200%);
+      -webkit-backdrop-filter: blur(32px) saturate(200%);
+      border: 1px solid rgba(42, 169, 160, 0.2);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(42, 169, 160, 0.15);
+    }
 
-  /* Library gradients - Forest green and mahogany */
-  .gradient-luxury {
-    background: linear-gradient(135deg, #3a5045 0%, #2a3830 100%);
-  }
+    /* Ocean gradients - Deep sea to surface */
+    .gradient-luxury {
+      background: linear-gradient(135deg, #0f3040 0%, #0a252f 100%);
+    }
 
-  .gradient-forest {
-    background: linear-gradient(135deg, #45604f 0%, #355042 100%);
-  }
+    .gradient-ocean {
+      background: linear-gradient(135deg, #0b1c2c 0%, #1a3a4a 100%);
+    }
 
-  .gradient-mahogany {
-    background: linear-gradient(135deg, #3d2f24 0%, #2d221a 100%);
-  }
+    .gradient-depth {
+      background: linear-gradient(180deg, #0a252f 0%, #05151f 100%);
+    }
 
-  .gradient-brass {
-    background: linear-gradient(135deg, #d4af6a 0%, #b8965a 100%);
-  }
+    .gradient-surface {
+      background: linear-gradient(180deg, #1a4a5a 0%, #0f3040 100%);
+    }
 
-  .gradient-luxury-subtle {
-    background: linear-gradient(135deg, #3a5045 0%, #3d2f24 100%);
-  }
+    .gradient-turquoise {
+      background: linear-gradient(135deg, #2aa9a0 0%, #1d6f6f 100%);
+    }
 
-  /* Legacy gradients for compatibility */
-  .gradient-cognac {
-    background: linear-gradient(135deg, #d4af6a 0%, #b8965a 100%);
-  }
+    .gradient-wave {
+      background: linear-gradient(
+        135deg,
+        rgba(42, 169, 160, 0.3) 0%,
+        rgba(29, 111, 111, 0.2) 50%,
+        rgba(11, 28, 44, 0.8) 100%
+      );
+    }
 
-  .gradient-champagne {
-    background: linear-gradient(135deg, #e8d4a8 0%, #d4c098 100%);
-  }
+    /* Legacy gradients remapped to ocean */
+    .gradient-forest {
+      background: linear-gradient(135deg, #1d6f6f 0%, #155555 100%);
+    }
 
-  /* Ambient lighting gradients - Forest library ambiance */
-  .gradient-ambient-warm {
-    background: linear-gradient(
-      135deg,
-      rgba(69, 96, 79, 0.1) 0%,
-      rgba(212, 175, 106, 0.05) 100%
-    );
-  }
+    .gradient-mahogany {
+      background: linear-gradient(135deg, #0b1c2c 0%, #051520 100%);
+    }
 
-  .gradient-ambient-forest {
-    background: linear-gradient(
-      135deg,
-      rgba(53, 80, 66, 0.12) 0%,
-      rgba(61, 47, 36, 0.08) 100%
-    );
-  }
+    .gradient-brass {
+      background: linear-gradient(135deg, #2aa9a0 0%, #1d8f8f 100%);
+    }
 
-  /* Premium text gradients - Brass, gold and parchment */
-  .text-gradient-brass {
-    background: linear-gradient(135deg, #d4af6a 0%, #e8c98f 50%, #d4af6a 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+    .gradient-luxury-subtle {
+      background: linear-gradient(135deg, #0f3545 0%, #0b1c2c 100%);
+    }
 
-  .text-gradient-gold {
-    background: linear-gradient(135deg, #e8d4a8 0%, #f5e6c8 50%, #e8d4a8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+    /* Legacy compatibility */
+    .gradient-cognac {
+      background: linear-gradient(135deg, #2aa9a0 0%, #1d8f8f 100%);
+    }
 
-  .text-gradient-parchment {
-    background: linear-gradient(135deg, #f5e6d3 0%, #fffaf0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+    .gradient-champagne {
+      background: linear-gradient(135deg, #f5e6d3 0%, #e8d4c0 100%);
+    }
 
-  /* Legacy gradients for compatibility */
-  .text-gradient-cognac {
-    background: linear-gradient(135deg, #d4af6a 0%, #e8c98f 50%, #d4af6a 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+    /* Ambient lighting gradients - Ocean bioluminescence */
+    .gradient-ambient-warm {
+      background: linear-gradient(
+        135deg,
+        rgba(42, 169, 160, 0.08) 0%,
+        rgba(245, 230, 211, 0.04) 100%
+      );
+    }
 
-  .text-gradient-champagne {
-    background: linear-gradient(135deg, #e8d4a8 0%, #f5e6c8 50%, #e8d4a8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+    .gradient-ambient-ocean {
+      background: linear-gradient(
+        135deg,
+        rgba(29, 111, 111, 0.12) 0%,
+        rgba(11, 28, 44, 0.08) 100%
+      );
+    }
 
-  .text-gradient-luxury {
-    background: linear-gradient(135deg, #f5e6d3 0%, #fffaf0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+    .gradient-ambient-forest {
+      background: linear-gradient(
+        135deg,
+        rgba(29, 111, 111, 0.12) 0%,
+        rgba(11, 28, 44, 0.08) 100%
+      );
+    }
 
-  /* Smooth transitions - Apple inspired */
-  .transition-luxury {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+    /* Premium text gradients - Ocean shimmer */
+    .text-gradient-turquoise {
+      background: linear-gradient(
+        135deg,
+        #2aa9a0 0%,
+        #45c9c0 50%,
+        #2aa9a0 100%
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  .transition-smooth {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+    .text-gradient-ocean {
+      background: linear-gradient(
+        135deg,
+        #45c9c0 0%,
+        #87d9d5 50%,
+        #45c9c0 100%
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  /* Hover effects - Automotive premium */
-  .hover-lift {
-    @apply transition-luxury hover:-translate-y-1 hover:shadow-luxury-lg;
-  }
+    .text-gradient-sand {
+      background: linear-gradient(135deg, #f5e6d3 0%, #fffaf0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  .hover-glow {
-    @apply transition-luxury;
-  }
+    /* Legacy text gradients remapped */
+    .text-gradient-brass {
+      background: linear-gradient(
+        135deg,
+        #2aa9a0 0%,
+        #45c9c0 50%,
+        #2aa9a0 100%
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  .hover-glow:hover {
-    box-shadow: 0 0 40px rgba(212, 175, 106, 0.35);
-  }
+    .text-gradient-gold {
+      background: linear-gradient(
+        135deg,
+        #f5e6d3 0%,
+        #fffaf0 50%,
+        #f5e6d3 100%
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  .hover-brass {
-    @apply transition-luxury;
-  }
+    .text-gradient-parchment {
+      background: linear-gradient(135deg, #f5e6d3 0%, #fffaf0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  .hover-brass:hover {
-    box-shadow:
-      0 12px 48px rgba(212, 175, 106, 0.3),
-      0 0 0 1px rgba(180, 150, 100, 0.2);
-    transform: translateY(-2px);
-  }
+    .text-gradient-cognac {
+      background: linear-gradient(
+        135deg,
+        #2aa9a0 0%,
+        #45c9c0 50%,
+        #2aa9a0 100%
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  /* Legacy hover effects */
-  .hover-cognac {
-    @apply hover-brass;
-  }
+    .text-gradient-champagne {
+      background: linear-gradient(
+        135deg,
+        #f5e6d3 0%,
+        #fffaf0 50%,
+        #f5e6d3 100%
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  /* Ambient glow effect */
-  .ambient-glow {
-    position: relative;
-  }
+    .text-gradient-luxury {
+      background: linear-gradient(135deg, #f5e6d3 0%, #fffaf0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  .ambient-glow::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    padding: 1px;
+    /* Smooth transitions - Apple inspired */
+    .transition-luxury {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .transition-smooth {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Hover effects - Ocean depth */
+    .hover-lift {
+      @apply transition-luxury hover:-translate-y-1 hover:shadow-luxury-lg;
+    }
+
+    .hover-glow {
+      @apply transition-luxury;
+    }
+
+    .hover-glow:hover {
+      box-shadow: 0 0 40px rgba(42, 169, 160, 0.35);
+    }
+
+    .hover-turquoise {
+      @apply transition-luxury;
+    }
+
+    .hover-turquoise:hover {
+      box-shadow:
+        0 12px 48px rgba(42, 169, 160, 0.3),
+        0 0 0 1px rgba(42, 169, 160, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Legacy hover effects - remapped */
+    .hover-brass {
+      @apply hover-turquoise;
+    }
+
+    .hover-cognac {
+      @apply hover-turquoise;
+    }
+
+    /* Ocean ripple effect */
+    .ripple-effect {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ripple-effect::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(42, 169, 160, 0.3);
+      transform: translate(-50%, -50%);
+      transition:
+        width 0.6s ease,
+        height 0.6s ease,
+        opacity 0.6s ease;
+      opacity: 0;
+    }
+
+    .ripple-effect:active::after {
+      width: 300px;
+      height: 300px;
+      opacity: 0;
+    }
+
+    /* Ambient glow effect - Ocean bioluminescence */
+    .ambient-glow {
+      position: relative;
+    }
+
     .ambient-glow::before {
       content: "";
       position: absolute;
@@ -349,8 +493,8 @@
       padding: 1px;
       background: linear-gradient(
         135deg,
-        rgba(212, 175, 106, 0.35),
-        rgba(69, 96, 79, 0.15)
+        rgba(42, 169, 160, 0.35),
+        rgba(29, 111, 111, 0.15)
       );
       -webkit-mask:
         linear-gradient(#fff 0 0) content-box,
@@ -365,7 +509,7 @@
       opacity: 1;
     }
 
-    /* Card effects - Premium automotive styling */
+    /* Card effects - Ocean depth styling */
     .card-luxury {
       @apply bg-card border border-border/50 rounded-2xl shadow-luxury backdrop-blur-sm;
       position: relative;
@@ -378,33 +522,37 @@
 
     .card-interactive:hover {
       transform: translateY(-3px);
-      border-color: hsl(var(--library-brass) / 0.35);
+      border-color: hsl(var(--ocean-turquoise) / 0.35);
       box-shadow:
-        0 20px 60px rgba(69, 96, 79, 0.25),
+        0 20px 60px rgba(11, 28, 44, 0.4),
         0 4px 16px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(212, 175, 106, 0.2);
+        0 0 0 1px rgba(42, 169, 160, 0.2);
     }
 
-    /* Premium card with forest green accent */
-    .card-forest {
+    /* Premium card with ocean teal accent */
+    .card-ocean {
       @apply card-luxury;
       background: linear-gradient(
         135deg,
-        rgba(58, 80, 69, 1) 0%,
-        rgba(48, 68, 58, 1) 100%
+        rgba(15, 48, 64, 1) 0%,
+        rgba(10, 37, 47, 1) 100%
       );
-      border: 1.5px solid hsl(var(--library-forest) / 0.3);
+      border: 1.5px solid hsl(var(--ocean-turquoise) / 0.3);
     }
 
-    /* Legacy card style */
+    /* Legacy card style remapped */
+    .card-forest {
+      @apply card-ocean;
+    }
+
     .card-cognac {
       @apply card-luxury;
       background: linear-gradient(
         135deg,
-        rgba(61, 47, 36, 1) 0%,
-        rgba(51, 40, 32, 1) 100%
+        rgba(11, 28, 44, 1) 0%,
+        rgba(8, 21, 32, 1) 100%
       );
-      border-color: hsl(var(--library-brass) / 0.25);
+      border-color: hsl(var(--ocean-turquoise) / 0.25);
     }
 
     /* Premium text contrast on dark backgrounds */
@@ -432,24 +580,36 @@
       background-size: 50px 50px;
     }
 
-    /* Leather texture effect */
-    .leather-texture {
+    /* Ocean surface texture effect */
+    .ocean-texture {
       position: relative;
       background-image:
         radial-gradient(
-          circle at 20% 50%,
-          rgba(0, 0, 0, 0.02) 0%,
-          transparent 50%
+          ellipse at 50% 50%,
+          rgba(42, 169, 160, 0.03) 0%,
+          transparent 70%
         ),
         radial-gradient(
-          circle at 80% 80%,
-          rgba(0, 0, 0, 0.02) 0%,
+          ellipse at 20% 80%,
+          rgba(42, 169, 160, 0.02) 0%,
           transparent 50%
         );
     }
+
+    /* Wave texture effect */
+    .wave-texture {
+      position: relative;
+      background-image: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 50px,
+        rgba(42, 169, 160, 0.015) 50px,
+        rgba(42, 169, 160, 0.015) 100px
+      );
+    }
   }
 
-  /* Shimmer animation for premium elements */
+  /* Shimmer animation - Ocean shimmer */
   @keyframes shimmer {
     0% {
       background-position: -1000px 0;
@@ -464,10 +624,112 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(212, 175, 106, 0.15) 50%,
+      rgba(42, 169, 160, 0.15) 50%,
       transparent 100%
     );
     background-size: 1000px 100%;
+  }
+
+  /* Ocean wave animation */
+  @keyframes ocean-wave {
+    0% {
+      transform: translateX(0) translateY(0);
+    }
+    25% {
+      transform: translateX(-5px) translateY(-3px);
+    }
+    50% {
+      transform: translateX(0) translateY(0);
+    }
+    75% {
+      transform: translateX(5px) translateY(-3px);
+    }
+    100% {
+      transform: translateX(0) translateY(0);
+    }
+  }
+
+  .animate-ocean-wave {
+    animation: ocean-wave 4s ease-in-out infinite;
+  }
+
+  /* Bubble rise animation */
+  @keyframes bubble-rise {
+    0% {
+      transform: translateY(100%) scale(0.8);
+      opacity: 0;
+    }
+    20% {
+      opacity: 0.6;
+    }
+    100% {
+      transform: translateY(-100vh) scale(1);
+      opacity: 0;
+    }
+  }
+
+  .animate-bubble {
+    animation: bubble-rise 8s ease-in infinite;
+  }
+
+  .animate-bubble-slow {
+    animation: bubble-rise 12s ease-in infinite;
+  }
+
+  .animate-bubble-fast {
+    animation: bubble-rise 5s ease-in infinite;
+  }
+
+  /* Ripple animation */
+  @keyframes ripple {
+    0% {
+      transform: scale(1);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  .animate-ripple {
+    animation: ripple 2s ease-out infinite;
+  }
+
+  /* Depth fade - for diving in effect */
+  @keyframes depth-fade {
+    0% {
+      opacity: 0;
+      transform: translateY(-20px) scale(1.05);
+      filter: blur(4px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  .animate-depth-fade {
+    animation: depth-fade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Current flow animation */
+  @keyframes current-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-current {
+    background-size: 200% 200%;
+    animation: current-flow 8s ease infinite;
   }
 
   @keyframes blob {
@@ -534,6 +796,21 @@
     }
   }
 
+  /* Turquoise glow pulse */
+  @keyframes glow-turquoise {
+    0%,
+    100% {
+      box-shadow: 0 0 20px rgba(42, 169, 160, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(42, 169, 160, 0.6);
+    }
+  }
+
+  .animate-glow-turquoise {
+    animation: glow-turquoise 3s ease-in-out infinite;
+  }
+
   .animate-blob {
     animation: blob 7s infinite;
   }
@@ -552,7 +829,7 @@
 
   /* ============================================================================
    PREMIUM SCROLL REVEAL SYSTEM
-   Apple/Supabase-style animations
+   Apple/Supabase-style animations with ocean immersion
    ============================================================================ */
 
   /* Subtle parallax backgrounds */

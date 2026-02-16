@@ -42,30 +42,43 @@ const config: Config = {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
-        luxury: {
-          cognac: "hsl(var(--luxury-cognac))",
-          "cognac-light": "hsl(var(--luxury-cognac-light))",
-          champagne: "hsl(var(--luxury-champagne))",
-          carbon: "hsl(var(--luxury-carbon))",
-          chrome: "hsl(var(--luxury-chrome))",
-          bronze: "hsl(var(--luxury-bronze))",
-          amber: "hsl(var(--luxury-amber))",
-          navy: "hsl(var(--luxury-navy))",
-          "navy-light": "hsl(var(--luxury-navy-light))",
-          "navy-dark": "hsl(var(--luxury-navy-dark))",
+        // Ocean theme palette - Fluensea
+        ocean: {
+          // Primary deep blues - depth, trust, premium
+          midnight: "hsl(var(--ocean-midnight))",
+          "midnight-light": "hsl(var(--ocean-midnight-light))",
+          "midnight-dark": "hsl(var(--ocean-midnight-dark))",
+          // Turquoise aqua - clarity, energy, learning
+          turquoise: "hsl(var(--ocean-turquoise))",
+          "turquoise-light": "hsl(var(--ocean-turquoise-light))",
+          "turquoise-dark": "hsl(var(--ocean-turquoise-dark))",
+          // Teal sea green - balance, calm, comprehension
+          teal: "hsl(var(--ocean-teal))",
+          "teal-light": "hsl(var(--ocean-teal-light))",
+          "teal-dark": "hsl(var(--ocean-teal-dark))",
+          // Soft sand - warmth, accents
+          sand: "hsl(var(--ocean-sand))",
+          "sand-light": "hsl(var(--ocean-sand-light))",
+          // Wave foam - highlights
+          foam: "hsl(var(--ocean-foam))",
+          // Coral accent - for warm highlights
+          coral: "hsl(var(--ocean-coral))",
+          // Deep abyss - for dark backgrounds
+          abyss: "hsl(var(--ocean-abyss))",
         },
+        // Legacy aliases for compatibility
         library: {
-          forest: "hsl(var(--library-forest))",
-          "forest-light": "hsl(var(--library-forest-light))",
-          "forest-dark": "hsl(var(--library-forest-dark))",
-          mahogany: "hsl(var(--library-mahogany))",
-          "mahogany-light": "hsl(var(--library-mahogany-light))",
-          "mahogany-dark": "hsl(var(--library-mahogany-dark))",
-          brass: "hsl(var(--library-brass))",
-          "brass-light": "hsl(var(--library-brass-light))",
-          gold: "hsl(var(--library-gold))",
-          parchment: "hsl(var(--library-parchment))",
-          oxblood: "hsl(var(--library-oxblood))",
+          forest: "hsl(var(--ocean-teal))",
+          "forest-light": "hsl(var(--ocean-teal-light))",
+          "forest-dark": "hsl(var(--ocean-teal-dark))",
+          mahogany: "hsl(var(--ocean-midnight))",
+          "mahogany-light": "hsl(var(--ocean-midnight-light))",
+          "mahogany-dark": "hsl(var(--ocean-midnight-dark))",
+          brass: "hsl(var(--ocean-turquoise))",
+          "brass-light": "hsl(var(--ocean-turquoise-light))",
+          gold: "hsl(var(--ocean-sand))",
+          parchment: "hsl(var(--ocean-foam))",
+          oxblood: "hsl(var(--destructive))",
         },
         // Feedback accent colors - friendly and encouraging
         feedback: {
@@ -119,7 +132,16 @@ const config: Config = {
         "scale-in": "scaleIn 0.4s ease-out",
         shimmer: "shimmer 2s linear infinite",
         glow: "glow 2s ease-in-out infinite alternate",
-        // New friendly animations
+        // Ocean-themed animations
+        "ocean-wave": "oceanWave 4s ease-in-out infinite",
+        "bubble-rise": "bubbleRise 8s ease-in infinite",
+        "bubble-slow": "bubbleRise 12s ease-in infinite",
+        "bubble-fast": "bubbleRise 5s ease-in infinite",
+        ripple: "ripple 2s ease-out infinite",
+        "depth-fade": "depthFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "current-flow": "currentFlow 8s ease infinite",
+        "glow-turquoise": "glowTurquoise 3s ease-in-out infinite",
+        // Friendly animations
         "bounce-in": "bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
         "bounce-tap": "bounceTap 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
         shake: "shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97)",
@@ -144,6 +166,44 @@ const config: Config = {
           "ringProgress 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards",
       },
       keyframes: {
+        // Ocean-themed keyframes
+        oceanWave: {
+          "0%": { transform: "translateX(0) translateY(0)" },
+          "25%": { transform: "translateX(-5px) translateY(-3px)" },
+          "50%": { transform: "translateX(0) translateY(0)" },
+          "75%": { transform: "translateX(5px) translateY(-3px)" },
+          "100%": { transform: "translateX(0) translateY(0)" },
+        },
+        bubbleRise: {
+          "0%": { transform: "translateY(100%) scale(0.8)", opacity: "0" },
+          "20%": { opacity: "0.6" },
+          "100%": { transform: "translateY(-100vh) scale(1)", opacity: "0" },
+        },
+        ripple: {
+          "0%": { transform: "scale(1)", opacity: "0.5" },
+          "100%": { transform: "scale(4)", opacity: "0" },
+        },
+        depthFade: {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(-20px) scale(1.05)",
+            filter: "blur(4px)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0) scale(1)",
+            filter: "blur(0)",
+          },
+        },
+        currentFlow: {
+          "0%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" },
+        },
+        glowTurquoise: {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(42, 169, 160, 0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(42, 169, 160, 0.6)" },
+        },
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },

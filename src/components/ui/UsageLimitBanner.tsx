@@ -101,7 +101,7 @@ export function UsageLimitBanner({
                   You've used all {limit} sessions today. Come back tomorrow or{" "}
                   <Link
                     href="/pricing"
-                    className="text-library-brass hover:underline"
+                    className="text-ocean-turquoise hover:underline"
                   >
                     upgrade to Premium
                   </Link>{" "}
@@ -134,7 +134,7 @@ export function UsageLimitBanner({
     return (
       <div
         className={cn(
-          "bg-gradient-to-r from-library-forest/10 to-library-mahogany/10 border border-library-brass/30 rounded-lg p-6",
+          "bg-gradient-to-r from-ocean-teal/10 to-ocean-midnight/10 border border-ocean-turquoise/30 rounded-lg p-6",
           className,
         )}
       >

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import {
@@ -12,12 +11,13 @@ import {
   Brain,
   Mic,
   Crown,
+  Waves,
 } from "lucide-react";
 import { useState } from "react";
 import { usePaddle } from "@/lib/paddle";
 
 /* =============================================================================
-   PRICING PAGE
+   PRICING PAGE - FLUENSEA OCEAN THEME
    
    Follows the "Classic Library" design system:
    - Forest green & mahogany color palette
@@ -104,38 +104,34 @@ export default function PricingPage() {
   return (
     <main className="bg-background text-foreground antialiased min-h-screen">
       {/* ========== NAVIGATION ========== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b-2 border-library-forest">
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b border-ocean-turquoise/20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105">
-                <Image
-                  src="/logo.png"
-                  alt="Fluency Next"
-                  width={36}
-                  height={36}
-                  className="w-full h-full object-contain"
-                />
+              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 bg-gradient-to-br from-ocean-turquoise to-ocean-teal flex items-center justify-center">
+                <Waves className="w-5 h-5 text-white" />
               </div>
-              <span className="text-lg font-medium">Fluency Next</span>
+              <span className="text-lg font-medium text-gradient-turquoise">
+                Fluensea
+              </span>
             </Link>
 
             <div className="flex items-center gap-6">
               <Link
                 href="/pricing"
-                className="text-sm font-medium text-library-gold transition-colors duration-300"
+                className="text-sm font-medium text-ocean-turquoise transition-colors duration-300"
               >
                 Pricing
               </Link>
               <Link
                 href="/auth/login"
-                className="text-sm font-medium text-muted-foreground hover:text-library-gold transition-colors duration-300"
+                className="text-sm font-medium text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
               >
                 Sign in
               </Link>
               <Link href="/auth/signup">
                 <Button size="sm" className="rounded-full px-5 font-medium">
-                  Get started
+                  Dive in
                 </Button>
               </Link>
             </div>
@@ -147,8 +143,8 @@ export default function PricingPage() {
       <section className="relative pt-32 pb-20 px-6 overflow-hidden">
         {/* Ambient background */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-library-brass/[0.03] rounded-full blur-[100px]" />
-          <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-library-forest/[0.04] rounded-full blur-[80px]" />
+          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-ocean-turquoise/[0.03] rounded-full blur-[100px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-ocean-turquoise/[0.04] rounded-full blur-[80px]" />
         </div>
 
         <div className="max-w-4xl mx-auto text-center">
@@ -162,7 +158,7 @@ export default function PricingPage() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-light tracking-tight leading-[1.1] mb-6">
               Invest in
               <br />
-              <span className="font-serif italic text-library-brass">
+              <span className="font-serif italic text-ocean-turquoise">
                 your fluency
               </span>
             </h1>
@@ -182,7 +178,7 @@ export default function PricingPage() {
                 onClick={() => setBillingPeriod("monthly")}
                 className={`px-4 py-2 text-sm font-light rounded-full transition-all duration-300 ${
                   billingPeriod === "monthly"
-                    ? "bg-library-forest text-foreground"
+                    ? "bg-ocean-teal text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -192,12 +188,12 @@ export default function PricingPage() {
                 onClick={() => setBillingPeriod("yearly")}
                 className={`px-4 py-2 text-sm font-light rounded-full transition-all duration-300 flex items-center gap-2 ${
                   billingPeriod === "yearly"
-                    ? "bg-library-forest text-foreground"
+                    ? "bg-ocean-teal text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Yearly
-                <span className="text-xs bg-library-brass/20 text-library-brass px-2 py-0.5 rounded-full">
+                <span className="text-xs bg-ocean-coral/20 text-ocean-coral px-2 py-0.5 rounded-full">
                   Save 33%
                 </span>
               </button>
@@ -215,14 +211,14 @@ export default function PricingPage() {
                 <div
                   className={`relative h-full rounded-3xl border-[1.5px] p-8 md:p-10 transition-all duration-500 ${
                     plan.popular
-                      ? "bg-library-forest/10 border-library-brass/50 shadow-[0_0_60px_rgba(191,165,99,0.1)]"
-                      : "bg-card border-border/50 hover:border-library-forest/30"
+                      ? "bg-ocean-teal/10 border-ocean-turquoise/50 shadow-[0_0_60px_rgba(42,169,160,0.1)]"
+                      : "bg-card border-border/50 hover:border-ocean-teal/30"
                   }`}
                 >
                   {/* Popular Badge */}
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                      <div className="flex items-center gap-1.5 bg-library-brass text-background px-4 py-1.5 rounded-full text-sm font-light">
+                      <div className="flex items-center gap-1.5 bg-ocean-turquoise text-ocean-midnight px-4 py-1.5 rounded-full text-sm font-light">
                         <Crown className="w-3.5 h-3.5" />
                         Most Popular
                       </div>
@@ -253,7 +249,7 @@ export default function PricingPage() {
                       </span>
                     </div>
                     {billingPeriod === "yearly" && plan.yearlySavings && (
-                      <p className="text-library-brass text-sm font-light mt-2">
+                      <p className="text-ocean-coral text-sm font-light mt-2">
                         {plan.yearlySavings}
                       </p>
                     )}
@@ -266,15 +262,15 @@ export default function PricingPage() {
                         <div
                           className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
                             plan.popular
-                              ? "bg-library-brass/20"
-                              : "bg-library-forest/20"
+                              ? "bg-ocean-turquoise/20"
+                              : "bg-ocean-teal/20"
                           }`}
                         >
                           <Check
                             className={`w-3 h-3 ${
                               plan.popular
-                                ? "text-library-brass"
-                                : "text-library-forest"
+                                ? "text-ocean-turquoise"
+                                : "text-ocean-teal"
                             }`}
                           />
                         </div>
@@ -322,7 +318,7 @@ export default function PricingPage() {
           <ScrollReveal delay={100}>
             <h2 className="text-3xl sm:text-4xl font-light text-center mb-16">
               Premium features,{" "}
-              <span className="font-serif italic text-library-brass">
+              <span className="font-serif italic text-ocean-turquoise">
                 elevated learning
               </span>
             </h2>
@@ -332,8 +328,8 @@ export default function PricingPage() {
             {features.map((feature, index) => (
               <ScrollReveal key={index} delay={200 + index * 100}>
                 <div className="text-center">
-                  <div className="w-14 h-14 bg-library-forest/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <feature.icon className="w-6 h-6 text-library-brass" />
+                  <div className="w-14 h-14 bg-ocean-teal/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <feature.icon className="w-6 h-6 text-ocean-turquoise" />
                   </div>
                   <h3 className="text-lg font-light mb-3">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground font-light leading-relaxed">
@@ -398,12 +394,12 @@ export default function PricingPage() {
       </section>
 
       {/* ========== CTA SECTION ========== */}
-      <section className="py-32 px-6 bg-library-forest/10">
+      <section className="py-32 px-6 bg-ocean-teal/10">
         <div className="max-w-3xl mx-auto text-center">
           <ScrollReveal>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-light mb-6">
               Ready to become{" "}
-              <span className="font-serif italic text-library-brass">
+              <span className="font-serif italic text-ocean-turquoise">
                 fluent?
               </span>
             </h2>
@@ -420,7 +416,7 @@ export default function PricingPage() {
             <Link href="/auth/signup">
               <Button
                 size="lg"
-                className="bg-library-brass text-background hover:bg-library-brass/90 h-14 px-10 text-base font-light rounded-full group"
+                className="bg-ocean-turquoise text-ocean-midnight hover:bg-ocean-turquoise/90 h-14 px-10 text-base font-light rounded-full group"
               >
                 Start learning free
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -437,21 +433,14 @@ export default function PricingPage() {
       </section>
 
       {/* ========== FOOTER ========== */}
-      <footer className="py-12 px-6 border-t border-border/30">
+      <footer className="py-12 px-6 border-t border-ocean-turquoise/20">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg overflow-hidden">
-              <Image
-                src="/logo.png"
-                alt="Fluency Next"
-                width={32}
-                height={32}
-                className="w-full h-full object-contain"
-              />
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-ocean-turquoise to-ocean-teal flex items-center justify-center">
+              <Waves className="w-4 h-4 text-white" />
             </div>
             <span className="text-sm font-light text-muted-foreground">
-              &copy; {new Date().getFullYear()} Fluency Next. All rights
-              reserved.
+              &copy; {new Date().getFullYear()} Fluensea. All rights reserved.
             </span>
           </div>
           <div className="flex items-center gap-6 text-sm font-light text-muted-foreground">

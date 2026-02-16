@@ -155,13 +155,13 @@ export function InteractiveExercisesPhase({
   const getExerciseIcon = (type: ExerciseType) => {
     switch (type) {
       case "multiple-choice":
-        return <Brain className="h-4 w-4 text-library-brass" />;
+        return <Brain className="h-4 w-4 text-ocean-turquoise" />;
       case "word-definition":
-        return <BookOpen className="h-4 w-4 text-library-brass" />;
+        return <BookOpen className="h-4 w-4 text-ocean-turquoise" />;
       case "fill-blank":
-        return <Zap className="h-4 w-4 text-library-brass" />;
+        return <Zap className="h-4 w-4 text-ocean-turquoise" />;
       default:
-        return <Brain className="h-4 w-4 text-library-brass" />;
+        return <Brain className="h-4 w-4 text-ocean-turquoise" />;
     }
   };
 
@@ -191,7 +191,7 @@ export function InteractiveExercisesPhase({
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
-          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-library-brass" />
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-ocean-turquoise" />
           <p className="text-muted-foreground font-light">
             Generating exercises...
           </p>
@@ -215,8 +215,8 @@ export function InteractiveExercisesPhase({
           </div>
         </div>
 
-        <div className="bg-card border-2 border-library-brass/30 rounded-3xl p-10 text-center space-y-6 shadow-soft-lg">
-          <div className="text-7xl font-light text-library-brass animate-scale-bounce">
+        <div className="bg-card border-2 border-ocean-turquoise/30 rounded-3xl p-10 text-center space-y-6 shadow-soft-lg">
+          <div className="text-7xl font-light text-ocean-turquoise animate-scale-bounce">
             {percentage}%
           </div>
           <div className="text-2xl font-medium">
@@ -254,8 +254,8 @@ export function InteractiveExercisesPhase({
                   To Review 📖
                 </div>
               </div>
-              <div className="p-4 sm:p-6 bg-library-brass/10 border border-library-brass/20 rounded-2xl">
-                <div className="text-2xl sm:text-3xl font-bold text-library-brass">
+              <div className="p-4 sm:p-6 bg-ocean-turquoise/10 border border-ocean-turquoise/20 rounded-2xl">
+                <div className="text-2xl sm:text-3xl font-bold text-ocean-turquoise">
                   {exercises.length}
                 </div>
                 <div className="text-sm sm:text-base text-muted-foreground font-light mt-1">
@@ -268,7 +268,7 @@ export function InteractiveExercisesPhase({
 
         <button
           onClick={onPhaseComplete}
-          className="w-full py-5 px-8 rounded-2xl font-medium flex items-center justify-center gap-3 bg-library-brass hover:bg-library-brass/90 text-background transition-all btn-bounce shadow-soft text-lg"
+          className="w-full py-5 px-8 rounded-2xl font-medium flex items-center justify-center gap-3 bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background transition-all btn-bounce shadow-soft text-lg"
         >
           Continue to Final Assessment
           <ArrowRight className="h-5 w-5" />
@@ -282,7 +282,7 @@ export function InteractiveExercisesPhase({
     <div className="space-y-6">
       {/* Phase Header */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-library-brass/10 text-library-brass">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ocean-turquoise/10 text-ocean-turquoise">
           <Brain className="h-4 w-4" />
           <span className="text-sm font-medium">
             Phase 5: Practice Exercises
@@ -290,7 +290,7 @@ export function InteractiveExercisesPhase({
         </div>
         <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
           Test Your{" "}
-          <span className="font-serif italic text-library-brass">
+          <span className="font-serif italic text-ocean-turquoise">
             Understanding
           </span>
         </h1>
@@ -306,7 +306,7 @@ export function InteractiveExercisesPhase({
         </div>
         <div className="w-full bg-background rounded-full h-3 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-library-brass to-library-gold rounded-full transition-all duration-700 ease-out relative overflow-hidden"
+            className="h-full bg-gradient-to-r from-ocean-turquoise to-ocean-teal rounded-full transition-all duration-700 ease-out relative overflow-hidden"
             style={{ width: `${progress}%` }}
           >
             <div
@@ -346,7 +346,7 @@ export function InteractiveExercisesPhase({
         <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-library-brass/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center">
                 {getExerciseIcon(currentExercise.type)}
               </div>
               <span className="font-light">
@@ -354,7 +354,7 @@ export function InteractiveExercisesPhase({
               </span>
             </div>
             {currentExercise.targetWord && (
-              <span className="px-3 py-1 bg-library-brass/10 rounded-full text-sm font-medium text-library-brass">
+              <span className="px-3 py-1 bg-ocean-turquoise/10 rounded-full text-sm font-medium text-ocean-turquoise">
                 {currentExercise.targetWord}
               </span>
             )}
@@ -381,7 +381,7 @@ export function InteractiveExercisesPhase({
                     "w-full py-5 px-5 rounded-2xl border-2 text-left whitespace-normal flex items-center gap-4 transition-all duration-200 min-h-touch tap-squish",
                     isSelected &&
                       !showFeedback &&
-                      "border-library-brass bg-library-brass/10 shadow-soft",
+                      "border-ocean-turquoise bg-ocean-turquoise/10 shadow-soft",
                     showCorrect &&
                       "border-feedback-success bg-feedback-success/10 glow-success",
                     showIncorrect &&
@@ -389,7 +389,7 @@ export function InteractiveExercisesPhase({
                     !isSelected &&
                       !showCorrect &&
                       !showIncorrect &&
-                      "border-border hover:bg-card/80 hover:border-library-brass/50 hover:shadow-soft",
+                      "border-border hover:bg-card/80 hover:border-ocean-turquoise/50 hover:shadow-soft",
                     showFeedback && "cursor-default",
                   )}
                   onClick={() => handleAnswer(index)}
@@ -400,7 +400,7 @@ export function InteractiveExercisesPhase({
                       "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-medium transition-all duration-200",
                       isSelected &&
                         !showFeedback &&
-                        "bg-library-brass text-background",
+                        "bg-ocean-turquoise text-background",
                       showCorrect &&
                         "bg-feedback-success text-white animate-bounce-in",
                       showIncorrect && "bg-feedback-error text-white",
@@ -479,7 +479,7 @@ export function InteractiveExercisesPhase({
           {showFeedback && (
             <button
               onClick={handleNext}
-              className="w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 bg-library-brass hover:bg-library-brass/90 text-background transition-colors"
+              className="w-full py-4 px-8 rounded-xl font-medium flex items-center justify-center gap-2 bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background transition-colors"
             >
               {isLastExercise ? "See Results" : "Next Question"}
               <ArrowRight className="h-4 w-4" />
