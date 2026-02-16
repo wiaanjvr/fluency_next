@@ -1,10 +1,10 @@
-# Lingua
+# Fluency Next
 
 A listening-first language acquisition platform for solo learners.
 
 ## Philosophy
 
-Lingua treats language learning like athletic training—through intelligent, personalized exposure that respects how humans actually acquire languages. We prioritize:
+Fluency Next treats language learning like athletic training—through intelligent, personalized exposure that respects how humans actually acquire languages. We prioritize:
 
 - **Listening** as primary input
 - **Speaking** as primary output
