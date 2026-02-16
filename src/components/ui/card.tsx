@@ -3,12 +3,13 @@ import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & { floating?: boolean }
+>(({ className, floating = false, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
       "rounded-3xl border-[1.5px] border-ocean-turquoise/60 bg-card text-card-foreground shadow-soft transition-all duration-300",
+      floating && "animate-float",
       className,
     )}
     {...props}
@@ -19,12 +20,13 @@ Card.displayName = "Card";
 // Interactive card with hover lift effect
 const CardInteractive = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & { floating?: boolean }
+>(({ className, floating = false, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "rounded-3xl border-[1.5px] border-ocean-turquoise/60 bg-card text-card-foreground shadow-soft card-hover-lift cursor-pointer",
+      "rounded-3xl border-[1.5px] border-ocean-turquoise/60 bg-card text-card-foreground shadow-soft card-hover-lift cursor-pointer hover:shadow-ocean-turquoise/20 hover:-translate-y-1",
+      floating && "animate-float",
       className,
     )}
     {...props}

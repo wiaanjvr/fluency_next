@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { ProgressBar } from "@/components/ui/premium-components";
+import { Splash, RisingBubbles } from "@/components/ui/ocean-animations";
 import {
   ProgressMilestone,
   GraduationStatus,
@@ -352,7 +353,9 @@ export function GraduationStatusCard({
     <div
       className={cn(
         "bg-card border rounded-3xl p-6 transition-all duration-300",
-        isReady ? "border-ocean-turquoise bg-ocean-turquoise/5" : "border-border",
+        isReady
+          ? "border-ocean-turquoise bg-ocean-turquoise/5"
+          : "border-border",
         className,
       )}
     >
@@ -538,63 +541,92 @@ export function MilestoneCelebration({
   onClose,
   className,
 }: MilestoneCelebrationProps) {
+  const [showEffects, setShowEffects] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowEffects(false), 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div
-      className={cn(
-        "fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-in fade-in",
-        className,
-      )}
-      onClick={onClose}
-    >
+    <>
+      <Splash show={showEffects} size="lg" />
+      <RisingBubbles
+        show={showEffects}
+        count={15}
+        variant="milestone"
+        duration={4000}
+      />
       <div
-        className="bg-card border border-ocean-turquoise/30 rounded-3xl p-8 max-w-md mx-4 text-center shadow-2xl animate-in zoom-in-95"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Badge */}
-        <div className="w-20 h-20 mx-auto mb-4 bg-ocean-turquoise/20 rounded-full flex items-center justify-center">
-          <span className="text-4xl">{milestone.badge}</span>
-        </div>
-
-        {/* Title */}
-        <h2 className="text-2xl font-medium mb-2">{milestone.title}</h2>
-        <p className="text-lg text-ocean-turquoise mb-4">
-          {milestone.wordTarget} words mastered!
-        </p>
-
-        {/* Message */}
-        <p className="text-muted-foreground mb-6">
-          {milestone.celebrationMessage}
-        </p>
-
-        {/* Unlocked features */}
-        {milestone.unlockedFeatures.length > 0 && (
-          <div className="bg-muted/50 rounded-xl p-4 mb-6">
-            <p className="text-xs font-medium text-muted-foreground mb-3">
-              NEW FEATURES UNLOCKED
-            </p>
-            <div className="space-y-2">
-              {milestone.unlockedFeatures.map((feature) => (
-                <div
-                  key={feature}
-                  className="flex items-center gap-2 text-sm text-foreground"
-                >
-                  <Unlock className="w-4 h-4 text-ocean-turquoise" />
-                  {FEATURE_LABELS[feature]}
-                </div>
-              ))}
-            </div>
-          </div>
+        className={cn(
+          "fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-in fade-in",
+          className,
         )}
-
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="w-full py-3 bg-ocean-turquoise text-background font-medium rounded-xl hover:bg-ocean-turquoise/90 transition-colors"
+        onClick={onClose}
+      >
+        <div
+          className="bg-card border border-ocean-turquoise/30 rounded-3xl p-8 max-w-md mx-4 text-center shadow-2xl animate-in zoom-in-95 duration-500"
+          onClick={(e) => e.stopPropagation()}
         >
-          Continue Learning
-        </button>
+          {/* Badge */}
+          <div className="w-20 h-20 mx-auto mb-4 bg-ocean-turquoise/20 rounded-full flex items-center justify-center animate-bounce-in animate-glow-turquoise">
+            <span className="text-4xl">{milestone.badge}</span>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-2xl font-medium mb-2 animate-slide-up">
+            {milestone.title}
+          </h2>
+          <p
+            className="text-lg text-ocean-turquoise mb-4 animate-slide-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            {milestone.wordTarget} words mastered!
+          </p>
+
+          {/* Message */}
+          <p
+            className="text-muted-foreground mb-6 animate-slide-up"
+            style={{ animationDelay: "0.2s" }}
+          >
+            {milestone.celebrationMessage}
+          </p>
+
+          {/* Unlocked features */}
+          {milestone.unlockedFeatures.length > 0 && (
+            <div
+              className="bg-muted/50 rounded-xl p-4 mb-6 animate-slide-up"
+              style={{ animationDelay: "0.3s" }}
+            >
+              <p className="text-xs font-medium text-muted-foreground mb-3">
+                NEW FEATURES UNLOCKED
+              </p>
+              <div className="space-y-2">
+                {milestone.unlockedFeatures.map((feature, index) => (
+                  <div
+                    key={feature}
+                    className="flex items-center gap-2 text-sm text-foreground animate-slide-up"
+                    style={{ animationDelay: `${0.4 + index * 0.1}s` }}
+                  >
+                    <Unlock className="w-4 h-4 text-ocean-turquoise" />
+                    {FEATURE_LABELS[feature]}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-ocean-turquoise text-background font-medium rounded-xl hover:bg-ocean-turquoise/90 transition-all duration-300 hover:scale-105 active:scale-95 animate-slide-up"
+            style={{ animationDelay: "0.5s" }}
+          >
+            Continue Learning
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

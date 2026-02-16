@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Crimson_Pro } from "next/font/google";
+// import { Inter } from "next/font/google"; // Not used, font loaded via globals.css
 import "@/styles/globals.css";
 import { PaddleProvider } from "@/lib/paddle";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const crimsonPro = Crimson_Pro({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-  style: ["normal", "italic"],
-});
+// Font is loaded via globals.css
 
 export const metadata: Metadata = {
   title: "Fluensea — Dive Into Fluency",
@@ -45,13 +34,10 @@ export default function RootLayout({
     process.env.NODE_ENV === "production" ? "production" : "sandbox";
 
   return (
-    <html
-      lang="en"
-      className={`${plusJakarta.variable} ${crimsonPro.variable}`}
-    >
-      <body className="font-sans antialiased bg-background text-foreground min-h-screen">
+    <html lang="en">
+      <body className="font-sans antialiased bg-background text-foreground min-h-screen transition-colors duration-300">
         <PaddleProvider environment={paddleEnvironment}>
-          {children}
+          <div className="relative">{children}</div>
         </PaddleProvider>
       </body>
     </html>

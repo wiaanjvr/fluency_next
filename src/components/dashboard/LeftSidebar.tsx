@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { WaveProgress } from "@/components/ui/ocean-animations";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 
@@ -105,28 +106,40 @@ export function LeftSidebar({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-              <Flame className="w-4 h-4 text-orange-500" />
+        {/* Streak with wave progress */}
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <Flame className="w-4 h-4 text-orange-500" />
+              </div>
+              <div>
+                <div className="text-lg font-semibold">{stats.streak}</div>
+                <div className="text-[10px] text-muted-foreground">Streak</div>
+              </div>
             </div>
-            <div>
-              <div className="text-lg font-semibold">{stats.streak}</div>
-              <div className="text-[10px] text-muted-foreground">Streak</div>
+
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Target className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <div className="text-lg font-semibold">
+                  {stats.wordsEncountered}
+                </div>
+                <div className="text-[10px] text-muted-foreground">Words</div>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Target className="w-4 h-4 text-primary" />
-            </div>
-            <div>
-              <div className="text-lg font-semibold">
-                {stats.wordsEncountered}
-              </div>
-              <div className="text-[10px] text-muted-foreground">Words</div>
-            </div>
-          </div>
+          {/* Wave progress for streak */}
+          <WaveProgress
+            value={stats.streak}
+            max={30}
+            showLabel={false}
+            height="sm"
+            className="opacity-80"
+          />
         </div>
 
         <div className="pt-2">

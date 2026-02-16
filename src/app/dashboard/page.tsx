@@ -13,6 +13,7 @@ import {
 import { MilestoneCelebration } from "@/components/progression";
 import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
 import { UsageLimitBanner } from "@/components/ui/UsageLimitBanner";
+import { DiveIn } from "@/components/ui/ocean-animations";
 import {
   Play,
   ArrowRight,
@@ -326,140 +327,142 @@ export default function DashboardPage() {
 
       {/* ========== MAIN CONTENT ========== */}
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto p-8">
-          {/* Usage Limit Banner */}
-          <UsageLimitBanner className="mb-8" />
+        <DiveIn>
+          <div className="max-w-5xl mx-auto p-8">
+            {/* Usage Limit Banner */}
+            <UsageLimitBanner className="mb-8" />
 
-          {/* Hero Section */}
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold mb-2">Welcome back</h1>
-            <p className="text-lg text-muted-foreground">
-              Ready to continue your journey to fluency?
-            </p>
-          </div>
-
-          {/* Next Lesson Card */}
-          <div className="mb-8">
-            <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 rounded-2xl p-8 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
-
-              <div className="relative">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Next Lesson
-                    </p>
-                    <h2 className="text-3xl font-bold mb-2">
-                      {lessonType.title}
-                    </h2>
-                    <p className="text-muted-foreground">
-                      {lessonType.description}
-                    </p>
-                  </div>
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Play className="w-8 h-8 text-primary" />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    <span>~15 min</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <TrendingUp className="w-4 h-4" />
-                    <span>{stats.avgComprehension}% avg score</span>
-                  </div>
-                </div>
-
-                <Link href={lessonType.path}>
-                  <Button size="lg" className="group">
-                    Start Learning
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-card border border-border rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-blue-500" />
-                </div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                  New
-                </span>
-              </div>
-              <div className="text-3xl font-bold mb-1">
-                {vocabularyStats.new}
-              </div>
-              <p className="text-sm text-muted-foreground">New Words</p>
+            {/* Hero Section */}
+            <div className="mb-12">
+              <h1 className="text-4xl font-bold mb-2">Welcome back</h1>
+              <p className="text-lg text-muted-foreground">
+                Ready to continue your journey to fluency?
+              </p>
             </div>
 
-            <div className="bg-card border border-border rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-green-500" />
-                </div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                  Known
-                </span>
-              </div>
-              <div className="text-3xl font-bold mb-1">
-                {vocabularyStats.known}
-              </div>
-              <p className="text-sm text-muted-foreground">Known Words</p>
-            </div>
-
-            <div className="bg-card border border-border rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
-                  <Star className="w-5 h-5 text-yellow-500" />
-                </div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                  Mastered
-                </span>
-              </div>
-              <div className="text-3xl font-bold mb-1">
-                {vocabularyStats.mastered}
-              </div>
-              <p className="text-sm text-muted-foreground">Mastered Words</p>
-            </div>
-          </div>
-
-          {/* Vocabulary Viewer */}
-          {userId && stats.wordsEncountered > 0 && (
+            {/* Next Lesson Card */}
             <div className="mb-8">
-              <VocabularyViewer userId={userId} language={targetLanguage} />
-            </div>
-          )}
+              <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 rounded-2xl p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
 
-          {/* Premium CTA */}
-          {stats.totalSessions >= 3 && (
-            <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/20 rounded-xl p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold mb-1">
-                    Ready to accelerate?
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Unlock unlimited sessions, detailed analytics, and
-                    personalized learning.
-                  </p>
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-6">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Next Lesson
+                      </p>
+                      <h2 className="text-3xl font-bold mb-2">
+                        {lessonType.title}
+                      </h2>
+                      <p className="text-muted-foreground">
+                        {lessonType.description}
+                      </p>
+                    </div>
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Play className="w-8 h-8 text-primary" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>~15 min</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <TrendingUp className="w-4 h-4" />
+                      <span>{stats.avgComprehension}% avg score</span>
+                    </div>
+                  </div>
+
+                  <Link href={lessonType.path}>
+                    <Button size="lg" className="group">
+                      Start Learning
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
                 </div>
-                <Link href="/pricing">
-                  <Button variant="default" className="shrink-0">
-                    Go Premium
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
               </div>
             </div>
-          )}
-        </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="bg-card border border-border rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                    New
+                  </span>
+                </div>
+                <div className="text-3xl font-bold mb-1">
+                  {vocabularyStats.new}
+                </div>
+                <p className="text-sm text-muted-foreground">New Words</p>
+              </div>
+
+              <div className="bg-card border border-border rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-green-500" />
+                  </div>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                    Known
+                  </span>
+                </div>
+                <div className="text-3xl font-bold mb-1">
+                  {vocabularyStats.known}
+                </div>
+                <p className="text-sm text-muted-foreground">Known Words</p>
+              </div>
+
+              <div className="bg-card border border-border rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                    <Star className="w-5 h-5 text-yellow-500" />
+                  </div>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                    Mastered
+                  </span>
+                </div>
+                <div className="text-3xl font-bold mb-1">
+                  {vocabularyStats.mastered}
+                </div>
+                <p className="text-sm text-muted-foreground">Mastered Words</p>
+              </div>
+            </div>
+
+            {/* Vocabulary Viewer */}
+            {userId && stats.wordsEncountered > 0 && (
+              <div className="mb-8">
+                <VocabularyViewer userId={userId} language={targetLanguage} />
+              </div>
+            )}
+
+            {/* Premium CTA */}
+            {stats.totalSessions >= 3 && (
+              <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/20 rounded-xl p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1">
+                      Ready to accelerate?
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Unlock unlimited sessions, detailed analytics, and
+                      personalized learning.
+                    </p>
+                  </div>
+                  <Link href="/pricing">
+                    <Button variant="default" className="shrink-0">
+                      Go Premium
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </DiveIn>
       </main>
 
       {/* ========== RIGHT SIDEBAR (ROADMAP) ========== */}

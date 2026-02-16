@@ -399,10 +399,15 @@ export function getImagesForWords(keywords: string[]): ImageSearchResult[] {
  * Preload images for smoother UX
  */
 export function preloadImages(urls: string[]): Promise<void[]> {
+  // Check if we're in a browser environment
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return Promise.resolve([]);
+  }
+
   return Promise.all(
     urls.map((url) => {
       return new Promise<void>((resolve) => {
-        const img = new Image();
+        const img = document.createElement("img");
         img.onload = () => resolve();
         img.onerror = () => resolve(); // Don't block on failed loads
         img.src = url;

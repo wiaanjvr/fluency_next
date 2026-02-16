@@ -42,6 +42,7 @@ import {
 } from "@/components/lesson";
 
 import { Button } from "@/components/ui/button";
+import { DiveIn } from "@/components/ui/ocean-animations";
 import { Loader2, RefreshCw, Sparkles, MessageSquare } from "lucide-react";
 
 // Content types for variety (users with 100+ words)
@@ -760,108 +761,128 @@ export default function LessonPage() {
 
         {/* Phase 1: Spaced Retrieval Warmup */}
         {currentPhase === "spaced-retrieval-warmup" && lesson?.content && (
-          <SpacedRetrievalWarmupPhase
-            warmup={lesson.content.spacedRetrievalWarmup}
-            onComplete={(responses) => {
-              setWarmupResponses(responses);
-              handlePhaseComplete("spaced-retrieval-warmup");
-            }}
-          />
+          <DiveIn key="spaced-retrieval-warmup">
+            <SpacedRetrievalWarmupPhase
+              warmup={lesson.content.spacedRetrievalWarmup}
+              onComplete={(responses) => {
+                setWarmupResponses(responses);
+                handlePhaseComplete("spaced-retrieval-warmup");
+              }}
+            />
+          </DiveIn>
         )}
 
         {/* Phase 2: Prediction Stage */}
         {currentPhase === "prediction-stage" && lesson?.content && (
-          <PredictionStagePhase
-            stage={lesson.content.predictionStage}
-            onComplete={(pred) => {
-              setPrediction(pred);
-              handlePhaseComplete("prediction-stage");
-            }}
-          />
+          <DiveIn key="prediction-stage">
+            <PredictionStagePhase
+              stage={lesson.content.predictionStage}
+              onComplete={(pred) => {
+                setPrediction(pred);
+                handlePhaseComplete("prediction-stage");
+              }}
+            />
+          </DiveIn>
         )}
 
         {/* Phase 3: Audio Text (Listen to Story) */}
         {currentPhase === "audio-text" && lesson?.content && (
-          <AudioTextPhase
-            audioText={lesson.content.audioText}
-            listenCount={listenCount}
-            onListenComplete={() => setListenCount((prev) => prev + 1)}
-            onPhaseComplete={() => handlePhaseComplete("audio-text")}
-          />
+          <DiveIn key="audio-text">
+            <AudioTextPhase
+              audioText={lesson.content.audioText}
+              listenCount={listenCount}
+              onListenComplete={() => setListenCount((prev) => prev + 1)}
+              onPhaseComplete={() => handlePhaseComplete("audio-text")}
+            />
+          </DiveIn>
         )}
 
         {/* Phase 4: First Recall Prompt */}
         {currentPhase === "first-recall" && lesson?.content && (
-          <FirstRecallPhase
-            prompt={lesson.content.firstRecallPrompt}
-            onComplete={(response) => {
-              setFirstRecallResponse(response);
-              handlePhaseComplete("first-recall");
-            }}
-          />
+          <DiveIn key="first-recall">
+            <FirstRecallPhase
+              prompt={lesson.content.firstRecallPrompt}
+              onComplete={(response) => {
+                setFirstRecallResponse(response);
+                handlePhaseComplete("first-recall");
+              }}
+            />
+          </DiveIn>
         )}
 
         {/* Phase 5: Transcript with Highlights */}
         {currentPhase === "transcript-reveal" && lesson?.content && (
-          <TranscriptRevealPhase
-            transcript={lesson.content.transcriptWithHighlights}
-            onComplete={() => handlePhaseComplete("transcript-reveal")}
-          />
+          <DiveIn key="transcript-reveal">
+            <TranscriptRevealPhase
+              transcript={lesson.content.transcriptWithHighlights}
+              onComplete={() => handlePhaseComplete("transcript-reveal")}
+            />
+          </DiveIn>
         )}
 
         {/* Phase 6: Guided Noticing */}
         {currentPhase === "guided-noticing" && lesson?.content && (
-          <GuidedNoticingPhase
-            noticing={lesson.content.guidedNoticing}
-            onComplete={(inferences) => {
-              setNoticingInferences(inferences);
-              handlePhaseComplete("guided-noticing");
-            }}
-          />
+          <DiveIn key="guided-noticing">
+            <GuidedNoticingPhase
+              noticing={lesson.content.guidedNoticing}
+              onComplete={(inferences) => {
+                setNoticingInferences(inferences);
+                handlePhaseComplete("guided-noticing");
+              }}
+            />
+          </DiveIn>
         )}
 
         {/* Phase 7: Micro Drills */}
         {currentPhase === "micro-drills" && lesson?.content && (
-          <MicroDrillsPhase
-            drills={lesson.content.microDrills}
-            onComplete={(results) => {
-              setDrillResults(results);
-              handlePhaseComplete("micro-drills");
-            }}
-          />
+          <DiveIn key="micro-drills">
+            <MicroDrillsPhase
+              drills={lesson.content.microDrills}
+              onComplete={(results) => {
+                setDrillResults(results);
+                handlePhaseComplete("micro-drills");
+              }}
+            />
+          </DiveIn>
         )}
 
         {/* Phase 8: Shadowing Stage */}
         {currentPhase === "shadowing" && lesson?.content && (
-          <ShadowingPhase
-            stage={lesson.content.shadowingStage}
-            onComplete={(count) => {
-              setShadowingCount(count);
-              handlePhaseComplete("shadowing");
-            }}
-          />
+          <DiveIn key="shadowing">
+            <ShadowingPhase
+              stage={lesson.content.shadowingStage}
+              onComplete={(count) => {
+                setShadowingCount(count);
+                handlePhaseComplete("shadowing");
+              }}
+            />
+          </DiveIn>
         )}
 
         {/* Phase 9: Second Recall Prompt */}
         {currentPhase === "second-recall" && lesson?.content && (
-          <SecondRecallPhase
-            prompt={lesson.content.secondRecallPrompt}
-            onComplete={(response) => {
-              setSecondRecallResponse(response);
-              handlePhaseComplete("second-recall");
-            }}
-          />
+          <DiveIn key="second-recall">
+            <SecondRecallPhase
+              prompt={lesson.content.secondRecallPrompt}
+              onComplete={(response) => {
+                setSecondRecallResponse(response);
+                handlePhaseComplete("second-recall");
+              }}
+            />
+          </DiveIn>
         )}
 
         {/* Phase 10: Progress Reflection */}
         {currentPhase === "progress-reflection" && lesson?.content && (
-          <ProgressReflectionPhase
-            reflection={lesson.content.progressReflection}
-            onComplete={(responses) => {
-              setReflectionResponses(responses);
-              handlePhaseComplete("progress-reflection");
-            }}
-          />
+          <DiveIn key="progress-reflection">
+            <ProgressReflectionPhase
+              reflection={lesson.content.progressReflection}
+              onComplete={(responses) => {
+                setReflectionResponses(responses);
+                handlePhaseComplete("progress-reflection");
+              }}
+            />
+          </DiveIn>
         )}
 
         {/* ===== LEGACY 6-PHASE LESSON FLOW ===== */}
@@ -869,73 +890,85 @@ export default function LessonPage() {
         {/* Legacy Phase 1: Audio-Only Comprehension */}
         {currentPhase === ("audio-comprehension" as LessonPhase) &&
           !lesson?.content && (
-            <AudioComprehensionPhase
-              lesson={lesson!}
-              listenCount={listenCount}
-              onListenComplete={handleListenComplete}
-              onPhaseComplete={handleAudioPhaseComplete}
-            />
+            <DiveIn key="audio-comprehension">
+              <AudioComprehensionPhase
+                lesson={lesson!}
+                listenCount={listenCount}
+                onListenComplete={handleListenComplete}
+                onPhaseComplete={handleAudioPhaseComplete}
+              />
+            </DiveIn>
           )}
 
         {/* Legacy Phase 2: Verbal Comprehension Check */}
         {currentPhase === ("verbal-check" as LessonPhase) &&
           !lesson?.content && (
-            <VerbalCheckPhase
-              lesson={lesson!}
-              onResponse={handleVerbalResponse}
-              onPhaseComplete={() =>
-                handlePhaseComplete("verbal-check" as LessonPhase)
-              }
-            />
+            <DiveIn key="verbal-check">
+              <VerbalCheckPhase
+                lesson={lesson!}
+                onResponse={handleVerbalResponse}
+                onPhaseComplete={() =>
+                  handlePhaseComplete("verbal-check" as LessonPhase)
+                }
+              />
+            </DiveIn>
           )}
 
         {/* Legacy Phase 3: Conversational Feedback Loop */}
         {currentPhase === ("conversation-feedback" as LessonPhase) &&
           !lesson?.content && (
-            <ConversationFeedbackPhase
-              lesson={lesson!}
-              initialEvaluation={initialResponse?.evaluation}
-              onPhaseComplete={() =>
-                handlePhaseComplete("conversation-feedback" as LessonPhase)
-              }
-            />
+            <DiveIn key="conversation-feedback">
+              <ConversationFeedbackPhase
+                lesson={lesson!}
+                initialEvaluation={initialResponse?.evaluation}
+                onPhaseComplete={() =>
+                  handlePhaseComplete("conversation-feedback" as LessonPhase)
+                }
+              />
+            </DiveIn>
           )}
 
         {/* Legacy Phase 4: Text Reveal + Vocabulary Marking */}
         {currentPhase === ("text-reveal" as LessonPhase) &&
           !lesson?.content && (
-            <TextRevealPhase
-              lesson={lesson!}
-              onWordRating={handleWordRating}
-              vocabularyRatings={vocabularyRatings}
-              onPhaseComplete={() =>
-                handlePhaseComplete("text-reveal" as LessonPhase)
-              }
-            />
+            <DiveIn key="text-reveal">
+              <TextRevealPhase
+                lesson={lesson!}
+                onWordRating={handleWordRating}
+                vocabularyRatings={vocabularyRatings}
+                onPhaseComplete={() =>
+                  handlePhaseComplete("text-reveal" as LessonPhase)
+                }
+              />
+            </DiveIn>
           )}
 
         {/* Legacy Phase 5: Interactive Exercises */}
         {currentPhase === ("interactive-exercises" as LessonPhase) &&
           !lesson?.content && (
-            <InteractiveExercisesPhase
-              lesson={lesson!}
-              onExerciseAttempt={handleExerciseAttempt}
-              onPhaseComplete={() =>
-                handlePhaseComplete("interactive-exercises" as LessonPhase)
-              }
-            />
+            <DiveIn key="interactive-exercises">
+              <InteractiveExercisesPhase
+                lesson={lesson!}
+                onExerciseAttempt={handleExerciseAttempt}
+                onPhaseComplete={() =>
+                  handlePhaseComplete("interactive-exercises" as LessonPhase)
+                }
+              />
+            </DiveIn>
           )}
 
         {/* Legacy Phase 6: Final Verbal Assessment */}
         {currentPhase === ("final-assessment" as LessonPhase) &&
           !lesson?.content && (
-            <FinalAssessmentPhase
-              lesson={lesson!}
-              onResponse={handleFinalResponse}
-              onPhaseComplete={() =>
-                handlePhaseComplete("final-assessment" as LessonPhase)
-              }
-            />
+            <DiveIn key="final-assessment">
+              <FinalAssessmentPhase
+                lesson={lesson!}
+                onResponse={handleFinalResponse}
+                onPhaseComplete={() =>
+                  handlePhaseComplete("final-assessment" as LessonPhase)
+                }
+              />
+            </DiveIn>
           )}
       </main>
     </div>

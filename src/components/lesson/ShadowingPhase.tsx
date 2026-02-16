@@ -5,6 +5,7 @@ import { ShadowingStage } from "@/types/lesson";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Waveform } from "@/components/ui/ocean-animations";
 import {
   Volume2,
   Play,
@@ -126,6 +127,11 @@ export function ShadowingPhase({ stage, onComplete }: ShadowingPhaseProps) {
 
         {/* Audio controls */}
         <div className="space-y-4">
+          {/* Audio waveform visualization */}
+          <div className="flex items-center justify-center py-4">
+            <Waveform isActive={isPlaying} bars={7} />
+          </div>
+
           {/* Progress bar */}
           <div className="space-y-1">
             <Progress value={progress} className="h-2" />

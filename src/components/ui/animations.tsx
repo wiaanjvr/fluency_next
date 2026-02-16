@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { RisingBubbles } from "./ocean-animations";
 
 // ============================================================================
 // Animated Checkmark - Bounces in on success
@@ -10,12 +11,14 @@ interface AnimatedCheckmarkProps {
   show: boolean;
   size?: "sm" | "md" | "lg";
   className?: string;
+  showBubbles?: boolean;
 }
 
 export function AnimatedCheckmark({
   show,
   size = "md",
   className,
+  showBubbles = true,
 }: AnimatedCheckmarkProps) {
   const sizes = {
     sm: "w-5 h-5",
@@ -26,32 +29,35 @@ export function AnimatedCheckmark({
   if (!show) return null;
 
   return (
-    <div
-      className={cn(
-        "flex items-center justify-center rounded-full bg-feedback-success animate-bounce-in",
-        sizes[size],
-        className,
-      )}
-    >
-      <svg
-        className="w-2/3 h-2/3 text-white"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
+    <>
+      {showBubbles && <RisingBubbles show={show} count={5} variant="success" />}
+      <div
+        className={cn(
+          "flex items-center justify-center rounded-full bg-feedback-success animate-bounce-in",
+          sizes[size],
+          className,
+        )}
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={3}
-          d="M5 13l4 4L19 7"
-          className="animate-checkmark-draw"
-          style={{
-            strokeDasharray: 100,
-            strokeDashoffset: 0,
-          }}
-        />
-      </svg>
-    </div>
+        <svg
+          className="w-2/3 h-2/3 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={3}
+            d="M5 13l4 4L19 7"
+            className="animate-checkmark-draw"
+            style={{
+              strokeDasharray: 100,
+              strokeDashoffset: 0,
+            }}
+          />
+        </svg>
+      </div>
+    </>
   );
 }
 
