@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { LinguaLoadingAnimation } from "../ui/LinguaLoadingAnimation";
-
+// Deprecated: LessonLoading is now replaced by LoadingScreen everywhere.
 export function LessonLoading() {
-  return <LinguaLoadingAnimation message="Preparing your lesson..." />;
+  return null;
 }

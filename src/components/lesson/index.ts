@@ -36,5 +36,5 @@ export { FinalAssessmentPhase } from "./FinalAssessmentPhase";
 
 // Shared components
 export { LessonHeader } from "./LessonHeader";
-export { LessonLoading } from "./LessonLoading";
+export { default as LessonLoading } from "../ui/LoadingScreen";
 export { LessonComplete } from "./LessonComplete";

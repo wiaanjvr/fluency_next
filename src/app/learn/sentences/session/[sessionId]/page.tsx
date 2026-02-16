@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { SentenceTransitionSession } from "@/components/sentence-transition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
 // ============================================================================
 // SENTENCE SESSION PAGE
@@ -18,11 +18,31 @@ export default function SentenceSessionPage() {
   const sessionNumber = parseInt(params.sessionId as string, 10) || 1;
   const [canStart, setCanStart] = useState(true);
   const [checking, setChecking] = useState(true);
+  const [targetLanguage, setTargetLanguage] = useState<string>("fr");
 
-  // Check usage limits before starting session
+  // Check usage limits and load target language before starting session
   useEffect(() => {
-    async function checkLimits() {
+    async function checkLimitsAndLoadLanguage() {
       try {
+        // Load target language from user profile
+        const { createClient } = await import("@/lib/supabase/client");
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("target_language")
+            .eq("id", user.id)
+            .single();
+
+          const language = profile?.target_language || "fr";
+          setTargetLanguage(language);
+        }
+
+        // Check usage limits
         const response = await fetch("/api/usage/check", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -42,7 +62,7 @@ export default function SentenceSessionPage() {
       }
     }
 
-    checkLimits();
+    checkLimitsAndLoadLanguage();
   }, []);
 
   const handleSessionComplete = async (results: any) => {
@@ -139,7 +159,7 @@ export default function SentenceSessionPage() {
                 title: `Sentence Session ${sessionNumber}`,
                 target_text: "Sentence transition exercises",
                 translation: "",
-                language: "fr",
+                language: targetLanguage, // Use actual target language
                 level: "A2",
                 completed: true,
                 completed_at: new Date().toISOString(),
@@ -173,7 +193,7 @@ export default function SentenceSessionPage() {
   };
 
   if (checking) {
-    return <LinguaLoadingAnimation message="Checking availability..." />;
+    return <LoadingScreen />;
   }
 
   if (!canStart) {

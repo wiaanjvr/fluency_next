@@ -12,9 +12,24 @@ const EASINESS_BONUS = 0.1;
 const EASINESS_PENALTY_HARD = 0.15;
 const EASINESS_PENALTY_WRONG = 0.2;
 
-// Initial intervals (in days)
-const FIRST_INTERVAL = 1 / 1440;
-const SECOND_INTERVAL = 1;
+// Spaced Repetition Intervals (in days)
+// Pattern: 1 min, 10 min, 1 hour, 1 day, 2 days, 4 days, 8 days...
+const INTERVALS_IN_DAYS = [
+  1 / 1440, // 1 minute
+  10 / 1440, // 10 minutes
+  1 / 24, // 1 hour
+  1, // 1 day
+  2, // 2 days
+  4, // 4 days
+  8, // 8 days
+  16, // 16 days
+  32, // 32 days
+  64, // 64 days
+];
+
+// For backward compatibility
+const FIRST_INTERVAL = INTERVALS_IN_DAYS[0];
+const SECOND_INTERVAL = INTERVALS_IN_DAYS[3]; // 1 day
 
 /**
  * Calculate next review date and update SRS parameters based on user rating
@@ -65,37 +80,35 @@ export function calculateNextReview(
   // Ensure easiness stays in reasonable range
   newEasiness = Math.max(MIN_EASINESS, Math.min(2.5, newEasiness));
 
-  // Calculate interval based on repetition number
+  // Calculate interval based on repetition number using predefined intervals
   if (rating < 2) {
-    // Failed - review again soon
-    intervalDays = 0.1; // ~2.4 hours
+    // Failed - review again soon (1 minute)
+    intervalDays = INTERVALS_IN_DAYS[0];
     newStatus = "learning";
-  } else if (newRepetitions === 0) {
-    intervalDays = FIRST_INTERVAL;
-    newStatus = "learning";
-  } else if (newRepetitions === 1) {
-    // First successful rating - set status based on how well they know it
-    intervalDays = SECOND_INTERVAL;
-
-    // If user rates highly on first encounter, mark as known
-    if (rating >= 4) {
-      newStatus = "known"; // User already knows this word well
-      intervalDays = intervalDays * 2; // Longer interval for known words
-    } else {
-      newStatus = "learning"; // Still learning
-    }
   } else {
-    // Use SM-2 formula: I(n) = I(n-1) * EF
-    const previousInterval = currentWord.interval ?? SECOND_INTERVAL;
-    intervalDays = previousInterval * newEasiness;
+    // Use the predefined interval pattern based on repetition count
+    // If repetitions exceed available intervals, double the last interval each time
+    if (newRepetitions < INTERVALS_IN_DAYS.length) {
+      intervalDays = INTERVALS_IN_DAYS[newRepetitions];
+    } else {
+      // For reps beyond our defined intervals, keep doubling
+      const lastInterval = INTERVALS_IN_DAYS[INTERVALS_IN_DAYS.length - 1];
+      const extraReps = newRepetitions - INTERVALS_IN_DAYS.length + 1;
+      intervalDays = lastInterval * Math.pow(2, extraReps);
+    }
 
     // Update status based on performance
-    if (newRepetitions >= 8 && newEasiness >= 2.2) {
+    if (newRepetitions >= 8 && rating >= 4) {
       newStatus = "mastered";
-    } else if (newRepetitions >= 3) {
+    } else if (newRepetitions >= 4) {
       newStatus = "known";
     } else {
       newStatus = "learning";
+    }
+
+    // If user rates highly on first encounter, mark as known
+    if (newRepetitions === 1 && rating >= 4) {
+      newStatus = "known"; // User already knows this word well
     }
   }
 

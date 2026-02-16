@@ -31,11 +31,27 @@ import {
   type SupportedLanguage,
 } from "@/lib/languages";
 
-// Helper to get target text from exampleSentence
-function getExampleSentenceText(exampleSentence: {
-  french?: string;
-  target?: string;
-}): string {
+// Helper to get target text from exampleSentence based on language
+function getExampleSentenceText(
+  exampleSentence: {
+    french?: string;
+    german?: string;
+    italian?: string;
+    target?: string;
+  },
+  language: SupportedLanguage = "fr",
+): string {
+  // Prefer the specific language property
+  if (language === "de" && exampleSentence.german) {
+    return exampleSentence.german;
+  }
+  if (language === "it" && exampleSentence.italian) {
+    return exampleSentence.italian;
+  }
+  if (language === "fr" && exampleSentence.french) {
+    return exampleSentence.french;
+  }
+  // Fall back to target or french
   return exampleSentence.target || exampleSentence.french || "";
 }
 
@@ -683,7 +699,10 @@ export function SentenceIdentifyExercise({
   const { playSuccess, playError } = useSoundEffects();
 
   const langConfig = getLanguageConfig(language);
-  const sentenceText = getExampleSentenceText(targetWord.exampleSentence);
+  const sentenceText = getExampleSentenceText(
+    targetWord.exampleSentence,
+    language,
+  );
 
   // Generate options
   useEffect(() => {

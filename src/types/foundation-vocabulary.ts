@@ -16,6 +16,8 @@ export interface FoundationWord {
     english: string;
     /** @deprecated Use 'target' instead */
     french?: string;
+    german?: string;
+    italian?: string;
   };
   imageKeyword: string; // keyword for image search
   audioUrl?: string;

@@ -17,7 +17,6 @@ import { WordRating } from "@/types";
 
 // Phase Components - Import from index
 import {
-  // New 10-phase components
   SpacedRetrievalWarmupPhase,
   PredictionStagePhase,
   AudioTextPhase,
@@ -28,14 +27,12 @@ import {
   ShadowingPhase,
   SecondRecallPhase,
   ProgressReflectionPhase,
-  // Legacy components
   AudioComprehensionPhase,
   VerbalCheckPhase,
   ConversationFeedbackPhase,
   TextRevealPhase,
   InteractiveExercisesPhase,
   FinalAssessmentPhase,
-  // Shared components
   LessonComplete,
   LessonHeader,
   LessonLoading,

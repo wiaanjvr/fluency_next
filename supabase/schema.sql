@@ -21,7 +21,11 @@ CREATE TABLE profiles (
   -- Subscription
   subscription_tier TEXT DEFAULT 'free' CHECK (subscription_tier IN ('free', 'premium')),
   subscription_expires_at TIMESTAMP WITH TIME ZONE,
-  stripe_customer_id TEXT UNIQUE
+  stripe_customer_id TEXT UNIQUE,
+  
+  -- Paystack integration
+  paystack_customer_code TEXT UNIQUE,
+  paystack_subscription_code TEXT UNIQUE
 );
 
 -- Content segments

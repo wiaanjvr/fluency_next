@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   ArrowLeft,
   Star,
@@ -44,6 +44,8 @@ import {
   getPatternById,
   getPatternsByDifficulty,
 } from "@/data/sentence-patterns";
+import { createClient } from "@/lib/supabase/client";
+import type { SupportedLanguage } from "@/lib/languages";
 
 // ============================================================================
 // SESSION TYPES
@@ -80,6 +82,7 @@ export function SentenceTransitionSession({
   onComplete,
 }: SentenceTransitionSessionProps) {
   const router = useRouter();
+  const supabase = createClient();
   const { playAchieve, playComplete } = useSoundEffects();
 
   // Session state
@@ -87,6 +90,7 @@ export function SentenceTransitionSession({
   const [exercises, setExercises] = useState<SessionExercise[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [targetLanguage, setTargetLanguage] = useState<SupportedLanguage>("fr");
 
   // Results tracking
   const [sentenceMiningResults, setSentenceMiningResults] = useState<
@@ -106,12 +110,39 @@ export function SentenceTransitionSession({
     correctIndex: number;
   } | null>(null);
 
-  // Generate session exercises on mount
+  // Load user's target language and generate session exercises on mount
   useEffect(() => {
-    const sessionExercises = generateSessionExercises(sessionNumber);
-    setExercises(sessionExercises);
-    setLoading(false);
-  }, [sessionNumber]);
+    async function loadLanguageAndExercises() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          // Get user's target language from profile
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("target_language")
+            .eq("id", user.id)
+            .single();
+
+          const language = (profile?.target_language ||
+            "fr") as SupportedLanguage;
+          setTargetLanguage(language);
+        }
+
+        // Generate session exercises
+        const sessionExercises = generateSessionExercises(sessionNumber);
+        setExercises(sessionExercises);
+      } catch (error) {
+        console.error("Error loading language and exercises:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadLanguageAndExercises();
+  }, [sessionNumber, supabase]);
 
   // Prepare image options when entering a listening exercise
   useEffect(() => {
@@ -202,7 +233,7 @@ export function SentenceTransitionSession({
 
   // Loading state
   if (loading) {
-    return <LinguaLoadingAnimation message="Loading sentence exercises..." />;
+    return <LoadingScreen />;
   }
 
   // ===== WARMUP PHASE =====
@@ -503,6 +534,7 @@ export function SentenceTransitionSession({
                   | "translation"
               }
               onResult={handleSentenceMiningResult}
+              language={targetLanguage}
             />
           )}
 
@@ -513,6 +545,7 @@ export function SentenceTransitionSession({
               pattern={currentExercise.pattern}
               mode={currentExercise.mode as "observe" | "complete" | "generate"}
               onResult={handlePatternResult}
+              language={targetLanguage}
             />
           )}
 
@@ -525,6 +558,7 @@ export function SentenceTransitionSession({
               imageOptions={currentImageOptions.options}
               correctImageIndex={currentImageOptions.correctIndex}
               onResult={handleListeningResult}
+              language={targetLanguage}
             />
           )}
       </div>

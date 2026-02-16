@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   ArrowLeft,
   BookOpen,
@@ -80,7 +80,7 @@ export default function MicroStoriesPage() {
   const currentLevel = microStoryProgress?.currentLevel || "300-350";
 
   if (loading) {
-    return <LinguaLoadingAnimation message="Loading stories..." />;
+    return <LoadingScreen />;
   }
 
   return (

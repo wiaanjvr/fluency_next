@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   Card,
   CardContent,
@@ -82,7 +82,7 @@ function AuthErrorContent() {
 function AuthErrorFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
-      <LinguaLoadingAnimation message="Loading..." showProgress={false} />
+      <LoadingScreen />
     </div>
   );
 }

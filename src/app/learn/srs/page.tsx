@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { InteractiveStory } from "@/components/learning/InteractiveStory";
 import { Button } from "@/components/ui/button";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   Card,
   CardContent,
@@ -157,7 +157,7 @@ export default function SRSLearnPage() {
   };
 
   if (loading) {
-    return <LinguaLoadingAnimation message="Loading SRS session..." />;
+    return <LoadingScreen />;
   }
 
   // Show the story if there's one in progress

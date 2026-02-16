@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   ArrowLeft,
   BookOpen,
@@ -138,7 +138,7 @@ export default function FoundationPage() {
     totalWords > 0 ? Math.round((learnedWords / totalWords) * 100) : 0;
 
   if (loading) {
-    return <LinguaLoadingAnimation message="Loading foundation..." />;
+    return <LoadingScreen />;
   }
 
   return (

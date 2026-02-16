@@ -1,3 +1,18 @@
+/* Blended swim background for main screen */
+.with-swim-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 28, 44, 0.92) 0%,
+    rgba(42, 169, 160, 0.1) 100%
+  );
+  opacity: 0.45;
+  mix-blend-mode: lighten;
+}
 /* @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&display=swap");
 
 body {

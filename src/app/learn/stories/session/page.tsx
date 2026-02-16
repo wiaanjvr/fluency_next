@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import { MicroStorySession } from "@/components/micro-stories";
 import {
   getFoundationProgress,
@@ -277,7 +277,7 @@ export default function MicroStoriesSessionPage() {
   };
 
   if (loading) {
-    return <LinguaLoadingAnimation message="Loading stories..." />;
+    return <LoadingScreen />;
   }
 
   if (!isUnlocked) {
@@ -285,7 +285,7 @@ export default function MicroStoriesSessionPage() {
   }
 
   if (checkingLimits) {
-    return <LinguaLoadingAnimation message="Checking availability..." />;
+    return <LoadingScreen />;
   }
 
   if (!canStart) {

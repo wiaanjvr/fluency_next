@@ -498,6 +498,372 @@ const exampleSentences: Record<string, { french: string; english: string }> = {
   dix: { french: "Dix ans.", english: "Ten years." },
 };
 
+// German example sentences (parallel to French)
+const germanExampleSentences: Record<
+  string,
+  { german: string; english: string }
+> = {
+  // Articles
+  der: { german: "Der Mann arbeitet.", english: "The man works." },
+  die: { german: "Die Frau spricht.", english: "The woman speaks." },
+  das: { german: "Das Kind spielt.", english: "The child plays." },
+  ein: { german: "Ein Hund läuft.", english: "A dog runs." },
+  eine: { german: "Eine Katze schläft.", english: "A cat sleeps." },
+
+  // Pronouns
+  ich: { german: "Ich bin glücklich.", english: "I am happy." },
+  sie: { german: "Sie ist nett.", english: "She is nice." },
+  es: { german: "Es ist gut.", english: "It is good." },
+  er: { german: "Er kommt morgen.", english: "He comes tomorrow." },
+  wir: { german: "Wir gehen jetzt.", english: "We go now." },
+  ihr: { german: "Ihr seid toll.", english: "You are great." },
+  du: { german: "Du bist hier.", english: "You are here." },
+  man: { german: "Man lernt viel.", english: "One learns much." },
+  mir: { german: "Das gehört mir.", english: "That belongs to me." },
+  mich: { german: "Er sieht mich.", english: "He sees me." },
+
+  // Verbs
+  sein: { german: "Ich bin Student.", english: "I am a student." },
+  haben: { german: "Ich habe Zeit.", english: "I have time." },
+  werden: { german: "Es wird dunkel.", english: "It gets dark." },
+  können: { german: "Ich kann helfen.", english: "I can help." },
+  sagen: { german: "Er sagt Hallo.", english: "He says hello." },
+  wissen: { german: "Ich weiß es.", english: "I know it." },
+  geben: { german: "Ich gebe dir.", english: "I give you." },
+  kommen: { german: "Ich komme bald.", english: "I come soon." },
+  machen: { german: "Ich mache Sport.", english: "I do sports." },
+  gehen: { german: "Ich gehe spazieren.", english: "I go walking." },
+  sehen: { german: "Ich sehe dich.", english: "I see you." },
+  stehen: { german: "Er steht dort.", english: "He stands there." },
+  lassen: { german: "Lass mich gehen.", english: "Let me go." },
+  finden: { german: "Ich finde es.", english: "I find it." },
+  bleiben: { german: "Ich bleibe hier.", english: "I stay here." },
+  liegen: { german: "Das Buch liegt.", english: "The book lies." },
+  heißen: { german: "Ich heiße Anna.", english: "I am called Anna." },
+  denken: { german: "Ich denke oft.", english: "I think often." },
+  nehmen: { german: "Ich nehme das.", english: "I take this." },
+  tun: { german: "Ich tue es.", english: "I do it." },
+  müssen: { german: "Ich muss gehen.", english: "I must go." },
+  sollen: { german: "Du sollst warten.", english: "You should wait." },
+  wollen: { german: "Ich will lernen.", english: "I want to learn." },
+  dürfen: { german: "Du darfst bleiben.", english: "You may stay." },
+  mögen: { german: "Ich mag Musik.", english: "I like music." },
+  kennen: { german: "Ich kenne sie.", english: "I know her." },
+  leben: { german: "Ich lebe hier.", english: "I live here." },
+  halten: { german: "Ich halte es.", english: "I hold it." },
+  sprechen: { german: "Ich spreche Deutsch.", english: "I speak German." },
+  bringen: { german: "Ich bringe Blumen.", english: "I bring flowers." },
+  arbeiten: { german: "Ich arbeite heute.", english: "I work today." },
+  fahren: { german: "Ich fahre Auto.", english: "I drive a car." },
+  spielen: { german: "Ich spiele Fußball.", english: "I play soccer." },
+  meinen: { german: "Ich meine ja.", english: "I think yes." },
+  zeigen: { german: "Ich zeige dir.", english: "I show you." },
+  führen: { german: "Er führt uns.", english: "He leads us." },
+  beginnen: { german: "Wir beginnen jetzt.", english: "We start now." },
+  verstehen: { german: "Ich verstehe dich.", english: "I understand you." },
+  setzen: { german: "Ich setze mich.", english: "I sit down." },
+  bekommen: { german: "Ich bekomme Post.", english: "I get mail." },
+  folgen: { german: "Ich folge dir.", english: "I follow you." },
+  lernen: { german: "Ich lerne Deutsch.", english: "I learn German." },
+  laufen: { german: "Ich laufe schnell.", english: "I run fast." },
+
+  // Nouns
+  Jahr: { german: "Ein neues Jahr.", english: "A new year." },
+  Zeit: { german: "Die Zeit vergeht.", english: "Time passes." },
+  Leben: { german: "Das Leben ist schön.", english: "Life is beautiful." },
+  Tag: { german: "Ein guter Tag.", english: "A good day." },
+  Mensch: { german: "Der Mensch denkt.", english: "The person thinks." },
+  Hand: { german: "Meine rechte Hand.", english: "My right hand." },
+  Kind: { german: "Das Kind lacht.", english: "The child laughs." },
+  Frau: { german: "Die Frau singt.", english: "The woman sings." },
+  Mann: { german: "Der Mann läuft.", english: "The man runs." },
+  Teil: { german: "Ein großer Teil.", english: "A large part." },
+  Welt: { german: "Die Welt ist groß.", english: "The world is big." },
+  Auge: { german: "Mein blaues Auge.", english: "My blue eye." },
+  Land: { german: "Mein schönes Land.", english: "My beautiful country." },
+  Arbeit: { german: "Viel Arbeit heute.", english: "Much work today." },
+  Frage: { german: "Eine gute Frage.", english: "A good question." },
+  Weg: { german: "Der lange Weg.", english: "The long way." },
+  Ende: { german: "Das gute Ende.", english: "The good end." },
+  Kopf: { german: "Mein runder Kopf.", english: "My round head." },
+  Wort: { german: "Ein schönes Wort.", english: "A beautiful word." },
+  Haus: { german: "Ein großes Haus.", english: "A big house." },
+  Stadt: { german: "Die große Stadt.", english: "The big city." },
+  Buch: { german: "Ein gutes Buch.", english: "A good book." },
+  Freund: { german: "Mein bester Freund.", english: "My best friend." },
+  Wasser: { german: "Klares Wasser trinken.", english: "Drink clear water." },
+  Mutter: { german: "Meine liebe Mutter.", english: "My dear mother." },
+  Vater: { german: "Mein starker Vater.", english: "My strong father." },
+  Tür: { german: "Die offene Tür.", english: "The open door." },
+  Familie: { german: "Meine große Familie.", english: "My big family." },
+
+  // Adjectives
+  gut: { german: "Ein guter Tag.", english: "A good day." },
+  groß: { german: "Ein großes Haus.", english: "A big house." },
+  neu: { german: "Ein neues Auto.", english: "A new car." },
+  klein: { german: "Ein kleines Kind.", english: "A small child." },
+  alt: { german: "Ein alter Mann.", english: "An old man." },
+  jung: { german: "Eine junge Frau.", english: "A young woman." },
+  lang: { german: "Ein langer Weg.", english: "A long way." },
+  schön: { german: "Ein schöner Tag.", english: "A beautiful day." },
+  wichtig: { german: "Sehr wichtig heute.", english: "Very important today." },
+  möglich: { german: "Das ist möglich.", english: "That is possible." },
+
+  // Adverbs
+  nicht: { german: "Ich weiß nicht.", english: "I don't know." },
+  auch: { german: "Ich auch.", english: "Me too." },
+  sehr: { german: "Sehr gut.", english: "Very good." },
+  nur: { german: "Nur heute.", english: "Only today." },
+  noch: { german: "Noch nicht.", english: "Not yet." },
+  schon: { german: "Schon fertig.", english: "Already done." },
+  jetzt: { german: "Geh jetzt.", english: "Go now." },
+  hier: { german: "Ich bin hier.", english: "I am here." },
+  da: { german: "Da ist es.", english: "There it is." },
+  dann: { german: "Bis dann.", english: "See you then." },
+  immer: { german: "Immer wieder.", english: "Again and again." },
+  heute: { german: "Heute ist schön.", english: "Today is nice." },
+  morgen: { german: "Bis morgen.", english: "See you tomorrow." },
+  gestern: { german: "Gestern war gut.", english: "Yesterday was good." },
+
+  // Prepositions
+  in: { german: "In der Stadt.", english: "In the city." },
+  mit: { german: "Mit mir.", english: "With me." },
+  von: { german: "Von hier.", english: "From here." },
+  zu: { german: "Zu Hause.", english: "At home." },
+  für: { german: "Für dich.", english: "For you." },
+  auf: { german: "Auf dem Tisch.", english: "On the table." },
+  an: { german: "An der Wand.", english: "On the wall." },
+  bei: { german: "Bei mir.", english: "At my place." },
+  nach: { german: "Nach Berlin.", english: "To Berlin." },
+  über: { german: "Über dem Himmel.", english: "Above the sky." },
+  unter: { german: "Unter dem Baum.", english: "Under the tree." },
+
+  // Conjunctions
+  und: { german: "Du und ich.", english: "You and me." },
+  oder: { german: "Ja oder nein?", english: "Yes or no?" },
+  aber: { german: "Aber nein!", english: "But no!" },
+  wenn: { german: "Wenn du willst.", english: "If you want." },
+  weil: { german: "Weil es schön ist.", english: "Because it's beautiful." },
+  dass: { german: "Ich denke, dass...", english: "I think that..." },
+  als: { german: "Als ich klein war.", english: "When I was small." },
+  wie: { german: "Wie du.", english: "Like you." },
+
+  // Numbers
+  zwei: { german: "Ich habe zwei.", english: "I have two." },
+  drei: { german: "Drei Freunde.", english: "Three friends." },
+  vier: { german: "Vier Jahreszeiten.", english: "Four seasons." },
+  fünf: { german: "Fünf Finger.", english: "Five fingers." },
+  zehn: { german: "Zehn Jahre alt.", english: "Ten years old." },
+};
+
+// Italian example sentences (parallel to French)
+const italianExampleSentences: Record<
+  string,
+  { italian: string; english: string }
+> = {
+  // Articles
+  il: { italian: "Il gatto dorme.", english: "The cat sleeps." },
+  la: { italian: "La casa è grande.", english: "The house is big." },
+  un: { italian: "Un uomo cammina.", english: "A man walks." },
+  una: { italian: "Una donna parla.", english: "A woman speaks." },
+  lo: { italian: "Lo studente studia.", english: "The student studies." },
+
+  // Pronouns
+  io: { italian: "Io sono felice.", english: "I am happy." },
+  tu: { italian: "Tu sei qui.", english: "You are here." },
+  lui: { italian: "Lui è bravo.", english: "He is good." },
+  lei: { italian: "Lei è bella.", english: "She is beautiful." },
+  noi: { italian: "Noi andiamo.", english: "We go." },
+  voi: { italian: "Voi siete amici.", english: "You are friends." },
+  loro: { italian: "Loro parlano.", english: "They speak." },
+  mi: { italian: "Mi piace.", english: "I like it." },
+  ti: { italian: "Ti amo.", english: "I love you." },
+  si: { italian: "Si dice così.", english: "It's said so." },
+  ci: { italian: "Ci vediamo.", english: "See you." },
+  ne: { italian: "Ne voglio ancora.", english: "I want more." },
+
+  // Verbs
+  essere: { italian: "Io sono italiano.", english: "I am Italian." },
+  avere: { italian: "Ho un gatto.", english: "I have a cat." },
+  fare: { italian: "Faccio sport.", english: "I do sports." },
+  dire: { italian: "Dico la verità.", english: "I tell the truth." },
+  andare: { italian: "Vado a casa.", english: "I go home." },
+  potere: { italian: "Posso aiutare.", english: "I can help." },
+  dovere: { italian: "Devo partire.", english: "I must leave." },
+  volere: { italian: "Voglio mangiare.", english: "I want to eat." },
+  sapere: { italian: "So nuotare.", english: "I can swim." },
+  dare: { italian: "Do un regalo.", english: "I give a gift." },
+  stare: { italian: "Sto bene.", english: "I am well." },
+  vedere: { italian: "Vedo il mare.", english: "I see the sea." },
+  venire: { italian: "Vengo domani.", english: "I come tomorrow." },
+  parlare: { italian: "Parlo italiano.", english: "I speak Italian." },
+  trovare: { italian: "Trovo la chiave.", english: "I find the key." },
+  pensare: { italian: "Penso a te.", english: "I think of you." },
+  prendere: { italian: "Prendo il bus.", english: "I take the bus." },
+  lasciare: { italian: "Lascio il libro.", english: "I leave the book." },
+  mettere: { italian: "Metto le scarpe.", english: "I put on shoes." },
+  sentire: { italian: "Sento la musica.", english: "I hear the music." },
+  chiamare: { italian: "Chiamo mamma.", english: "I call mom." },
+  tenere: { italian: "Tengo il libro.", english: "I hold the book." },
+  portare: { italian: "Porto una borsa.", english: "I carry a bag." },
+  credere: { italian: "Credo in te.", english: "I believe in you." },
+  chiedere: { italian: "Chiedo aiuto.", english: "I ask for help." },
+  vivere: { italian: "Vivo a Roma.", english: "I live in Rome." },
+  scrivere: { italian: "Scrivo una lettera.", english: "I write a letter." },
+  leggere: { italian: "Leggo un libro.", english: "I read a book." },
+  aprire: { italian: "Apro la porta.", english: "I open the door." },
+  chiudere: { italian: "Chiudo la finestra.", english: "I close the window." },
+  conoscere: { italian: "Conosco Maria.", english: "I know Maria." },
+  capire: { italian: "Capisco bene.", english: "I understand well." },
+  mangiare: { italian: "Mangio la pizza.", english: "I eat pizza." },
+  bere: { italian: "Bevo acqua.", english: "I drink water." },
+  dormire: { italian: "Dormo bene.", english: "I sleep well." },
+  correre: { italian: "Corro veloce.", english: "I run fast." },
+  ridere: { italian: "Rido molto.", english: "I laugh a lot." },
+  piangere: { italian: "Piango di gioia.", english: "I cry from joy." },
+  cadere: { italian: "La foglia cade.", english: "The leaf falls." },
+  rimanere: { italian: "Rimango qui.", english: "I stay here." },
+  rispondere: {
+    italian: "Rispondo al telefono.",
+    english: "I answer the phone.",
+  },
+  seguire: { italian: "Seguo il cammino.", english: "I follow the path." },
+  nascere: { italian: "Sono nato qui.", english: "I was born here." },
+  morire: { italian: "I fiori muoiono.", english: "The flowers die." },
+
+  // Nouns
+  cosa: { italian: "Una bella cosa.", english: "A beautiful thing." },
+  anno: { italian: "Un nuovo anno.", english: "A new year." },
+  tempo: { italian: "Il tempo vola.", english: "Time flies." },
+  vita: { italian: "La vita è bella.", english: "Life is beautiful." },
+  giorno: { italian: "Un bel giorno.", english: "A beautiful day." },
+  mondo: { italian: "Il mondo è grande.", english: "The world is big." },
+  uomo: { italian: "L'uomo lavora.", english: "The man works." },
+  mano: { italian: "La mia mano.", english: "My hand." },
+  occhio: { italian: "Il mio occhio.", english: "My eye." },
+  donna: { italian: "La donna canta.", english: "The woman sings." },
+  parte: { italian: "Una grande parte.", english: "A large part." },
+  casa: { italian: "Una bella casa.", english: "A beautiful house." },
+  città: { italian: "La città è grande.", english: "The city is big." },
+  volta: { italian: "Una sola volta.", english: "Only once." },
+  modo: { italian: "In questo modo.", english: "In this way." },
+  paese: { italian: "Il mio paese.", english: "My country." },
+  ora: { italian: "È ora di andare.", english: "It's time to go." },
+  nome: { italian: "Il mio nome.", english: "My name." },
+  bambino: { italian: "Il bambino gioca.", english: "The child plays." },
+  punto: { italian: "Un buon punto.", english: "A good point." },
+  momento: { italian: "Un bel momento.", english: "A nice moment." },
+  caso: { italian: "Un buon caso.", english: "A good case." },
+  fatto: { italian: "È un fatto.", english: "It's a fact." },
+  persona: { italian: "Una brava persona.", english: "A good person." },
+  lavoro: { italian: "Molto lavoro oggi.", english: "Much work today." },
+  acqua: { italian: "Acqua fresca.", english: "Fresh water." },
+  padre: { italian: "Mio padre lavora.", english: "My father works." },
+  madre: { italian: "Mia madre cucina.", english: "My mother cooks." },
+  figlio: { italian: "Mio figlio gioca.", english: "My son plays." },
+  figlia: { italian: "Mia figlia studia.", english: "My daughter studies." },
+  amico: { italian: "Il mio amico.", english: "My friend." },
+  testa: { italian: "La mia testa.", english: "My head." },
+  cuore: { italian: "Il mio cuore.", english: "My heart." },
+  corpo: { italian: "Il mio corpo.", english: "My body." },
+  libro: { italian: "Un bel libro.", english: "A beautiful book." },
+  scuola: { italian: "La mia scuola.", english: "My school." },
+  notte: { italian: "La notte è buia.", english: "The night is dark." },
+  sera: { italian: "Buona sera.", english: "Good evening." },
+  mattina: { italian: "Buon mattino.", english: "Good morning." },
+  famiglia: { italian: "La mia famiglia.", english: "My family." },
+  studio: {
+    italian: "Lo studio è importante.",
+    english: "Study is important.",
+  },
+  porta: { italian: "La porta è aperta.", english: "The door is open." },
+  strada: { italian: "Una lunga strada.", english: "A long road." },
+  posto: { italian: "Un bel posto.", english: "A nice place." },
+  terra: { italian: "La terra è rotonda.", english: "The earth is round." },
+  cielo: { italian: "Il cielo è blu.", english: "The sky is blue." },
+  sole: { italian: "Il sole splende.", english: "The sun shines." },
+  mare: { italian: "Il mare è calmo.", english: "The sea is calm." },
+
+  // Adjectives
+  grande: { italian: "Una casa grande.", english: "A big house." },
+  piccolo: { italian: "Un gatto piccolo.", english: "A small cat." },
+  nuovo: { italian: "Un libro nuovo.", english: "A new book." },
+  vecchio: { italian: "Un albero vecchio.", english: "An old tree." },
+  buono: { italian: "Un buon giorno.", english: "A good day." },
+  bello: { italian: "Un bel fiore.", english: "A beautiful flower." },
+  altro: { italian: "Un altro giorno.", english: "Another day." },
+  primo: { italian: "Il primo giorno.", english: "The first day." },
+  ultimo: { italian: "L'ultimo treno.", english: "The last train." },
+  lungo: { italian: "Una strada lunga.", english: "A long road." },
+  alto: { italian: "Un muro alto.", english: "A high wall." },
+  basso: { italian: "Un prezzo basso.", english: "A low price." },
+  bianco: { italian: "Un gatto bianco.", english: "A white cat." },
+  nero: { italian: "Un gatto nero.", english: "A black cat." },
+  rosso: { italian: "Un fiore rosso.", english: "A red flower." },
+  verde: { italian: "L'erba è verde.", english: "The grass is green." },
+  giovane: { italian: "Una donna giovane.", english: "A young woman." },
+  certo: { italian: "È certo.", english: "It's certain." },
+  vero: { italian: "È vero.", english: "It's true." },
+  solo: { italian: "Sono solo.", english: "I am alone." },
+
+  // Adverbs
+  non: { italian: "Non lo so.", english: "I don't know." },
+  più: { italian: "Non più.", english: "No more." },
+  anche: { italian: "Anche io.", english: "Me too." },
+  molto: { italian: "Molto bene.", english: "Very well." },
+  ancora: { italian: "Ancora una volta.", english: "One more time." },
+  già: { italian: "Già fatto.", english: "Already done." },
+  mai: { italian: "Mai più.", english: "Never again." },
+  sempre: { italian: "Sempre qui.", english: "Always here." },
+  oggi: { italian: "Oggi fa bello.", english: "Today is nice." },
+  poi: { italian: "A poi.", english: "See you later." },
+  così: { italian: "Così è.", english: "So it is." },
+  bene: { italian: "Va bene.", english: "It's okay." },
+  male: { italian: "È andato male.", english: "It went badly." },
+  dove: { italian: "Dove vai?", english: "Where are you going?" },
+  quando: { italian: "Quando vieni?", english: "When are you coming?" },
+  come: { italian: "Come stai?", english: "How are you?" },
+  perché: { italian: "Perché no?", english: "Why not?" },
+
+  // Prepositions
+  di: { italian: "Di mattina.", english: "In the morning." },
+  a: { italian: "Vado a casa.", english: "I go home." },
+  da: { italian: "Vengo da Roma.", english: "I come from Rome." },
+  in: { italian: "In città.", english: "In the city." },
+  con: { italian: "Con te.", english: "With you." },
+  su: { italian: "Sul tavolo.", english: "On the table." },
+  per: { italian: "Per te.", english: "For you." },
+  tra: { italian: "Tra noi.", english: "Between us." },
+  fra: { italian: "Fra poco.", english: "Soon." },
+  sotto: { italian: "Sotto il tavolo.", english: "Under the table." },
+  sopra: { italian: "Sopra la casa.", english: "Above the house." },
+  dentro: { italian: "Dentro la scatola.", english: "Inside the box." },
+  fuori: { italian: "Fuori casa.", english: "Outside the house." },
+  davanti: { italian: "Davanti alla porta.", english: "In front of the door." },
+  dietro: { italian: "Dietro di me.", english: "Behind me." },
+  vicino: { italian: "Vicino a casa.", english: "Near home." },
+  verso: { italian: "Verso sera.", english: "Towards evening." },
+  senza: { italian: "Senza di te.", english: "Without you." },
+
+  // Conjunctions
+  e: { italian: "Tu e io.", english: "You and me." },
+  o: { italian: "Sì o no?", english: "Yes or no?" },
+  ma: { italian: "Ma no!", english: "But no!" },
+  se: { italian: "Se vuoi.", english: "If you want." },
+  che: { italian: "Penso che sì.", english: "I think yes." },
+  mentre: { italian: "Mentre mangio.", english: "While I eat." },
+  però: { italian: "Però è vero.", english: "However it's true." },
+  quindi: { italian: "Quindi vado.", english: "Therefore I go." },
+  allora: { italian: "Allora andiamo.", english: "Then let's go." },
+
+  // Numbers
+  due: { italian: "Ho due gatti.", english: "I have two cats." },
+  tre: { italian: "Tre amici.", english: "Three friends." },
+  quattro: { italian: "Quattro stagioni.", english: "Four seasons." },
+  cinque: { italian: "Cinque dita.", english: "Five fingers." },
+  dieci: { italian: "Dieci anni.", english: "Ten years." },
+};
+
 // Translate French words to English
 const translations: Record<string, string> = {
   // Articles
@@ -2302,6 +2668,34 @@ export function generateFoundationVocabulary(
         ? italianTranslations
         : translations;
 
+  // Select the appropriate example sentences based on language
+  const exampleSentencesDict =
+    language === "de"
+      ? germanExampleSentences
+      : language === "it"
+        ? italianExampleSentences
+        : exampleSentences;
+
+  // Fallback sentence text based on language
+  const getFallbackExample = (word: string) => {
+    if (language === "de") {
+      return {
+        german: `Das Wort "${word}".`,
+        english: `The word "${word}".`,
+      };
+    } else if (language === "it") {
+      return {
+        italian: `La parola "${word}".`,
+        english: `The word "${word}".`,
+      };
+    } else {
+      return {
+        french: `Le mot "${word}".`,
+        english: `The word "${word}".`,
+      };
+    }
+  };
+
   // Filter to only verbs and nouns, take first 100
   const verbsAndNouns = rawWords.filter(
     (w) => w.pos === "verb" || w.pos === "noun",
@@ -2316,10 +2710,8 @@ export function generateFoundationVocabulary(
       displayWord = `${article} ${raw.word}`;
     }
 
-    const example = exampleSentences[raw.word] || {
-      french: `Le mot "${raw.word}".`,
-      english: `The word "${raw.word}".`,
-    };
+    const example =
+      exampleSentencesDict[raw.word] || getFallbackExample(raw.word);
 
     // Use a placeholder if translation is missing
     const translation = translationDict[raw.word] || "Translation unavailable";

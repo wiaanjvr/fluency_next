@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   Card,
   CardContent,
@@ -336,7 +336,7 @@ export default function OnboardingPage() {
 
   // Show loading state until auth is checked
   if (!authChecked || loading) {
-    return <LinguaLoadingAnimation message="Preparing your assessment..." />;
+    return <LoadingScreen />;
   }
 
   return (

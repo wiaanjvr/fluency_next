@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import { ArrowLeft, Star, Trophy, BookOpen, Brain, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -450,7 +450,7 @@ export function FoundationSessionPage({
       : 0;
 
   if (loading) {
-    return <LinguaLoadingAnimation message="Loading vocabulary..." />;
+    return <LoadingScreen />;
   }
 
   // Usage limit reached

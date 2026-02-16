@@ -43,11 +43,13 @@ type LearningPhase =
   | "introduction" // Show image, word, play audio
   | "pronunciation" // Record user saying the word
   | "meaning" // User types what they think it means
-  | "reveal"; // Show correct meaning
+  | "reveal" // Show correct meaning
+  | "already-know-test"; // Test for "I already know this" option
 
 interface MultimodalWordLearningProps {
   word: FoundationWord;
   onComplete: (pronunciationData: PronunciationAttempt) => void;
+  onAlreadyKnown?: (wordId: string, passed: boolean) => void; // Callback for when user claims to know the word
   language?: SupportedLanguage;
 }
 
@@ -57,14 +59,20 @@ const MAX_PRONUNCIATION_ATTEMPTS = 2;
  * Multimodal Word Learning Component
  *
  * Flow:
- * 1. Introduction: Show image + word + audio
+ * 1. Introduction: Show image + word + audio (with "I already know this" option)
  * 2. Pronunciation: User records themselves, STT validates
  * 3. Meaning: User types what they think the word means
  * 4. Reveal: Show correct meaning
+ *
+ * Alternative flow (I already know this):
+ * 1. Introduction: User clicks "I already know this"
+ * 2. Already-know-test: User speaks the word (STT check) + answers multiple choice
+ * 3. If both correct: mark as mastered and complete
  */
 export function MultimodalWordLearning({
   word,
   onComplete,
+  onAlreadyKnown,
   language = "fr",
 }: MultimodalWordLearningProps) {
   const [phase, setPhase] = useState<LearningPhase>("introduction");
@@ -86,6 +94,18 @@ export function MultimodalWordLearning({
 
   // Meaning phase state
   const [userMeaning, setUserMeaning] = useState("");
+
+  // "Already know" test state
+  const [alreadyKnowStep, setAlreadyKnowStep] = useState<
+    "pronunciation" | "meaning"
+  >("pronunciation");
+  const [alreadyKnowPronunciationPassed, setAlreadyKnowPronunciationPassed] =
+    useState(false);
+  const [multipleChoiceOptions, setMultipleChoiceOptions] = useState<string[]>(
+    [],
+  );
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [answerCorrect, setAnswerCorrect] = useState<boolean | null>(null);
 
   // Refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -296,6 +316,134 @@ export function MultimodalWordLearning({
     onComplete(pronunciationData);
   };
 
+  // Handle "I already know this" button click
+  const handleAlreadyKnowClick = () => {
+    // Generate multiple choice options (3 distractors + correct answer)
+    const distractorWords = getDistractorWords(word, [], 3);
+    const allOptions = [
+      word.translation,
+      ...distractorWords.map((w) => w.translation),
+    ];
+    // Shuffle options
+    const shuffled = allOptions.sort(() => Math.random() - 0.5);
+    setMultipleChoiceOptions(shuffled);
+
+    // Reset state
+    setAlreadyKnowStep("pronunciation");
+    setAlreadyKnowPronunciationPassed(false);
+    setPronunciationMatch(null);
+    setUserAudioBlob(null);
+    setSelectedAnswer(null);
+    setAnswerCorrect(null);
+
+    setPhase("already-know-test");
+  };
+
+  // Handle pronunciation success in "already know" test
+  const handleAlreadyKnowPronunciationSuccess = () => {
+    setAlreadyKnowPronunciationPassed(true);
+    setAlreadyKnowStep("meaning");
+    playSuccess();
+  };
+
+  // Handle multiple choice answer selection
+  const handleAnswerSelect = (index: number) => {
+    if (answerCorrect !== null) return; // Already answered
+
+    setSelectedAnswer(index);
+    const correct = multipleChoiceOptions[index] === word.translation;
+    setAnswerCorrect(correct);
+
+    if (correct) {
+      playSuccess();
+      // Both tests passed - mark as mastered
+      setTimeout(() => {
+        if (onAlreadyKnown) {
+          onAlreadyKnown(word.id, true);
+        }
+        // Complete with perfect pronunciation data
+        const pronunciationData: PronunciationAttempt = {
+          wordId: word.id,
+          attempts: 1,
+          success: true,
+          timestamp: new Date().toISOString(),
+        };
+        onComplete(pronunciationData);
+      }, 1500);
+    } else {
+      playError();
+      // Failed the test - go through normal learning flow
+      setTimeout(() => {
+        if (onAlreadyKnown) {
+          onAlreadyKnown(word.id, false);
+        }
+        setPhase("introduction");
+        // Reset state
+        setPronunciationMatch(null);
+        setUserAudioBlob(null);
+        setUserAudioUrl(null);
+      }, 2000);
+    }
+  };
+
+  // Helper function to get distractor words (fallback if not imported)
+  const getDistractorWords = (
+    targetWord: FoundationWord,
+    allWords: FoundationWord[],
+    count: number,
+  ): FoundationWord[] => {
+    // This is a simple fallback - uses placeholder translations
+    // In practice, this should pull from actual word list
+    const distractors: FoundationWord[] = [];
+    const placeholderTranslations = [
+      "hello",
+      "goodbye",
+      "thank you",
+      "please",
+      "water",
+      "food",
+      "house",
+      "car",
+      "book",
+      "tree",
+      "cat",
+      "dog",
+      "sun",
+      "moon",
+      "star",
+      "day",
+      "night",
+      "love",
+      "happy",
+      "sad",
+      "big",
+      "small",
+      "fast",
+      "slow",
+      "good",
+      "bad",
+    ];
+
+    for (let i = 0; i < count && distractors.length < count; i++) {
+      const translation =
+        placeholderTranslations[
+          Math.floor(Math.random() * placeholderTranslations.length)
+        ];
+      if (
+        translation !== targetWord.translation &&
+        !distractors.some((d) => d.translation === translation)
+      ) {
+        distractors.push({
+          ...targetWord,
+          id: `distractor-${i}`,
+          translation: translation,
+        });
+      }
+    }
+
+    return distractors;
+  };
+
   // Cleanup audio URLs on unmount
   useEffect(() => {
     return () => {
@@ -396,16 +544,227 @@ export function MultimodalWordLearning({
 
           {/* Continue Button */}
           <FadeIn delay={300}>
-            <Button
-              onClick={() => setPhase("pronunciation")}
-              size="lg"
-              className="mt-4 gap-2"
-              disabled={!hasHeardNative}
-            >
-              I'm Ready to Practice
-              <ChevronRight className="w-5 h-5" />
-            </Button>
+            <div className="flex flex-col items-center gap-3 mt-4">
+              <Button
+                onClick={() => setPhase("pronunciation")}
+                size="lg"
+                className="gap-2"
+                disabled={!hasHeardNative}
+              >
+                I'm Ready to Practice
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+
+              {/* "I already know this" button */}
+              <Button
+                onClick={handleAlreadyKnowClick}
+                variant="outline"
+                size="sm"
+                className="text-muted-foreground hover:text-primary"
+                disabled={!hasHeardNative}
+              >
+                I already know this word
+              </Button>
+            </div>
           </FadeIn>
+        </>
+      )}
+
+      {/* Already Know Test Phase */}
+      {phase === "already-know-test" && (
+        <>
+          {alreadyKnowStep === "pronunciation" ? (
+            <>
+              {/* Pronunciation Test */}
+              <div className="flex flex-col items-center gap-4 w-full max-w-md">
+                <h3 className="text-2xl font-semibold text-center">
+                  Prove you know this word
+                </h3>
+
+                <Card className="p-4 bg-blue-50 border-blue-200 w-full">
+                  <p className="text-sm text-center text-blue-900">
+                    <strong>Step 1 of 2:</strong> Say the word "{word.word}" out
+                    loud
+                  </p>
+                </Card>
+
+                <div className="flex flex-col items-center gap-2">
+                  <h2 className="text-4xl font-bold font-serif text-primary">
+                    {word.word}
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={playNativeAudio}
+                    disabled={isPlayingNative}
+                    className="gap-2 text-muted-foreground"
+                  >
+                    <Volume2 className="w-4 h-4" />
+                    Hear pronunciation
+                  </Button>
+                </div>
+
+                {/* Recording Interface */}
+                {!userAudioBlob && !isProcessing && (
+                  <div className="flex flex-col items-center gap-4 mt-4">
+                    <Button
+                      size="lg"
+                      onClick={isRecording ? stopRecording : startRecording}
+                      className={cn(
+                        "w-20 h-20 rounded-full",
+                        isRecording &&
+                          "bg-red-500 hover:bg-red-600 animate-pulse",
+                      )}
+                    >
+                      {isRecording ? (
+                        <Square className="w-8 h-8" />
+                      ) : (
+                        <Mic className="w-8 h-8" />
+                      )}
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      {isRecording
+                        ? "Recording... Tap to stop"
+                        : "Tap to record"}
+                    </p>
+                  </div>
+                )}
+
+                {/* Processing */}
+                {isProcessing && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <p>Checking pronunciation...</p>
+                  </div>
+                )}
+
+                {/* Result */}
+                {!isProcessing && pronunciationMatch !== null && (
+                  <Card
+                    className={cn(
+                      "p-6 text-center w-full",
+                      pronunciationMatch
+                        ? "bg-green-50 border-green-200"
+                        : "bg-red-50 border-red-200",
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      {pronunciationMatch ? (
+                        <>
+                          <Check className="w-6 h-6 text-green-600" />
+                          <h3 className="text-lg font-semibold text-green-800">
+                            Perfect!
+                          </h3>
+                        </>
+                      ) : (
+                        <>
+                          <X className="w-6 h-6 text-red-600" />
+                          <h3 className="text-lg font-semibold text-red-800">
+                            Not quite right
+                          </h3>
+                        </>
+                      )}
+                    </div>
+                    {pronunciationMatch ? (
+                      <Button
+                        onClick={handleAlreadyKnowPronunciationSuccess}
+                        className="mt-4"
+                      >
+                        Continue to Step 2
+                      </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-sm text-red-700">
+                          Let's learn this word properly instead
+                        </p>
+                        <Button
+                          onClick={handleRetry}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Try Again
+                        </Button>
+                      </div>
+                    )}
+                  </Card>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Multiple Choice Test */}
+              <div className="flex flex-col items-center gap-4 w-full max-w-md">
+                <h3 className="text-2xl font-semibold text-center">
+                  Almost there!
+                </h3>
+
+                <Card className="p-4 bg-blue-50 border-blue-200 w-full">
+                  <p className="text-sm text-center text-blue-900">
+                    <strong>Step 2 of 2:</strong> What does "{word.word}" mean?
+                  </p>
+                </Card>
+
+                <div className="grid grid-cols-1 gap-3 w-full mt-4">
+                  {multipleChoiceOptions.map((option, index) => {
+                    const isSelected = selectedAnswer === index;
+                    const isCorrect = option === word.translation;
+                    const showResult = answerCorrect !== null;
+
+                    return (
+                      <Button
+                        key={index}
+                        onClick={() => handleAnswerSelect(index)}
+                        disabled={showResult}
+                        variant="outline"
+                        className={cn(
+                          "h-auto py-4 px-6 text-left justify-start text-base",
+                          isSelected &&
+                            showResult &&
+                            isCorrect &&
+                            "bg-green-50 border-green-500",
+                          isSelected &&
+                            showResult &&
+                            !isCorrect &&
+                            "bg-red-50 border-red-500",
+                          !isSelected &&
+                            showResult &&
+                            isCorrect &&
+                            "bg-green-50 border-green-300",
+                        )}
+                      >
+                        <span className="flex items-center gap-2 w-full">
+                          <span className="flex-1">{option}</span>
+                          {showResult && isSelected && isCorrect && (
+                            <Check className="w-5 h-5 text-green-600" />
+                          )}
+                          {showResult && isSelected && !isCorrect && (
+                            <X className="w-5 h-5 text-red-600" />
+                          )}
+                        </span>
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                {answerCorrect !== null && (
+                  <Card
+                    className={cn(
+                      "p-4 text-center w-full mt-4",
+                      answerCorrect
+                        ? "bg-green-50 border-green-200"
+                        : "bg-orange-50 border-orange-200",
+                    )}
+                  >
+                    <p className="text-sm font-medium">
+                      {answerCorrect
+                        ? "Excellent! This word will be marked as mastered."
+                        : "Let's learn this word properly through the lesson."}
+                    </p>
+                  </Card>
+                )}
+              </div>
+            </>
+          )}
         </>
       )}
 
@@ -770,6 +1129,7 @@ export function MultimodalWordLearningSession({
   const [pronunciationAttempts, setPronunciationAttempts] = useState<
     PronunciationAttempt[]
   >([]);
+  const [alreadyKnownWords, setAlreadyKnownWords] = useState<string[]>([]);
 
   const currentWord = words[currentIndex];
   const progress = ((currentIndex + 1) / words.length) * 100;
@@ -802,6 +1162,17 @@ export function MultimodalWordLearningSession({
         "pronunciation attempts",
       );
       onComplete(updatedLearnedWords, updatedPronunciationAttempts);
+    }
+  };
+
+  const handleAlreadyKnown = (wordId: string, passed: boolean) => {
+    console.log(
+      `Word ${wordId} marked as ${passed ? "already known (passed test)" : "not actually known (failed test)"}`,
+    );
+    if (passed) {
+      setAlreadyKnownWords((prev) => [...prev, wordId]);
+      // Note: The word completion is handled by the MultimodalWordLearning component
+      // which calls handleWordComplete with perfect pronunciation data
     }
   };
 
@@ -840,6 +1211,7 @@ export function MultimodalWordLearningSession({
           key={currentWord.id}
           word={currentWord}
           onComplete={handleWordComplete}
+          onAlreadyKnown={handleAlreadyKnown}
           language={language}
         />
       </div>

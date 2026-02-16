@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import {
@@ -12,9 +13,9 @@ import {
   Mic,
   Crown,
   Waves,
+  DollarSign,
 } from "lucide-react";
-import { useState } from "react";
-import { usePaddle } from "@/lib/paddle";
+import { useState, useEffect } from "react";
 
 /* =============================================================================
    PRICING PAGE - FLUENSEA OCEAN THEME
@@ -31,7 +32,7 @@ const plans = [
     id: "free",
     name: "Free",
     description: "Start your language journey",
-    price: "$0",
+    priceUSD: 0,
     period: "forever",
     features: [
       "5 lessons per day",
@@ -50,14 +51,14 @@ const plans = [
     popular: false,
   },
   {
-    id: "premium",
-    name: "Premium",
+    id: "pro",
+    name: "Pro",
     description: "Unlock your full potential",
-    price: "$12",
+    priceUSD: 8,
+    yearlyPriceUSD: 80,
     period: "per month",
-    yearlyPrice: "$96",
     yearlyPeriod: "per year",
-    yearlySavings: "Save 33%",
+    yearlySavings: "Save ~17%",
     features: [
       "Unlimited lessons",
       "Full course library",
@@ -69,12 +70,74 @@ const plans = [
       "Detailed analytics",
     ],
     limitations: [],
-    cta: "Start 7-day free trial",
-    href: "/auth/signup?plan=premium",
+    cta: "Subscribe to Pro",
+    href: "/auth/signup?plan=pro",
     popular: true,
     paddlePriceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_MONTHLY,
     paddleYearlyPriceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_YEARLY,
+    paystackPlanCode: process.env.NEXT_PUBLIC_PAYSTACK_PLAN_MONTHLY,
+    paystackYearlyPlanCode: process.env.NEXT_PUBLIC_PAYSTACK_PLAN_YEARLY,
   },
+];
+
+const currencies = [
+  { code: "USD", symbol: "$", name: "US Dollar", icon: DollarSign },
+  {
+    code: "EUR",
+    symbol: "€",
+    name: "Euro",
+    icon: (props: any) => <span {...props}>€</span>,
+  },
+  {
+    code: "GBP",
+    symbol: "£",
+    name: "British Pound",
+    icon: (props: any) => <span {...props}>£</span>,
+  },
+  {
+    code: "ZAR",
+    symbol: "R",
+    name: "South African Rand",
+    icon: (props: any) => <span {...props}>R</span>,
+  },
+];
+
+const moreCurrencies = [
+  {
+    code: "JPY",
+    symbol: "¥",
+    name: "Japanese Yen",
+    icon: (props: any) => <span {...props}>¥</span>,
+  },
+  { code: "CAD", symbol: "$", name: "Canadian Dollar", icon: DollarSign },
+  { code: "AUD", symbol: "$", name: "Australian Dollar", icon: DollarSign },
+  {
+    code: "CHF",
+    symbol: "Fr",
+    name: "Swiss Franc",
+    icon: (props: any) => <span {...props}>Fr</span>,
+  },
+  {
+    code: "CNY",
+    symbol: "¥",
+    name: "Chinese Yuan",
+    icon: (props: any) => <span {...props}>¥</span>,
+  },
+  {
+    code: "INR",
+    symbol: "₹",
+    name: "Indian Rupee",
+    icon: (props: any) => <span {...props}>₹</span>,
+  },
+  {
+    code: "BRL",
+    symbol: "R$",
+    name: "Brazilian Real",
+    icon: (props: any) => <span {...props}>R$</span>,
+  },
+  { code: "MXN", symbol: "$", name: "Mexican Peso", icon: DollarSign },
+  { code: "SGD", symbol: "$", name: "Singapore Dollar", icon: DollarSign },
+  { code: "HKD", symbol: "$", name: "Hong Kong Dollar", icon: DollarSign },
 ];
 
 const features = [
@@ -100,6 +163,52 @@ export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
     "monthly",
   );
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({
+    USD: 1,
+    EUR: 0.92,
+    GBP: 0.79,
+    ZAR: 18.5,
+  });
+  const [loadingRates, setLoadingRates] = useState(false);
+
+  // Fetch exchange rates on mount
+  useEffect(() => {
+    async function fetchRates() {
+      setLoadingRates(true);
+      try {
+        const response = await fetch(
+          "/api/currency/convert?amount=1&from=USD&to=USD",
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.rates) {
+            setExchangeRates(data.rates);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch exchange rates:", error);
+      } finally {
+        setLoadingRates(false);
+      }
+    }
+    fetchRates();
+  }, []);
+
+  // Format price for Pro: show selected currency equivalent, but always charge ZAR
+  const formatProPrice = (billingPeriod: "monthly" | "yearly") => {
+    // Always charge in ZAR, but display selected currency equivalent
+    const zarAmount = billingPeriod === "yearly" ? 1250 : 125;
+    if (selectedCurrency === "ZAR") {
+      return `R${zarAmount}`;
+    }
+    const rate = exchangeRates[selectedCurrency] || 1;
+    const symbol =
+      currencies.concat(moreCurrencies).find((c) => c.code === selectedCurrency)
+        ?.symbol || selectedCurrency;
+    const converted = ((zarAmount / exchangeRates["ZAR"]) * rate).toFixed(2);
+    return `${symbol}${converted}`;
+  };
 
   return (
     <main className="bg-background text-foreground antialiased min-h-screen">
@@ -108,8 +217,15 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 bg-gradient-to-br from-ocean-turquoise to-ocean-teal flex items-center justify-center">
-                <Waves className="w-5 h-5 text-white" />
+              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 bg-background/90 border-b border-ocean-turquoise/20 flex items-center justify-center">
+                <Image
+                  src="/logo.png"
+                  alt="Fluensea Logo"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 object-contain"
+                  priority
+                />
               </div>
               <span className="text-lg font-medium text-gradient-turquoise">
                 Fluensea
@@ -118,20 +234,19 @@ export default function PricingPage() {
 
             <div className="flex items-center gap-6">
               <Link
-                href="/pricing"
-                className="text-sm font-medium text-ocean-turquoise transition-colors duration-300"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/auth/login"
+                href="/"
                 className="text-sm font-medium text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
               >
-                Sign in
+                Home
+              </Link>
+              <Link href="/auth/login">
+                <Button variant="ghost" size="sm">
+                  Sign in
+                </Button>
               </Link>
               <Link href="/auth/signup">
                 <Button size="sm" className="rounded-full px-5 font-medium">
-                  Dive in
+                  Sign Up
                 </Button>
               </Link>
             </div>
@@ -140,71 +255,106 @@ export default function PricingPage() {
       </nav>
 
       {/* ========== HERO SECTION ========== */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        {/* Ambient background */}
+      <section className="relative min-h-screen flex items-center justify-center px-6 pt-16 overflow-hidden">
+        {/* Ocean ambient background */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-ocean-turquoise/[0.03] rounded-full blur-[100px]" />
-          <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-ocean-turquoise/[0.04] rounded-full blur-[80px]" />
+          <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-ocean-turquoise/[0.05] rounded-full blur-[120px] animate-pulse-glow" />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-ocean-teal/[0.06] rounded-full blur-[100px]" />
+          <div className="absolute top-2/3 right-1/3 w-[300px] h-[300px] bg-ocean-turquoise/[0.03] rounded-full blur-[80px] animate-float" />
         </div>
 
         <div className="max-w-4xl mx-auto text-center">
           <ScrollReveal delay={100}>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-6">
-              Simple Pricing
+            <p className="text-sm font-light tracking-[0.2em] uppercase text-ocean-turquoise mb-8">
+              Simple, Transparent Pricing
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-light tracking-tight leading-[1.1] mb-6">
-              Invest in
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight leading-[1.1] mb-8">
+              Invest in your
               <br />
-              <span className="font-serif italic text-ocean-turquoise">
-                your fluency
+              <span className="font-serif italic text-gradient-turquoise">
+                fluensea.
               </span>
             </h1>
           </ScrollReveal>
 
-          <ScrollReveal delay={300}>
-            <p className="text-lg md:text-xl text-muted-foreground font-light max-w-xl mx-auto mb-10 leading-relaxed">
-              Start free, upgrade when you're ready. No commitment, cancel
-              anytime.
-            </p>
-          </ScrollReveal>
-
-          {/* Billing Toggle */}
           <ScrollReveal delay={400}>
-            <div className="flex items-center justify-center gap-4 mb-16">
-              <button
-                onClick={() => setBillingPeriod("monthly")}
-                className={`px-4 py-2 text-sm font-light rounded-full transition-all duration-300 ${
-                  billingPeriod === "monthly"
-                    ? "bg-ocean-teal text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingPeriod("yearly")}
-                className={`px-4 py-2 text-sm font-light rounded-full transition-all duration-300 flex items-center gap-2 ${
-                  billingPeriod === "yearly"
-                    ? "bg-ocean-teal text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Yearly
-                <span className="text-xs bg-ocean-coral/20 text-ocean-coral px-2 py-0.5 rounded-full">
-                  Save 33%
-                </span>
-              </button>
-            </div>
+            <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-xl mx-auto mb-12 leading-relaxed">
+              Choose the plan that fits your learning journey and unlock your
+              full potential.
+            </p>
           </ScrollReveal>
         </div>
       </section>
 
-      {/* ========== PRICING CARDS ========== */}
-      <section className="px-6 pb-32">
+      {/* ========== PRICING SECTION ========== */}
+      <section className="px-6 pb-16">
         <div className="max-w-5xl mx-auto">
+          {/* Billing Period & Currency Selection */}
+          <ScrollReveal>
+            <div className="mb-16 flex flex-col sm:flex-row items-center justify-center gap-8">
+              {/* Billing Period Toggle */}
+              <div className="flex items-center gap-3 bg-muted/40 rounded-full p-1.5">
+                <button
+                  onClick={() => setBillingPeriod("monthly")}
+                  className={`px-6 py-2 rounded-full font-light transition-all duration-300 ${
+                    billingPeriod === "monthly"
+                      ? "bg-ocean-turquoise text-ocean-midnight"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBillingPeriod("yearly")}
+                  className={`px-6 py-2 rounded-full font-light transition-all duration-300 ${
+                    billingPeriod === "yearly"
+                      ? "bg-ocean-turquoise text-ocean-midnight"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Yearly
+                </button>
+              </div>
+
+              {/* Currency Selection */}
+              <div className="flex items-center gap-2">
+                {currencies.map((currency) => (
+                  <button
+                    key={currency.code}
+                    onClick={() => setSelectedCurrency(currency.code)}
+                    className={`px-3 py-1.5 text-sm font-light rounded-lg transition-all duration-300 ${
+                      selectedCurrency === currency.code
+                        ? "bg-ocean-turquoise/20 text-ocean-turquoise border border-ocean-turquoise/30"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                    }`}
+                    title={currency.name}
+                  >
+                    {currency.code}
+                  </button>
+                ))}
+              </div>
+
+              {/* Dropdown for more currencies */}
+              <div className="relative">
+                <select
+                  className="px-3 py-1.5 text-sm font-light rounded-lg border border-ocean-turquoise/30 bg-background text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ocean-turquoise"
+                  value={selectedCurrency}
+                  onChange={(e) => setSelectedCurrency(e.target.value)}
+                >
+                  <option disabled>More...</option>
+                  {moreCurrencies.map((currency) => (
+                    <option key={currency.code} value={currency.code}>
+                      {currency.code} - {currency.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </ScrollReveal>
+
           <div className="grid md:grid-cols-2 gap-8">
             {plans.map((plan, index) => (
               <ScrollReveal key={plan.id} delay={500 + index * 150}>
@@ -215,12 +365,11 @@ export default function PricingPage() {
                       : "bg-card border-border/50 hover:border-ocean-teal/30"
                   }`}
                 >
-                  {/* Popular Badge */}
+                  {/* 2 months free Badge */}
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                       <div className="flex items-center gap-1.5 bg-ocean-turquoise text-ocean-midnight px-4 py-1.5 rounded-full text-sm font-light">
-                        <Crown className="w-3.5 h-3.5" />
-                        Most Popular
+                        <Crown className="w-3.5 h-3.5" />2 Months Free
                       </div>
                     </div>
                   )}
@@ -237,9 +386,11 @@ export default function PricingPage() {
                   <div className="mb-8">
                     <div className="flex items-baseline gap-2">
                       <span className="text-5xl font-light">
-                        {billingPeriod === "yearly" && plan.yearlyPrice
-                          ? plan.yearlyPrice
-                          : plan.price}
+                        {plan.id === "pro"
+                          ? formatProPrice(billingPeriod)
+                          : plan.priceUSD === 0
+                            ? "Free"
+                            : formatProPrice(billingPeriod)}
                       </span>
                       <span className="text-muted-foreground font-light">
                         /
@@ -281,12 +432,11 @@ export default function PricingPage() {
 
                   {/* CTA Button */}
                   {plan.popular ? (
-                    <PaddleCheckoutButton
-                      priceId={
-                        billingPeriod === "yearly"
-                          ? plan.paddleYearlyPriceId
-                          : plan.paddlePriceId
-                      }
+                    <PaymentCheckoutButton
+                      plan={plan}
+                      billingPeriod={billingPeriod}
+                      selectedCurrency={selectedCurrency}
+                      exchangeRates={exchangeRates}
                     />
                   ) : (
                     <Link href={plan.href} className="block">
@@ -360,24 +510,40 @@ export default function PricingPage() {
           <div className="space-y-8">
             {[
               {
-                q: "Can I try Premium before committing?",
-                a: "Yes. Premium includes a 7-day free trial. You won't be charged until the trial ends, and you can cancel anytime before then.",
+                q: "What is your refund policy?",
+                a: "If you're not satisfied with Pro, you can request a full refund within 7 days of subscribing. Simply contact us or cancel from your settings page, and we'll process your refund immediately.",
+              },
+              {
+                q: "When will I be charged?",
+                a: "You'll be charged immediately when you subscribe to Pro. However, you have 7 days to request a full refund if you're not satisfied.",
               },
               {
                 q: "What happens to my progress if I downgrade?",
                 a: "Your progress is always saved. If you downgrade, you'll keep access to your learned vocabulary and can continue with the free plan's daily limits.",
               },
               {
-                q: "Is there a refund policy?",
-                a: "We offer a 30-day money-back guarantee. If Premium isn't right for you, contact us for a full refund.",
+                q: "Can I use Fluensea on mobile and desktop?",
+                a: "Yes! Fluensea is fully responsive and works great on all devices. Your progress syncs automatically.",
               },
               {
-                q: "Can I switch between monthly and yearly?",
-                a: "Absolutely. You can change your billing frequency at any time. We'll prorate the difference.",
+                q: "How do I cancel my subscription?",
+                a: "You can cancel anytime from your account dashboard. Your access will continue until the end of your billing period.",
               },
               {
-                q: "Do you offer student or educator discounts?",
-                a: "Yes, we offer 50% off for verified students and educators. Contact support with your academic email to apply.",
+                q: "Can I learn multiple languages at once?",
+                a: "Absolutely! You can switch between languages and track your progress in each one separately.",
+              },
+              {
+                q: "Which languages can I learn using Fluensea?",
+                a: "French, German and Italian are currently available, with more languages being added regularly.",
+              },
+              {
+                q: "Is my payment information secure?",
+                a: "Yes, all payments are processed securely via our trusted provider, Paystack. We never store your card details.",
+              },
+              {
+                q: "How do I contact support?",
+                a: "You can reach our support team anytime via the contact page. We're here to help!",
               },
             ].map((faq, index) => (
               <ScrollReveal key={index} delay={200 + index * 80}>
@@ -469,32 +635,63 @@ export default function PricingPage() {
   );
 }
 
-/* ========== PADDLE CHECKOUT BUTTON ========== */
-function PaddleCheckoutButton({ priceId }: { priceId?: string }) {
+/* ========== PAYMENT CHECKOUT BUTTON ========== */
+function PaymentCheckoutButton({
+  plan,
+  billingPeriod,
+  selectedCurrency,
+  exchangeRates,
+}: {
+  plan: any;
+  billingPeriod: "monthly" | "yearly";
+  selectedCurrency: string;
+  exchangeRates: Record<string, number>;
+}) {
   const [loading, setLoading] = useState(false);
-  const { openCheckout, isLoaded } = usePaddle();
+  // Only Paystack payment method
+  const userEmail = "user@example.com"; // Replace with actual user email
 
   const handleCheckout = async () => {
     setLoading(true);
-
     try {
-      // If Paddle is loaded and we have a price ID, use Paddle checkout
-      if (isLoaded && priceId) {
-        openCheckout(priceId, {
-          settings: {
-            displayMode: "overlay",
-            theme: "dark",
-            locale: "en",
+      const planCode =
+        billingPeriod === "yearly"
+          ? plan.paystackYearlyPlanCode
+          : plan.paystackPlanCode;
+
+      // Always charge R125 monthly or R1250 yearly (in ZAR cents)
+      const zarAmount = billingPeriod === "yearly" ? 125000 : 12500; // 1250.00 or 125.00 ZAR in cents
+
+      const response = await fetch("/api/paystack/initialize", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          amount: zarAmount,
+          planCode,
+          currency: "ZAR",
+          metadata: {
+            originalCurrency: selectedCurrency,
+            originalAmount: zarAmount / 100,
+            exchangeRate: 1,
           },
-        });
-      } else {
-        // Fallback: redirect to signup with premium plan
-        // This handles cases where Paddle isn't configured yet
-        window.location.href = "/auth/signup?plan=premium";
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to initialize payment");
+      }
+
+      const data = await response.json();
+
+      // Redirect to Paystack checkout
+      if (data.authorization_url) {
+        window.location.href = data.authorization_url;
       }
     } catch (error) {
-      console.error("Checkout error:", error);
-      // On error, still redirect to signup
+      console.error("Paystack checkout error:", error);
       window.location.href = "/auth/signup?plan=premium";
     } finally {
       setLoading(false);
@@ -502,20 +699,34 @@ function PaddleCheckoutButton({ priceId }: { priceId?: string }) {
   };
 
   return (
-    <Button
-      size="lg"
-      onClick={handleCheckout}
-      disabled={loading}
-      className="w-full h-12 font-medium rounded-full group"
-    >
-      {loading ? (
-        "Loading..."
-      ) : (
-        <>
-          Start 7-day free trial
-          <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-        </>
-      )}
-    </Button>
+    <div className="space-y-4">
+      {/* Checkout Button */}
+      <Button
+        size="lg"
+        onClick={handleCheckout}
+        disabled={loading}
+        className="w-full h-12 font-medium rounded-full group"
+      >
+        {loading ? (
+          "Initializing..."
+        ) : (
+          <>
+            Subscribe to Pro
+            <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </>
+        )}
+      </Button>
+      <p className="text-xs text-muted-foreground text-center">
+        Powered by Paystack • All prices shown in {selectedCurrency}
+        {selectedCurrency !== "ZAR" && (
+          <span className="block mt-1">
+            Charged in ZAR (South African Rand)
+          </span>
+        )}
+        <span className="block mt-1 font-medium text-ocean-turquoise">
+          7-day money-back guarantee
+        </span>
+      </p>
+    </div>
   );
 }

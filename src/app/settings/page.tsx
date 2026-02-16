@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   Select,
   SelectContent,
@@ -57,6 +57,11 @@ export default function SettingsPage() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [refundEligibility, setRefundEligibility] = useState<{
+    eligible: boolean;
+    daysRemaining: number;
+  } | null>(null);
+  const [processingRefund, setProcessingRefund] = useState(false);
 
   const [fullName, setFullName] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("fr");
@@ -66,6 +71,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     loadProfile();
+    checkRefundEligibility();
   }, []);
 
   const loadProfile = async () => {
@@ -93,6 +99,58 @@ export default function SettingsPage() {
       console.error("Error loading profile:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkRefundEligibility = async () => {
+    try {
+      const response = await fetch("/api/paystack/refund");
+      if (response.ok) {
+        const data = await response.json();
+        setRefundEligibility({
+          eligible: data.eligible,
+          daysRemaining: data.daysRemaining,
+        });
+      }
+    } catch (error) {
+      console.error("Error checking refund eligibility:", error);
+    }
+  };
+
+  const handleRequestRefund = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to cancel your subscription and request a refund? This will immediately downgrade you to the free plan.",
+      )
+    ) {
+      return;
+    }
+
+    setProcessingRefund(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/paystack/refund", {
+        method: "POST",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: "success", text: data.message });
+        // Reload profile to reflect changes
+        await loadProfile();
+        await checkRefundEligibility();
+      } else {
+        setMessage({ type: "error", text: data.error });
+      }
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: "Failed to process refund request. Please try again.",
+      });
+    } finally {
+      setProcessingRefund(false);
     }
   };
 
@@ -177,7 +235,7 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return <LinguaLoadingAnimation message="Loading settings..." />;
+    return <LoadingScreen />;
   }
 
   return (
@@ -352,16 +410,50 @@ export default function SettingsPage() {
               </Button>
             </div>
           </div>
+Link href="/pricing">
+                    <Button className="gap-2">
+                      <Crown className="h-4 w-4" />
+                      Upgrade to Premium
+                    </Button>
+                  </Link>
+                )}
+              </div>
 
-          {/* Interests */}
-          <div className="card-luxury p-8">
-            <div className="mb-8">
-              <h2 className="text-2xl font-light mb-2">Learning Interests</h2>
-              <p className="text-sm text-muted-foreground font-light">
-                Select topics you're interested in. Content will be tailored to
-                these areas.
-              </p>
-            </div>
+              {/* Refund Eligibility Notice */}
+              {refundEligibility?.eligible &&
+                profile?.subscription_tier === "premium" && (
+                  <div className="p-4 bg-ocean-turquoise/10 border border-ocean-turquoise/30 rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1">
+                        <h3 className="font-light text-base mb-1">
+                          7-Day Money-Back Guarantee
+                        </h3>
+                        <p className="text-sm text-muted-foreground font-light mb-3">
+                          You have {refundEligibility.daysRemaining} day
+                          {refundEligibility.daysRemaining !== 1 ? "s" : ""}{" "}
+                          remaining to request a full refund and cancel your Pro
+                          subscription.
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRequestRefund}
+                          disabled={processingRefund}
+                          className="border-ocean-turquoise/50 hover:bg-ocean-turquoise/10"
+                        >
+                          {processingRefund
+                            ? "Processing..."
+                            : "Request Refund & Cancel"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {profile?.subscription_tier === "free" && (
+                <p className="text-sm text-muted-foreground font-light">
+                  Premium: $8/month for unlimited lessons, multiple languages,
+                  and AI conversation feedback. 7-day money-back guarantee.
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {INTEREST_TOPICS.map((topic) => (

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { InteractiveStory } from "@/components/learning/InteractiveStory";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import { GeneratedStory, ProficiencyLevel, WordRating } from "@/types";
 import {
   Home,
@@ -202,7 +202,7 @@ export default function LearnPage() {
   };
 
   if (loading) {
-    return <LinguaLoadingAnimation message="Preparing your session..." />;
+    return <LoadingScreen />;
   }
 
   if (currentStory) {

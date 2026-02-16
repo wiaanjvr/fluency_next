@@ -72,7 +72,7 @@ import {
 
 export default function Home() {
   return (
-    <main className="bg-background text-foreground antialiased">
+    <main className="bg-background text-foreground antialiased with-swim-bg">
       {/* ========== NAVIGATION ========== */}
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b border-ocean-turquoise/20">
         <div className="max-w-6xl mx-auto px-6">
@@ -108,7 +108,7 @@ export default function Home() {
               </Link>
               <Link href="/auth/signup">
                 <Button size="sm" className="rounded-full px-5 font-medium">
-                  Dive in
+                  Sign Up
                 </Button>
               </Link>
             </div>
@@ -137,7 +137,7 @@ export default function Home() {
               Dive into
               <br />
               <span className="font-serif italic text-gradient-turquoise">
-                fluency.
+                fluensea.
               </span>
             </h1>
           </ScrollReveal>
@@ -858,12 +858,6 @@ export default function Home() {
                 className="text-sm text-muted-foreground hover:text-ocean-turquoise font-light transition-colors"
               >
                 Pricing
-              </Link>
-              <Link
-                href="/blog"
-                className="text-sm text-muted-foreground hover:text-ocean-turquoise font-light transition-colors"
-              >
-                Blog
               </Link>
               <Link
                 href="/support"

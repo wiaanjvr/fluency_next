@@ -11,7 +11,7 @@ import {
   VocabularyViewer,
 } from "@/components/dashboard";
 import { MilestoneCelebration } from "@/components/progression";
-import { LinguaLoadingAnimation } from "@/components/ui/LinguaLoadingAnimation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import { UsageLimitBanner } from "@/components/ui/UsageLimitBanner";
 import { DiveIn } from "@/components/ui/ocean-animations";
 import {
@@ -277,7 +277,7 @@ export default function DashboardPage() {
 
   // Loading state
   if (!authChecked || loading) {
-    return <LinguaLoadingAnimation message="Loading your dashboard..." />;
+    return <LoadingScreen />;
   }
 
   // Determine lesson path and type
