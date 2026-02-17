@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "foundation:migrate": "supabase db push",
+    "foundation:generate-audio": "tsx scripts/generate-foundation-audio.ts",
+    "foundation:setup": "npm run foundation:migrate && npm run foundation:generate-audio"
+  }
+}

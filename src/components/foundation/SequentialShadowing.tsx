@@ -14,11 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { FoundationWord } from "@/types/foundation-vocabulary";
 import { FadeIn, ScaleIn } from "@/components/ui/animations";
-import {
-  getLanguageConfig,
-  getTTSVoice,
-  type SupportedLanguage,
-} from "@/lib/languages";
+import { getLanguageConfig, type SupportedLanguage } from "@/lib/languages";
 import { useSoundEffects } from "@/lib/sounds";
 
 interface SequentialShadowingProps {
@@ -53,6 +49,7 @@ export function SequentialShadowing({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const userAudioRef = useRef<HTMLAudioElement | null>(null);
+  const nativeAudioRefs = useRef<(HTMLAudioElement | null)[]>([]);
 
   const { playSuccess, playAchieve } = useSoundEffects();
   const langConfig = getLanguageConfig(language);
@@ -62,41 +59,59 @@ export function SequentialShadowing({
     const timer = setTimeout(() => {
       playAllWordsSequentially();
     }, 500);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      // Cleanup all audio elements
+      nativeAudioRefs.current.forEach((audio) => {
+        if (audio) {
+          audio.pause();
+        }
+      });
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Play all words in sequence using Web Speech API
+  // Play all words in sequence using pre-generated audio files
   const playAllWordsSequentially = async () => {
-    if (isPlayingNative || !("speechSynthesis" in window)) return;
+    if (isPlayingNative) return;
 
     setIsPlayingNative(true);
-    window.speechSynthesis.cancel();
 
     const playWord = (index: number): Promise<void> => {
       return new Promise((resolve) => {
-        setCurrentlyPlayingIndex(index);
-        const utterance = new SpeechSynthesisUtterance(words[index].word);
-        utterance.lang = langConfig.speechCode;
-        utterance.rate = 0.75;
-
-        const selectedVoice = getTTSVoice(language);
-        if (selectedVoice) {
-          utterance.voice = selectedVoice;
+        const word = words[index];
+        if (!word.audioUrl) {
+          resolve();
+          return;
         }
 
-        utterance.onend = () => {
+        setCurrentlyPlayingIndex(index);
+
+        // Create or reuse audio element for this word
+        if (!nativeAudioRefs.current[index]) {
+          nativeAudioRefs.current[index] = new Audio(word.audioUrl);
+        } else {
+          nativeAudioRefs.current[index]!.src = word.audioUrl;
+        }
+
+        const audio = nativeAudioRefs.current[index]!;
+
+        audio.onended = () => {
           // Add pause between words
           setTimeout(() => {
             resolve();
           }, 600);
         };
 
-        utterance.onerror = () => {
+        audio.onerror = () => {
+          console.error("Error playing audio:", word.audioUrl);
           resolve();
         };
 
-        window.speechSynthesis.speak(utterance);
+        audio.play().catch((error) => {
+          console.error("Error playing audio:", error);
+          resolve();
+        });
       });
     };
 

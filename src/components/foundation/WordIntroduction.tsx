@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Volume2, ChevronRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,11 +11,7 @@ import {
   getPlaceholderImage,
 } from "@/lib/content/image-service";
 import { FadeIn, ScaleIn } from "@/components/ui/animations";
-import {
-  getLanguageConfig,
-  getTTSVoice,
-  type SupportedLanguage,
-} from "@/lib/languages";
+import { getLanguageConfig, type SupportedLanguage } from "@/lib/languages";
 
 // Helper to get target text from exampleSentence
 function getExampleSentenceText(exampleSentence: {
@@ -36,7 +32,7 @@ interface WordIntroductionProps {
  * Multi-Modal Word Introduction Component
  * Displays a new word with:
  * - Visual representation (image)
- * - Audio pronunciation (TTS)
+ * - Audio pronunciation (pre-generated OpenAI TTS)
  * - Simple example sentence
  * - L1 (English) translation
  */
@@ -50,42 +46,38 @@ export function WordIntroduction({
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayedAudio, setHasPlayedAudio] = useState(false);
   const [showEnglish, setShowEnglish] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const imageResult = getImageForWord(word.imageKeyword);
   const langConfig = getLanguageConfig(language);
 
-  // Play audio using Web Speech API (free, no API needed)
+  // Play audio using pre-generated audio file
   const playAudio = async () => {
-    if (isPlaying) return;
+    if (isPlaying || !word.audioUrl) return;
 
     setIsPlaying(true);
 
-    // Use Web Speech API for TTS
-    if ("speechSynthesis" in window) {
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(word.word);
-      utterance.lang = langConfig.speechCode;
-      utterance.rate = 0.8; // Slightly slower for learning
-
-      // Try to find the appropriate voice for the target language
-      const selectedVoice = getTTSVoice(language);
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
+    try {
+      // Create or reuse audio element
+      if (!audioRef.current) {
+        audioRef.current = new Audio(word.audioUrl);
+      } else {
+        audioRef.current.src = word.audioUrl;
       }
 
-      utterance.onend = () => {
+      audioRef.current.onended = () => {
         setIsPlaying(false);
         setHasPlayedAudio(true);
       };
 
-      utterance.onerror = () => {
+      audioRef.current.onerror = () => {
+        console.error("Error playing audio:", word.audioUrl);
         setIsPlaying(false);
       };
 
-      window.speechSynthesis.speak(utterance);
-    } else {
+      await audioRef.current.play();
+    } catch (error) {
+      console.error("Error playing audio:", error);
       setIsPlaying(false);
     }
   };
@@ -96,16 +88,16 @@ export function WordIntroduction({
       playAudio();
     }, 500);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      // Cleanup audio on unmount
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [word.id]);
-
-  // Preload voices
-  useEffect(() => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.getVoices();
-    }
-  }, []);
 
   return (
     <div className="flex flex-col items-center gap-6 p-6">

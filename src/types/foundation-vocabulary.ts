@@ -20,7 +20,8 @@ export interface FoundationWord {
     italian?: string;
   };
   imageKeyword: string; // keyword for image search
-  audioUrl?: string;
+  audioUrl?: string; // Pre-generated audio URL for the word
+  sentenceAudioUrl?: string; // Pre-generated audio URL for the example sentence
   phonetic?: string;
   imageability: "high" | "medium" | "low"; // how easily visualized
   category:

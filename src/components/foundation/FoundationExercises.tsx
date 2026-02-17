@@ -25,11 +25,7 @@ import {
 } from "@/components/ui/animations";
 import { useSoundEffects } from "@/lib/sounds";
 import { getDistractorWords } from "@/data/foundation-vocabulary";
-import {
-  getLanguageConfig,
-  getTTSVoice,
-  type SupportedLanguage,
-} from "@/lib/languages";
+import { getLanguageConfig, type SupportedLanguage } from "@/lib/languages";
 
 // Helper to get target text from exampleSentence based on language
 function getExampleSentenceText(
@@ -216,6 +212,7 @@ export function AudioToImageExercise({
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
   const [startTime] = useState(Date.now());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { playSuccess, playError } = useSoundEffects();
 
   const langConfig = getLanguageConfig(language);
@@ -233,46 +230,54 @@ export function AudioToImageExercise({
     preloadImages(imageUrls).then(() => setImagesLoaded(true));
   }, [targetWord, allWords]);
 
-  // Play audio using TTS
+  // Play audio using pre-generated audio file
   const playAudio = useCallback(() => {
-    if (isPlaying) return;
+    if (isPlaying || !targetWord.audioUrl) return;
 
     setIsPlaying(true);
 
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(targetWord.word);
-      utterance.lang = langConfig.speechCode;
-      utterance.rate = 0.8;
-
-      const selectedVoice = getTTSVoice(language);
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
+    try {
+      // Create or reuse audio element
+      if (!audioRef.current) {
+        audioRef.current = new Audio(targetWord.audioUrl);
+      } else {
+        audioRef.current.src = targetWord.audioUrl;
       }
 
-      utterance.onend = () => {
+      audioRef.current.onended = () => {
         setIsPlaying(false);
         setHasPlayed(true);
       };
 
-      utterance.onerror = () => {
+      audioRef.current.onerror = () => {
+        console.error("Error playing audio:", targetWord.audioUrl);
         setIsPlaying(false);
         setHasPlayed(true);
       };
 
-      window.speechSynthesis.speak(utterance);
-    } else {
+      audioRef.current.play().catch((error) => {
+        console.error("Error playing audio:", error);
+        setIsPlaying(false);
+        setHasPlayed(true);
+      });
+    } catch (error) {
+      console.error("Error playing audio:", error);
       setIsPlaying(false);
       setHasPlayed(true);
     }
-  }, [isPlaying, targetWord.word]);
+  }, [isPlaying, targetWord.audioUrl]);
 
   // Auto-play audio on mount
   useEffect(() => {
     if (imagesLoaded && !hasPlayed) {
       const timer = setTimeout(playAudio, 300);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        // Cleanup audio on unmount
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+      };
     }
   }, [imagesLoaded, hasPlayed, playAudio]);
 
@@ -535,6 +540,7 @@ export function AudioToWordTextExercise({
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
   const [startTime] = useState(Date.now());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { playSuccess, playError } = useSoundEffects();
 
   const langConfig = getLanguageConfig(language);
@@ -547,46 +553,54 @@ export function AudioToWordTextExercise({
     setOptions(shuffled);
   }, [targetWord, allWords]);
 
-  // Play audio using TTS
+  // Play audio using pre-generated audio file
   const playAudio = useCallback(() => {
-    if (isPlaying) return;
+    if (isPlaying || !targetWord.audioUrl) return;
 
     setIsPlaying(true);
 
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(targetWord.word);
-      utterance.lang = langConfig.speechCode;
-      utterance.rate = 0.8;
-
-      const selectedVoice = getTTSVoice(language);
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
+    try {
+      // Create or reuse audio element
+      if (!audioRef.current) {
+        audioRef.current = new Audio(targetWord.audioUrl);
+      } else {
+        audioRef.current.src = targetWord.audioUrl;
       }
 
-      utterance.onend = () => {
+      audioRef.current.onended = () => {
         setIsPlaying(false);
         setHasPlayed(true);
       };
 
-      utterance.onerror = () => {
+      audioRef.current.onerror = () => {
+        console.error("Error playing audio:", targetWord.audioUrl);
         setIsPlaying(false);
         setHasPlayed(true);
       };
 
-      window.speechSynthesis.speak(utterance);
-    } else {
+      audioRef.current.play().catch((error) => {
+        console.error("Error playing audio:", error);
+        setIsPlaying(false);
+        setHasPlayed(true);
+      });
+    } catch (error) {
+      console.error("Error playing audio:", error);
       setIsPlaying(false);
       setHasPlayed(true);
     }
-  }, [isPlaying, targetWord.word, langConfig.speechCode, language]);
+  }, [isPlaying, targetWord.audioUrl]);
 
   // Auto-play audio on mount
   useEffect(() => {
     if (!hasPlayed) {
       const timer = setTimeout(playAudio, 300);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        // Cleanup audio on unmount
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+      };
     }
   }, [hasPlayed, playAudio]);
 

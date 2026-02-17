@@ -15,11 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { FoundationWord } from "@/types/foundation-vocabulary";
 import { FadeIn, ScaleIn } from "@/components/ui/animations";
-import {
-  getLanguageConfig,
-  getTTSVoice,
-  type SupportedLanguage,
-} from "@/lib/languages";
+import { getLanguageConfig, type SupportedLanguage } from "@/lib/languages";
 import { useSoundEffects } from "@/lib/sounds";
 
 interface ShadowingReviewProps {
@@ -57,34 +53,32 @@ export function ShadowingReview({
   const currentWord = words[currentWordIndex];
   const isLastWord = currentWordIndex === words.length - 1;
 
-  // Play native audio using Web Speech API
+  // Play native audio using pre-generated audio file
   const playNativeAudio = async () => {
-    if (isPlayingNative) return;
+    if (isPlayingNative || !currentWord.audioUrl) return;
 
     setIsPlayingNative(true);
 
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(currentWord.word);
-      utterance.lang = langConfig.speechCode;
-      utterance.rate = 0.8;
-
-      const selectedVoice = getTTSVoice(language);
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
+    try {
+      // Create or reuse native audio element
+      if (!nativeAudioRef.current) {
+        nativeAudioRef.current = new Audio(currentWord.audioUrl);
+      } else {
+        nativeAudioRef.current.src = currentWord.audioUrl;
       }
 
-      utterance.onend = () => {
+      nativeAudioRef.current.onended = () => {
         setIsPlayingNative(false);
       };
 
-      utterance.onerror = () => {
+      nativeAudioRef.current.onerror = () => {
+        console.error("Error playing audio:", currentWord.audioUrl);
         setIsPlayingNative(false);
       };
 
-      window.speechSynthesis.speak(utterance);
-    } else {
+      await nativeAudioRef.current.play();
+    } catch (error) {
+      console.error("Error playing audio:", error);
       setIsPlayingNative(false);
     }
   };

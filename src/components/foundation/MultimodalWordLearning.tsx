@@ -30,11 +30,7 @@ import {
   AnimatedXMark,
   ShakeHorizontal,
 } from "@/components/ui/animations";
-import {
-  getLanguageConfig,
-  getTTSVoice,
-  type SupportedLanguage,
-} from "@/lib/languages";
+import { getLanguageConfig, type SupportedLanguage } from "@/lib/languages";
 import { useSoundEffects } from "@/lib/sounds";
 import type { PronunciationAttempt } from "@/types/foundation-vocabulary";
 
@@ -111,40 +107,39 @@ export function MultimodalWordLearning({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const userAudioRef = useRef<HTMLAudioElement | null>(null);
+  const nativeAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const { playSuccess, playError, playAchieve } = useSoundEffects();
   const imageResult = getImageForWord(word.imageKeyword);
   const langConfig = getLanguageConfig(language);
 
-  // Play native audio using Web Speech API
+  // Play native audio using pre-generated audio file
   const playNativeAudio = async () => {
-    if (isPlayingNative) return;
+    if (isPlayingNative || !word.audioUrl) return;
 
     setIsPlayingNative(true);
 
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(word.word);
-      utterance.lang = langConfig.speechCode;
-      utterance.rate = 0.8;
-
-      const selectedVoice = getTTSVoice(language);
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
+    try {
+      // Create or reuse native audio element
+      if (!nativeAudioRef.current) {
+        nativeAudioRef.current = new Audio(word.audioUrl);
+      } else {
+        nativeAudioRef.current.src = word.audioUrl;
       }
 
-      utterance.onend = () => {
+      nativeAudioRef.current.onended = () => {
         setIsPlayingNative(false);
         setHasHeardNative(true);
       };
 
-      utterance.onerror = () => {
+      nativeAudioRef.current.onerror = () => {
+        console.error("Error playing audio:", word.audioUrl);
         setIsPlayingNative(false);
       };
 
-      window.speechSynthesis.speak(utterance);
-    } else {
+      await nativeAudioRef.current.play();
+    } catch (error) {
+      console.error("Error playing audio:", error);
       setIsPlayingNative(false);
     }
   };
@@ -156,17 +151,16 @@ export function MultimodalWordLearning({
         playNativeAudio();
       }, 500);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        // Cleanup audio on unmount
+        if (nativeAudioRef.current) {
+          nativeAudioRef.current.pause();
+        }
+      };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
-
-  // Preload voices
-  useEffect(() => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.getVoices();
-    }
-  }, []);
 
   // Start recording user's pronunciation
   const startRecording = async () => {
