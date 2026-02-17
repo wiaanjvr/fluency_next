@@ -37,6 +37,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify user exists in database
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      console.error("User profile not found in database:", profileError);
+      return NextResponse.json(
+        { error: "User profile not found. Please complete signup." },
+        { status: 404 },
+      );
+    }
+
     // Add user information to metadata
     const enrichedMetadata = {
       ...metadata,

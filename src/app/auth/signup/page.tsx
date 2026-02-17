@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,8 @@ import { signup, signInWithOAuth } from "../actions";
 import { CheckCircle2, Waves } from "lucide-react";
 
 export default function SignUpPage() {
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<{
@@ -25,6 +28,11 @@ export default function SignUpPage() {
     const email = (formData.get("email") as string)?.trim();
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirm_password") as string;
+
+    // Add redirect parameter if present
+    if (redirect) {
+      formData.append("redirect", redirect);
+    }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -88,7 +96,7 @@ export default function SignUpPage() {
     setSocialLoading(provider);
     setMessage(null);
 
-    const result = await signInWithOAuth(provider);
+    const result = await signInWithOAuth(provider, redirect);
 
     if (result?.error) {
       setMessage({ type: "error", text: result.error });
@@ -321,7 +329,7 @@ export default function SignUpPage() {
             <p className="text-center text-sm text-muted-foreground font-light">
               Already have an account?{" "}
               <Link
-                href="/auth/login"
+                href={`/auth/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`}
                 className="text-foreground hover:underline font-normal"
               >
                 Sign in

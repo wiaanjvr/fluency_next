@@ -20,6 +20,8 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { FadeIn } from "@/components/ui/animations";
 import { getFoundationProgress } from "@/lib/srs/foundation-srs";
+import { getTotalUserWordCount } from "@/lib/srs/seed-vocabulary";
+import { createClient } from "@/lib/supabase/client";
 
 // ============================================================================
 // SENTENCE LEARNING HUB
@@ -28,11 +30,9 @@ import { getFoundationProgress } from "@/lib/srs/foundation-srs";
 
 export default function SentenceLearningPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [loading, setLoading] = useState(true);
-  const [foundationProgress, setFoundationProgress] = useState<{
-    totalWordsLearned: number;
-    completedSessions: number[];
-  } | null>(null);
+  const [totalUserWords, setTotalUserWords] = useState(0);
   const [sentenceProgress, setSentenceProgress] = useState<{
     sessionsCompleted: number;
     lastSessionDate?: string;
@@ -41,12 +41,26 @@ export default function SentenceLearningPage() {
   // Load progress on mount
   useEffect(() => {
     async function loadProgress() {
-      const progress = await getFoundationProgress();
-      if (progress) {
-        setFoundationProgress({
-          totalWordsLearned: progress.totalWordsLearned,
-          completedSessions: progress.completedSessions,
-        });
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          // Get user's target language
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("target_language")
+            .eq("id", user.id)
+            .single();
+          const language = profile?.target_language || "fr";
+
+          // Get TOTAL word count from database
+          const wordCount = await getTotalUserWordCount(user.id, language);
+          setTotalUserWords(wordCount);
+          console.log(`[Sentences Hub] User has ${wordCount} total words`);
+        }
+      } catch (error) {
+        console.error("Error loading user words:", error);
       }
 
       // Load sentence progress from localStorage
@@ -63,14 +77,11 @@ export default function SentenceLearningPage() {
     }
 
     loadProgress();
-  }, []);
+  }, [supabase]);
 
   // Check if user has unlocked sentence learning (100+ words)
-  const isUnlocked = (foundationProgress?.totalWordsLearned || 0) >= 100;
-  const wordsNeeded = Math.max(
-    0,
-    100 - (foundationProgress?.totalWordsLearned || 0),
-  );
+  const isUnlocked = totalUserWords >= 100;
+  const wordsNeeded = Math.max(0, 100 - totalUserWords);
 
   // Generate session cards
   const totalSessions = 25; // Phase 1 has ~25 sessions
@@ -93,7 +104,7 @@ export default function SentenceLearningPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push("/learn")}
+            onClick={() => router.push("/dashboard")}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -146,13 +157,12 @@ export default function SentenceLearningPage() {
                   </div>
                 </div>
                 <Progress
-                  value={foundationProgress?.totalWordsLearned || 0}
+                  value={totalUserWords}
                   max={100}
                   className="h-3 mb-2"
                 />
                 <p className="text-sm text-muted-foreground text-center">
-                  {foundationProgress?.totalWordsLearned || 0} / 100 words
-                  learned
+                  {totalUserWords} / 100 words learned
                 </p>
                 <Button
                   className="w-full mt-4"

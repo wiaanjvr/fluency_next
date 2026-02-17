@@ -9,6 +9,7 @@ export async function login(formData: FormData) {
 
   const email = (formData.get("email") as string)?.trim();
   const password = formData.get("password") as string;
+  const redirectTo = (formData.get("redirect") as string)?.trim() || null;
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,11 +53,36 @@ export async function login(formData: FormData) {
       !profile || !profile.interests || profile.interests.length === 0;
 
     revalidatePath("/", "layout");
-    redirect(needsOnboarding ? "/onboarding" : "/dashboard");
+
+    // If there's a redirect URL (e.g., from pricing page for subscription), PRIORITIZE IT
+    // Users should complete payment before onboarding
+    if (redirectTo && redirectTo.startsWith("/")) {
+      // If redirecting to pricing page, redirect to checkout instead for proper session handling
+      if (redirectTo.startsWith("/pricing")) {
+        const url = new URL(
+          redirectTo,
+          process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+        );
+        const billing = url.searchParams.get("billing") || "monthly";
+        const currency = url.searchParams.get("currency") || "USD";
+        redirect(`/checkout?billing=${billing}&currency=${currency}`);
+      }
+      redirect(redirectTo);
+    }
+
+    // If user needs onboarding, go there
+    if (needsOnboarding) {
+      redirect("/onboarding");
+    }
+
+    // Otherwise go to dashboard
+    redirect("/dashboard");
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect(
+    redirectTo && redirectTo.startsWith("/") ? redirectTo : "/dashboard",
+  );
 }
 
 export async function signup(formData: FormData) {
@@ -65,6 +91,7 @@ export async function signup(formData: FormData) {
   const email = (formData.get("email") as string)?.trim();
   const password = formData.get("password") as string;
   const fullName = (formData.get("full_name") as string)?.trim() || "";
+  const redirectTo = (formData.get("redirect") as string)?.trim() || null;
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -110,9 +137,27 @@ export async function signup(formData: FormData) {
     return { error: error.message };
   }
 
-  // If user session exists, email confirmation is disabled - redirect to onboarding
+  // If user session exists, email confirmation is disabled
   if (data.session) {
     revalidatePath("/", "layout");
+
+    // If there's a redirect URL (e.g., from pricing page for subscription), go there FIRST
+    // This allows users to complete payment before taking the placement test
+    if (redirectTo && redirectTo.startsWith("/")) {
+      // If redirecting to pricing page, redirect to checkout instead for proper session handling
+      if (redirectTo.startsWith("/pricing")) {
+        const url = new URL(
+          redirectTo,
+          process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+        );
+        const billing = url.searchParams.get("billing") || "monthly";
+        const currency = url.searchParams.get("currency") || "USD";
+        redirect(`/checkout?billing=${billing}&currency=${currency}`);
+      }
+      redirect(redirectTo);
+    }
+
+    // Otherwise, go to onboarding normally (will redirect to dashboard after)
     redirect("/onboarding");
   }
 
@@ -160,13 +205,22 @@ export async function updatePassword(formData: FormData) {
   return { success: true, message: "Password updated successfully!" };
 }
 
-export async function signInWithOAuth(provider: "google" | "github") {
+export async function signInWithOAuth(
+  provider: "google" | "github",
+  redirectTo?: string | null,
+) {
   const supabase = await createClient();
+
+  // Build the callback URL with optional next parameter
+  let callbackUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
+  if (redirectTo && redirectTo.startsWith("/")) {
+    callbackUrl += `?next=${encodeURIComponent(redirectTo)}`;
+  }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      redirectTo: callbackUrl,
     },
   });
 

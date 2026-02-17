@@ -21,11 +21,13 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { FadeIn, ScaleIn } from "@/components/ui/animations";
 import { getFoundationProgress } from "@/lib/srs/foundation-srs";
+import { getTotalUserWordCount } from "@/lib/srs/seed-vocabulary";
 import {
   getMicroStoryProgress,
   checkMicroStoriesUnlock,
 } from "@/lib/micro-stories/utils";
 import { MicroStoryProgress, StoryTheme } from "@/types/micro-stories";
+import { createClient } from "@/lib/supabase/client";
 
 // ============================================================================
 // MICRO-STORIES HUB
@@ -36,23 +38,35 @@ const VOCABULARY_THRESHOLD = 300;
 
 export default function MicroStoriesPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [loading, setLoading] = useState(true);
-  const [foundationProgress, setFoundationProgress] = useState<{
-    totalWordsLearned: number;
-    completedSessions: number[];
-  } | null>(null);
+  const [totalUserWords, setTotalUserWords] = useState(0);
   const [microStoryProgress, setMicroStoryProgress] =
     useState<MicroStoryProgress | null>(null);
 
   // Load progress on mount
   useEffect(() => {
     async function loadProgress() {
-      const progress = await getFoundationProgress();
-      if (progress) {
-        setFoundationProgress({
-          totalWordsLearned: progress.totalWordsLearned,
-          completedSessions: progress.completedSessions,
-        });
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          // Get user's target language
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("target_language")
+            .eq("id", user.id)
+            .single();
+          const language = profile?.target_language || "fr";
+
+          // Get TOTAL word count from database
+          const wordCount = await getTotalUserWordCount(user.id, language);
+          setTotalUserWords(wordCount);
+          console.log(`[Micro-Stories Hub] User has ${wordCount} total words`);
+        }
+      } catch (error) {
+        console.error("Error loading user words:", error);
       }
 
       const storyProgress = getMicroStoryProgress();
@@ -62,16 +76,11 @@ export default function MicroStoriesPage() {
     }
 
     loadProgress();
-  }, []);
+  }, [supabase]);
 
   // Check if user has unlocked micro-stories (300+ words)
-  const isUnlocked = checkMicroStoriesUnlock(
-    foundationProgress?.totalWordsLearned || 0,
-  );
-  const wordsNeeded = Math.max(
-    0,
-    VOCABULARY_THRESHOLD - (foundationProgress?.totalWordsLearned || 0),
-  );
+  const isUnlocked = checkMicroStoriesUnlock(totalUserWords);
+  const wordsNeeded = Math.max(0, 300 - totalUserWords);
 
   // Stats
   const storiesCompleted = microStoryProgress?.storiesCompleted || 0;
@@ -146,11 +155,7 @@ export default function MicroStoriesPage() {
                     </span>
                   </div>
                   <Progress
-                    value={
-                      ((foundationProgress?.totalWordsLearned || 0) /
-                        VOCABULARY_THRESHOLD) *
-                      100
-                    }
+                    value={(totalUserWords / VOCABULARY_THRESHOLD) * 100}
                     className="h-2 max-w-md"
                   />
                   <Link href="/learn/foundation">

@@ -16,6 +16,8 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 /* =============================================================================
    PRICING PAGE - FLUENSEA OCEAN THEME
@@ -160,10 +162,18 @@ const features = [
 ];
 
 export default function PricingPage() {
+  const searchParams = useSearchParams();
+
+  // Get initial values from URL params (for when user returns from login)
+  const billingParam = searchParams.get("billing");
+  const currencyParam = searchParams.get("currency");
+
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
-    "monthly",
+    billingParam === "yearly" ? "yearly" : "monthly",
   );
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  const [selectedCurrency, setSelectedCurrency] = useState(
+    currencyParam || "USD",
+  );
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({
     USD: 1,
     EUR: 0.92,
@@ -647,55 +657,13 @@ function PaymentCheckoutButton({
   selectedCurrency: string;
   exchangeRates: Record<string, number>;
 }) {
-  const [loading, setLoading] = useState(false);
-  // Only Paystack payment method
-  const userEmail = "user@example.com"; // Replace with actual user email
+  const router = useRouter();
 
-  const handleCheckout = async () => {
-    setLoading(true);
-    try {
-      const planCode =
-        billingPeriod === "yearly"
-          ? plan.paystackYearlyPlanCode
-          : plan.paystackPlanCode;
-
-      // Always charge R125 monthly or R1250 yearly (in ZAR cents)
-      const zarAmount = billingPeriod === "yearly" ? 125000 : 12500; // 1250.00 or 125.00 ZAR in cents
-
-      const response = await fetch("/api/paystack/initialize", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: userEmail,
-          amount: zarAmount,
-          planCode,
-          currency: "ZAR",
-          metadata: {
-            originalCurrency: selectedCurrency,
-            originalAmount: zarAmount / 100,
-            exchangeRate: 1,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to initialize payment");
-      }
-
-      const data = await response.json();
-
-      // Redirect to Paystack checkout
-      if (data.authorization_url) {
-        window.location.href = data.authorization_url;
-      }
-    } catch (error) {
-      console.error("Paystack checkout error:", error);
-      window.location.href = "/auth/signup?plan=premium";
-    } finally {
-      setLoading(false);
-    }
+  const handleCheckout = () => {
+    // Redirect to dedicated checkout page with billing and currency params
+    router.push(
+      `/checkout?billing=${billingPeriod}&currency=${selectedCurrency}`,
+    );
   };
 
   return (
@@ -704,17 +672,12 @@ function PaymentCheckoutButton({
       <Button
         size="lg"
         onClick={handleCheckout}
-        disabled={loading}
         className="w-full h-12 font-medium rounded-full group"
       >
-        {loading ? (
-          "Initializing..."
-        ) : (
-          <>
-            Subscribe to Pro
-            <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </>
-        )}
+        <>
+          Subscribe to Pro
+          <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </>
       </Button>
       <p className="text-xs text-muted-foreground text-center">
         Powered by Paystack • All prices shown in {selectedCurrency}

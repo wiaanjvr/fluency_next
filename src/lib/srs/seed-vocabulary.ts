@@ -193,6 +193,31 @@ export async function markWordsAsKnown(
 }
 
 /**
+ * Get user's total word count including all statuses
+ * This counts vocabulary seeded from placement test PLUS foundation progress
+ * Used for determining lesson unlocks
+ */
+export async function getTotalUserWordCount(
+  userId: string,
+  language: string = "fr",
+): Promise<number> {
+  const supabase = createClient();
+
+  const { count, error } = await supabase
+    .from("user_words")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("language", language);
+
+  if (error) {
+    console.error("Error getting total word count:", error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+/**
  * Get user's known words count
  */
 export async function getKnownWordCount(

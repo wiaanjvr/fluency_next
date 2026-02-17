@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
@@ -73,6 +73,8 @@ type OnboardingStep =
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
@@ -126,10 +128,11 @@ export default function OnboardingPage() {
 
         // If profile exists and has interests (3 or more), onboarding is complete
         if (profile?.interests && profile.interests.length >= 3) {
-          console.log(
-            "User has already completed onboarding, redirecting to dashboard",
-          );
-          router.replace("/dashboard");
+          console.log("User has already completed onboarding, redirecting");
+          // If there's a redirect URL, go there; otherwise go to dashboard
+          const redirectUrl =
+            redirect && redirect.startsWith("/") ? redirect : "/dashboard";
+          router.replace(redirectUrl);
           return;
         }
 
@@ -308,10 +311,20 @@ export default function OnboardingPage() {
       // Small delay to ensure database is fully committed before redirect
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      console.log("Redirecting to dashboard after onboarding completion");
+      console.log("Redirecting after onboarding completion");
 
       // Use replace instead of push to prevent back navigation to onboarding
-      router.replace("/dashboard");
+      // If there's a redirect URL, go there; otherwise go to dashboard
+      let redirectUrl = "/dashboard";
+      if (
+        redirect &&
+        redirect.startsWith("/") &&
+        !redirect.startsWith("/pricing")
+      ) {
+        // Use redirect URL if it's not a pricing page (payment should happen BEFORE onboarding)
+        redirectUrl = redirect;
+      }
+      router.replace(redirectUrl);
     } catch (err) {
       console.error("Onboarding error:", err);
       setError("An error occurred. Please try again.");

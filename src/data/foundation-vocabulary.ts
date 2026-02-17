@@ -2935,6 +2935,24 @@ export function generateFoundationVocabulary(
     // Use a placeholder if translation is missing
     const translation = translationDict[raw.word] || "Translation unavailable";
 
+    // Set audioUrl to Supabase public URL for German/Italian, fallback to /audio/foundation/ for French
+    let audioUrl: string;
+    if (language === "de" || language === "it") {
+      // Use the same filename logic as the upload script
+      // Import sanitizeFilename from the audio script (duplicate here for safety)
+      const sanitizeFilename = (text: string) =>
+        text
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-zA-Z0-9\s_-]/g, "")
+          .replace(/\s+/g, "_")
+          .toLowerCase();
+      const supabaseBase = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+      const supabasePath = `foundation-audio/${language}/words/${raw.rank}_${sanitizeFilename(displayWord)}.mp3`;
+      audioUrl = `${supabaseBase}/storage/v1/object/public/${supabasePath}`;
+    } else {
+      audioUrl = `/audio/foundation/${raw.word}.mp3`;
+    }
     return {
       id: `foundation-${raw.rank}`,
       word: displayWord,
@@ -2949,7 +2967,7 @@ export function generateFoundationVocabulary(
         raw.word,
       imageability: getImageability(raw.pos, raw.word),
       category: mapPosToCategory(raw.pos),
-      audioUrl: `/audio/foundation/${raw.word}.mp3`,
+      audioUrl,
     };
   });
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { login, signInWithOAuth } from "../actions";
@@ -12,6 +13,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
+  const plan = searchParams.get("plan");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,6 +23,12 @@ export default function LoginPage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+
+    // Add redirect parameter if present
+    if (redirect) {
+      formData.append("redirect", redirect);
+    }
+
     const result = await login(formData);
 
     if (result?.error) {
@@ -31,7 +41,7 @@ export default function LoginPage() {
     setSocialLoading(provider);
     setError(null);
 
-    const result = await signInWithOAuth(provider);
+    const result = await signInWithOAuth(provider, redirect);
 
     if (result?.error) {
       setError(result.error);
@@ -85,7 +95,9 @@ export default function LoginPage() {
           <div className="space-y-2">
             <h2 className="text-3xl font-light tracking-tight">Sign in</h2>
             <p className="text-muted-foreground font-light">
-              Enter your credentials to continue
+              {plan === "premium"
+                ? "Sign in to continue with your Pro subscription"
+                : "Enter your credentials to continue"}
             </p>
           </div>
 

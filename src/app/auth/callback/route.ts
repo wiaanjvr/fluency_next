@@ -48,7 +48,26 @@ export async function GET(request: Request) {
       // If no profile or no interests, send to onboarding
       const needsOnboarding =
         !profile || !profile.interests || profile.interests.length === 0;
-      const redirectPath = needsOnboarding ? "/onboarding" : next;
+
+      // Build redirect path
+      let redirectPath = next;
+
+      // If there's a next parameter (e.g., pricing page for subscription), prioritize it
+      // This allows new users to complete payment BEFORE taking placement test
+      if (next !== "/dashboard") {
+        // If redirecting to pricing page, redirect to checkout instead for proper session handling
+        if (next.startsWith("/pricing")) {
+          const url = new URL(next, origin);
+          const billing = url.searchParams.get("billing") || "monthly";
+          const currency = url.searchParams.get("currency") || "USD";
+          redirectPath = `/checkout?billing=${billing}&currency=${currency}`;
+        } else {
+          redirectPath = next;
+        }
+      } else if (needsOnboarding) {
+        // Otherwise, if user needs onboarding and no specific redirect, go to onboarding
+        redirectPath = "/onboarding";
+      }
 
       if (isLocalEnv) {
         return NextResponse.redirect(`${origin}${redirectPath}`);

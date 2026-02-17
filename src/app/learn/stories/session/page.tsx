@@ -12,8 +12,10 @@ import {
   getFoundationProgress,
   getLearnedWords,
 } from "@/lib/srs/foundation-srs";
+import { getTotalUserWordCount } from "@/lib/srs/seed-vocabulary";
 import { MicroStoryProgress } from "@/types/micro-stories";
 import { checkMicroStoriesUnlock } from "@/lib/micro-stories/utils";
+import { createClient } from "@/lib/supabase/client";
 
 // ============================================================================
 // MICRO-STORIES SESSION PAGE
@@ -22,6 +24,7 @@ import { checkMicroStoriesUnlock } from "@/lib/micro-stories/utils";
 
 export default function MicroStoriesSessionPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [knownWordCount, setKnownWordCount] = useState(0);
   const [knownWordLemmas, setKnownWordLemmas] = useState<Set<string>>(
@@ -54,15 +57,40 @@ export default function MicroStoriesSessionPage() {
           setCheckingLimits(false);
         }
 
-        // Get foundation progress
-        const progress = await getFoundationProgress();
-        const wordCount = progress?.totalWordsLearned || 0;
+        // Get user ID for database queries
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          router.replace("/auth/login");
+          return;
+        }
 
-        // Check unlock status
-        const unlocked = checkMicroStoriesUnlock(wordCount);
+        // Get user's target language
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("target_language")
+          .eq("id", user.id)
+          .single();
+        const language = profile?.target_language || "fr";
+
+        // Get TOTAL word count from database (includes seeded vocabulary from placement test + foundation progress)
+        // This checks the user_words table which has all vocabulary words
+        const totalWordCount = await getTotalUserWordCount(user.id, language);
+
+        console.log(
+          `[Micro-Stories] User has ${totalWordCount} total words (for unlock check)`,
+        );
+
+        // Check unlock status using total word count (includes seeded vocabulary)
+        const unlocked = checkMicroStoriesUnlock(totalWordCount);
         setIsUnlocked(unlocked);
+        setKnownWordCount(totalWordCount);
 
         if (!unlocked) {
+          console.log(
+            `[Micro-Stories] User not unlocked (${totalWordCount} < 300), redirecting to main page`,
+          );
           router.replace("/learn/stories");
           return;
         }
@@ -144,7 +172,6 @@ export default function MicroStoriesSessionPage() {
         ];
         commonWords.forEach((w) => lemmas.add(w));
 
-        setKnownWordCount(wordCount);
         setKnownWordLemmas(lemmas);
         setLoading(false);
       } catch (error) {

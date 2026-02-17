@@ -14,6 +14,7 @@ import { MilestoneCelebration } from "@/components/progression";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { UsageLimitBanner } from "@/components/ui/UsageLimitBanner";
 import { DiveIn } from "@/components/ui/ocean-animations";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import {
   Play,
   ArrowRight,
@@ -22,6 +23,8 @@ import {
   Clock,
   Zap,
   Star,
+  Crown,
+  Check,
 } from "lucide-react";
 import { getLessonPathForWordCount } from "@/lib/srs/seed-vocabulary";
 import {
@@ -52,6 +55,8 @@ export default function DashboardPage() {
   const [sessionsToday, setSessionsToday] = useState(0);
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  const [subscriptionTier, setSubscriptionTier] = useState<string>("free");
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
 
   const [stats, setStats] = useState({
     totalSessions: 0,
@@ -74,6 +79,36 @@ export default function DashboardPage() {
   const [previousWordCount, setPreviousWordCount] = useState<number>(0);
   const [dbError, setDbError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>("");
+
+  useEffect(() => {
+    // Check for payment success query parameter
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentStatus = urlParams.get("payment");
+      if (paymentStatus === "success") {
+        setShowPaymentSuccess(true);
+        // Force refresh of subscription status after successful payment
+        const refreshSubscription = async () => {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("subscription_tier")
+              .eq("id", user.id)
+              .single();
+            if (profile?.subscription_tier) {
+              setSubscriptionTier(profile.subscription_tier);
+            }
+          }
+        };
+        refreshSubscription();
+        // Clean up URL
+        window.history.replaceState({}, "", "/dashboard");
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUserStats = async () => {
@@ -100,7 +135,7 @@ export default function DashboardPage() {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select(
-            "streak, total_practice_minutes, sessions_completed, proficiency_level, interests, target_language",
+            "streak, total_practice_minutes, sessions_completed, proficiency_level, interests, target_language, subscription_tier",
           )
           .eq("id", user.id)
           .single();
@@ -152,6 +187,10 @@ export default function DashboardPage() {
           // Set the target language from profile
           if (profile?.target_language) {
             setTargetLanguage(profile.target_language);
+          }
+          // Set the subscription tier from profile
+          if (profile?.subscription_tier) {
+            setSubscriptionTier(profile.subscription_tier);
           }
           setAuthChecked(true);
         }
@@ -313,160 +352,202 @@ export default function DashboardPage() {
   const lessonType = getLessonTypeInfo();
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* ========== MILESTONE CELEBRATION MODAL ========== */}
-      {celebratingMilestone && (
-        <MilestoneCelebration
-          milestone={celebratingMilestone}
-          onClose={() => setCelebratingMilestone(null)}
-        />
-      )}
-
-      {/* ========== LEFT SIDEBAR ========== */}
-      <LeftSidebar stats={stats} targetLanguage={targetLanguage} />
-
-      {/* ========== MAIN CONTENT ========== */}
-      <main className="flex-1 overflow-y-auto">
-        <DiveIn>
-          <div className="max-w-5xl mx-auto p-8">
-            {/* Usage Limit Banner */}
-            <UsageLimitBanner className="mb-8" />
-
-            {/* Hero Section */}
-            <div className="mb-12">
-              <h1 className="text-4xl font-bold mb-2">Welcome back</h1>
-              <p className="text-lg text-muted-foreground">
-                Ready to continue your journey to fluency?
-              </p>
-            </div>
-
-            {/* Next Lesson Card */}
-            <div className="mb-8">
-              <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 rounded-2xl p-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
-
-                <div className="relative">
-                  <div className="flex items-start justify-between mb-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Next Lesson
-                      </p>
-                      <h2 className="text-3xl font-bold mb-2">
-                        {lessonType.title}
-                      </h2>
-                      <p className="text-muted-foreground">
-                        {lessonType.description}
-                      </p>
-                    </div>
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Play className="w-8 h-8 text-primary" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      <span>~15 min</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <TrendingUp className="w-4 h-4" />
-                      <span>{stats.avgComprehension}% avg score</span>
-                    </div>
-                  </div>
-
-                  <Link href={lessonType.path}>
-                    <Button size="lg" className="group">
-                      Start Learning
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
+    <ProtectedRoute>
+      <div className="flex min-h-screen bg-background">
+        {/* ========== PAYMENT SUCCESS NOTIFICATION ========== */}
+        {showPaymentSuccess && (
+          <div className="fixed top-4 right-4 z-50 max-w-md">
+            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 shadow-lg backdrop-blur-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+                  <Check className="w-5 h-5 text-green-500" />
                 </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-green-600 dark:text-green-400 mb-1">
+                    Welcome to Pro! 🎉
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Your subscription is now active. Enjoy unlimited lessons and
+                    all premium features!
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowPaymentSuccess(false)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ×
+                </button>
               </div>
             </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-card border border-border rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                    New
-                  </span>
-                </div>
-                <div className="text-3xl font-bold mb-1">
-                  {vocabularyStats.new}
-                </div>
-                <p className="text-sm text-muted-foreground">New Words</p>
-              </div>
-
-              <div className="bg-card border border-border rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-green-500" />
-                  </div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                    Known
-                  </span>
-                </div>
-                <div className="text-3xl font-bold mb-1">
-                  {vocabularyStats.known}
-                </div>
-                <p className="text-sm text-muted-foreground">Known Words</p>
-              </div>
-
-              <div className="bg-card border border-border rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
-                    <Star className="w-5 h-5 text-yellow-500" />
-                  </div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                    Mastered
-                  </span>
-                </div>
-                <div className="text-3xl font-bold mb-1">
-                  {vocabularyStats.mastered}
-                </div>
-                <p className="text-sm text-muted-foreground">Mastered Words</p>
-              </div>
-            </div>
-
-            {/* Vocabulary Viewer */}
-            {userId && stats.wordsEncountered > 0 && (
-              <div className="mb-8">
-                <VocabularyViewer userId={userId} language={targetLanguage} />
-              </div>
-            )}
-
-            {/* Premium CTA */}
-            {stats.totalSessions >= 3 && (
-              <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/20 rounded-xl p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-1">
-                      Ready to accelerate?
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Unlock unlimited sessions, detailed analytics, and
-                      personalized learning.
-                    </p>
-                  </div>
-                  <Link href="/pricing">
-                    <Button variant="default" className="shrink-0">
-                      Go Premium
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            )}
           </div>
-        </DiveIn>
-      </main>
+        )}
 
-      {/* ========== RIGHT SIDEBAR (ROADMAP) ========== */}
-      <RightSidebar wordCount={stats.wordsEncountered} />
-    </div>
+        {/* ========== MILESTONE CELEBRATION MODAL ========== */}
+        {celebratingMilestone && (
+          <MilestoneCelebration
+            milestone={celebratingMilestone}
+            onClose={() => setCelebratingMilestone(null)}
+          />
+        )}
+
+        {/* ========== LEFT SIDEBAR ========== */}
+        <LeftSidebar stats={stats} targetLanguage={targetLanguage} />
+
+        {/* ========== MAIN CONTENT ========== */}
+        <main className="flex-1 overflow-y-auto">
+          <DiveIn>
+            <div className="max-w-5xl mx-auto p-8">
+              {/* Usage Limit Banner */}
+              <UsageLimitBanner className="mb-8" />
+
+              {/* Hero Section */}
+              <div className="mb-12">
+                <div className="flex items-center justify-between mb-2">
+                  <h1 className="text-4xl font-bold">Welcome back</h1>
+                  {subscriptionTier === "premium" && (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30">
+                      <Crown className="w-4 h-4 text-amber-500" />
+                      <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                        Pro Member
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-lg text-muted-foreground">
+                  Ready to continue your journey to fluency?
+                </p>
+              </div>
+
+              {/* Next Lesson Card */}
+              <div className="mb-8">
+                <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 rounded-2xl p-8 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
+
+                  <div className="relative">
+                    <div className="flex items-start justify-between mb-6">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Next Lesson
+                        </p>
+                        <h2 className="text-3xl font-bold mb-2">
+                          {lessonType.title}
+                        </h2>
+                        <p className="text-muted-foreground">
+                          {lessonType.description}
+                        </p>
+                      </div>
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Play className="w-8 h-8 text-primary" />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        <span>~15 min</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <TrendingUp className="w-4 h-4" />
+                        <span>{stats.avgComprehension}% avg score</span>
+                      </div>
+                    </div>
+
+                    <Link href={lessonType.path}>
+                      <Button size="lg" className="group">
+                        Start Learning
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-blue-500" />
+                    </div>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                      New
+                    </span>
+                  </div>
+                  <div className="text-3xl font-bold mb-1">
+                    {vocabularyStats.new}
+                  </div>
+                  <p className="text-sm text-muted-foreground">New Words</p>
+                </div>
+
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                      <Zap className="w-5 h-5 text-green-500" />
+                    </div>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Known
+                    </span>
+                  </div>
+                  <div className="text-3xl font-bold mb-1">
+                    {vocabularyStats.known}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Known Words</p>
+                </div>
+
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                      <Star className="w-5 h-5 text-yellow-500" />
+                    </div>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Mastered
+                    </span>
+                  </div>
+                  <div className="text-3xl font-bold mb-1">
+                    {vocabularyStats.mastered}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Mastered Words
+                  </p>
+                </div>
+              </div>
+
+              {/* Vocabulary Viewer */}
+              {userId && stats.wordsEncountered > 0 && (
+                <div className="mb-8">
+                  <VocabularyViewer userId={userId} language={targetLanguage} />
+                </div>
+              )}
+
+              {/* Premium CTA */}
+              {stats.totalSessions >= 3 && subscriptionTier === "free" && (
+                <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/20 rounded-xl p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1">
+                        Ready to accelerate?
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Unlock unlimited sessions, detailed analytics, and
+                        personalized learning.
+                      </p>
+                    </div>
+                    <Link href="/pricing">
+                      <Button variant="default" className="shrink-0">
+                        Go Premium
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DiveIn>
+        </main>
+
+        {/* ========== RIGHT SIDEBAR (ROADMAP) ========== */}
+        <RightSidebar wordCount={stats.wordsEncountered} />
+      </div>
+    </ProtectedRoute>
   );
 }

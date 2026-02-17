@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 // import { Inter } from "next/font/google"; // Not used, font loaded via globals.css
 import "@/styles/globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Font is loaded via globals.css
 
@@ -30,7 +31,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

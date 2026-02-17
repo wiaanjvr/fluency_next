@@ -1,9 +1,18 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Routes that require authentication
-const protectedRoutes = ["/dashboard", "/lesson", "/settings", "/onboarding"];
-// Routes that should redirect to dashboard if already authenticated
+// Public routes that do NOT require authentication
+const publicRoutes = [
+  "/", // homepage
+  "/auth/login",
+  "/auth/signup",
+  "/api/public", // example public API route
+  "/favicon.ico",
+  "/_next", // next.js internals
+  "/public", // static assets
+];
+
+// Auth routes that should redirect to dashboard if already authenticated
 const authRoutes = ["/auth/login", "/auth/signup"];
 
 export async function updateSession(request: NextRequest) {
@@ -64,11 +73,11 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
-  // Check if user is trying to access a protected route without being logged in
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route),
+  // Allow access to public routes without authentication
+  const isPublic = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route + "/"),
   );
-  if (isProtectedRoute && !user) {
+  if (!isPublic && !user) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
