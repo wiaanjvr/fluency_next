@@ -72,12 +72,12 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 space-y-6">
-          <h1 className="text-5xl font-light leading-tight">
+          <h1 className="text-6xl font-light leading-tight">
             Welcome back to
             <br />
             <span className="font-serif italic">the depths</span>
           </h1>
-          <p className="text-lg font-light text-background/80 max-w-md">
+          <p className="text-xl font-light text-background/80 max-w-md">
             Continue your immersive journey. Dive back into fluency.
           </p>
         </div>
@@ -90,8 +90,8 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-md space-y-6 bg-muted/50 p-6 rounded-2xl shadow-md border border-border/30">
           <div className="space-y-2">
             <h2 className="text-3xl font-light tracking-tight">Sign in</h2>
             <p className="text-muted-foreground font-light">
@@ -101,7 +101,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
                 <p className="text-sm text-destructive font-light">{error}</p>

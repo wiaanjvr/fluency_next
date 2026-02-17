@@ -757,35 +757,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========== TESTIMONIAL SECTION ========== */}
-      <section className="py-40 px-6">
-        <div className="max-w-4xl mx-auto">
-          <ScrollReveal>
-            <div className="relative">
-              <Quote className="h-12 w-12 text-ocean-turquoise/20 mb-8" />
-
-              <blockquote className="text-2xl sm:text-3xl md:text-4xl font-light leading-relaxed mb-8">
-                I stopped looking for shortcuts and just showed up every day.
-                <span className="font-serif italic text-ocean-turquoise">
-                  {" "}
-                  Six months later
-                </span>
-                , I'm having real conversations in French.
-              </blockquote>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-muted" />
-                <div>
-                  <p className="font-medium">Marie Laurent</p>
-                  <p className="text-sm text-muted-foreground font-light">
-                    6 months learning French
-                  </p>
-                </div>
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
+      {/* Testimonial removed */}
 
       {/* ========== FINAL CTA SECTION ========== */}
       <section className="py-40 px-6 relative overflow-hidden">

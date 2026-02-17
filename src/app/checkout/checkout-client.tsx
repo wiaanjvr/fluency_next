@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,18 +22,12 @@ export default function CheckoutClient({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [convertedDisplay, setConvertedDisplay] = useState<string | null>(null);
+  const [converting, setConverting] = useState(false);
 
-  // Currency conversion rates (static fallback, should match pricing page)
-  const exchangeRates: Record<string, number> = {
-    USD: 1,
-    EUR: 0.92,
-    GBP: 0.79,
-    ZAR: 18.5,
-  };
-  // Show selected currency and converted price
-  const zarAmount = billing === "yearly" ? 125000 : 12500; // In cents
-  const zarBase = billing === "yearly" ? 1250 : 125;
-  const rate = exchangeRates[currency] || 1;
+  // Show selected currency and converted price using real-time API
+  const zarAmount = billing === "yearly" ? 125000 : 12500; // In cents for payment provider
+  const zarBase = billing === "yearly" ? 1250 : 125; // Human-readable ZAR amount
   const symbol =
     {
       USD: "$",
@@ -41,9 +35,47 @@ export default function CheckoutClient({
       GBP: "£",
       ZAR: "R",
     }[currency] || currency;
-  const converted = ((zarBase / exchangeRates["ZAR"]) * rate).toFixed(2);
+
+  // Fetch real-time conversion for display (ZAR -> selected currency)
+  useEffect(() => {
+    let mounted = true;
+    async function fetchConversion() {
+      setConverting(true);
+      setConvertedDisplay(null);
+      try {
+        const res = await fetch(
+          `/api/currency/convert?amount=${encodeURIComponent(zarBase)}&from=ZAR&to=${encodeURIComponent(
+            currency,
+          )}`,
+        );
+        if (!res.ok) throw new Error("Failed to fetch conversion");
+        const data = await res.json();
+        if (!mounted) return;
+        if (data && typeof data.convertedAmount === "number") {
+          setConvertedDisplay(`${symbol}${data.convertedAmount.toFixed(2)}`);
+        } else {
+          setConvertedDisplay(null);
+        }
+      } catch (err) {
+        console.error("Conversion fetch error:", err);
+        setConvertedDisplay(null);
+      } finally {
+        if (mounted) setConverting(false);
+      }
+    }
+    // Only fetch when currency differs from ZAR
+    if (currency && currency !== "ZAR") {
+      fetchConversion();
+    } else {
+      setConvertedDisplay(null);
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [billing, currency, zarBase, symbol]);
+
   const displayAmount =
-    currency === "ZAR" ? `R${zarBase}` : `${symbol}${converted}`;
+    currency === "ZAR" ? `R${zarBase}` : convertedDisplay || "...";
   const planCode =
     billing === "yearly"
       ? process.env.NEXT_PUBLIC_PAYSTACK_PLAN_YEARLY
@@ -175,18 +207,6 @@ export default function CheckoutClient({
                 </span>
                 <span className="text-2xl font-light">{displayAmount}</span>
               </div>
-              {currency !== "ZAR" && (
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Charged in ZAR</span>
-                  <span>R{zarBase}</span>
-                </div>
-              )}
-              {billing === "yearly" && (
-                <div className="flex items-center justify-center gap-1 text-ocean-coral text-sm">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Save ~17% with yearly billing</span>
-                </div>
-              )}
             </div>
 
             {/* Benefits */}
@@ -218,7 +238,7 @@ export default function CheckoutClient({
 
             {/* Action Button */}
             <Button
-              onClick={handleCheckout}
+              onClick={() => handleCheckout()}
               disabled={loading}
               className="w-full h-12 text-base font-medium rounded-xl"
               size="lg"

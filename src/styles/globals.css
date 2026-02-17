@@ -1,3 +1,11 @@
+/* ==========================================================================
+   FLUENSEA - Main Stylesheet
+   Ocean Theme: The Ocean IS the UI
+   ========================================================================== */
+
+/* Import Ocean Theme (colors, animations, components) */
+@import url("./ocean-theme.css");
+
 /* Blended swim background for main screen */
 .with-swim-bg::before {
   content: "";

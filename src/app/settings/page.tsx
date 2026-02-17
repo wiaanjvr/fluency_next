@@ -410,70 +410,44 @@ export default function SettingsPage() {
               </Button>
             </div>
           </div>
-Link href="/pricing">
-                    <Button className="gap-2">
-                      <Crown className="h-4 w-4" />
-                      Upgrade to Premium
+
+          {/* Refund Eligibility Notice */}
+          {refundEligibility?.eligible &&
+            profile?.subscription_tier === "premium" && (
+              <div className="p-4 bg-ocean-turquoise/10 border border-ocean-turquoise/30 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <h3 className="font-light text-base mb-1">
+                      7-Day Money-Back Guarantee
+                    </h3>
+                    <p className="text-sm text-muted-foreground font-light mb-3">
+                      You have {refundEligibility.daysRemaining} day
+                      {refundEligibility.daysRemaining !== 1 ? "s" : ""}{" "}
+                      remaining to request a full refund and cancel your Pro
+                      subscription.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRequestRefund}
+                      disabled={processingRefund}
+                      className="border-ocean-turquoise/50 hover:bg-ocean-turquoise/10"
+                    >
+                      {processingRefund
+                        ? "Processing..."
+                        : "Request Refund & Cancel"}
                     </Button>
-                  </Link>
-                )}
-              </div>
-
-              {/* Refund Eligibility Notice */}
-              {refundEligibility?.eligible &&
-                profile?.subscription_tier === "premium" && (
-                  <div className="p-4 bg-ocean-turquoise/10 border border-ocean-turquoise/30 rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <h3 className="font-light text-base mb-1">
-                          7-Day Money-Back Guarantee
-                        </h3>
-                        <p className="text-sm text-muted-foreground font-light mb-3">
-                          You have {refundEligibility.daysRemaining} day
-                          {refundEligibility.daysRemaining !== 1 ? "s" : ""}{" "}
-                          remaining to request a full refund and cancel your Pro
-                          subscription.
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleRequestRefund}
-                          disabled={processingRefund}
-                          className="border-ocean-turquoise/50 hover:bg-ocean-turquoise/10"
-                        >
-                          {processingRefund
-                            ? "Processing..."
-                            : "Request Refund & Cancel"}
-                        </Button>
-                      </div>
-                    </div>
                   </div>
-                )}
-
-              {profile?.subscription_tier === "free" && (
-                <p className="text-sm text-muted-foreground font-light">
-                  Premium: $8/month for unlimited lessons, multiple languages,
-                  and AI conversation feedback. 7-day money-back guarantee.
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                {INTEREST_TOPICS.map((topic) => (
-                  <button
-                    key={topic}
-                    onClick={() => toggleInterest(topic)}
-                    className={cn(
-                      "p-4 rounded-xl border transition-all capitalize text-sm font-light",
-                      "hover:border-foreground/30 hover:shadow-md",
-                      selectedInterests.includes(topic)
-                        ? "border-foreground/50 bg-foreground/5"
-                        : "border-border/50",
-                    )}
-                  >
-                    {topic}
-                  </button>
-                ))}
+                </div>
               </div>
-            </div>
-          </div>
+            )}
+
+          {profile?.subscription_tier === "free" && (
+            <p className="text-sm text-muted-foreground font-light">
+              Premium: $8/month for unlimited lessons, multiple languages, and
+              AI conversation feedback. 7-day money-back guarantee.
+            </p>
+          )}
 
           {/* Subscription */}
           <div className="card-luxury p-8">
@@ -496,16 +470,18 @@ Link href="/pricing">
                   </p>
                 </div>
                 {profile?.subscription_tier === "free" && (
-                  <Button className="gap-2">
-                    <Crown className="h-4 w-4" />
-                    Upgrade to Premium
-                  </Button>
+                  <Link href={profile ? "/checkout" : "/auth/login"}>
+                    <Button className="gap-2">
+                      <Crown className="h-4 w-4" />
+                      Upgrade to Premium
+                    </Button>
+                  </Link>
                 )}
               </div>
               {profile?.subscription_tier === "free" && (
                 <p className="text-sm text-muted-foreground font-light">
-                  Premium: $12/month for unlimited lessons, multiple languages,
-                  and AI conversation feedback
+                  Premium: Unlimited lessons, multiple languages, and AI
+                  conversation feedback
                 </p>
               )}
             </div>

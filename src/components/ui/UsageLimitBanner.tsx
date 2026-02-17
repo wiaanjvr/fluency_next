@@ -67,6 +67,15 @@ export function UsageLimitBanner({
   if (loading || !usageData) return null;
   if (usageData.remaining.isPremium) return null; // Premium users don't see limits
 
+  // Total daily free lessons across all lesson types
+  const TOTAL_DAILY_FREE = 5;
+  const usedTotal =
+    usageData.usage.foundation_sessions +
+    usageData.usage.sentence_sessions +
+    usageData.usage.microstory_sessions +
+    usageData.usage.main_lessons;
+  const totalRemaining = Math.max(0, TOTAL_DAILY_FREE - usedTotal);
+
   // If a specific session type is provided, show only that type
   if (sessionType) {
     const remaining = usageData.remaining[sessionType];
@@ -124,11 +133,7 @@ export function UsageLimitBanner({
   }
 
   // Show all session types
-  const hasNoSessionsLeft =
-    usageData.remaining.foundation === 0 &&
-    usageData.remaining.sentence === 0 &&
-    usageData.remaining.microstory === 0 &&
-    usageData.remaining.main === 0;
+  const hasNoSessionsLeft = totalRemaining === 0;
 
   if (hasNoSessionsLeft) {
     return (
@@ -159,7 +164,7 @@ export function UsageLimitBanner({
     );
   }
 
-  // Show compact summary
+  // Show compact summary (display total remaining across all lesson types)
   return (
     <div
       className={cn(
@@ -177,35 +182,10 @@ export function UsageLimitBanner({
         <div className="flex items-center gap-4 text-sm">
           <div>
             <span className="text-foreground font-normal">
-              {usageData.remaining.foundation}
+              {totalRemaining}
             </span>
             <span className="text-muted-foreground font-light ml-1">
-              Foundation
-            </span>
-          </div>
-          <div className="w-px h-4 bg-border" />
-          <div>
-            <span className="text-foreground font-normal">
-              {usageData.remaining.sentence}
-            </span>
-            <span className="text-muted-foreground font-light ml-1">
-              Sentence
-            </span>
-          </div>
-          <div className="w-px h-4 bg-border" />
-          <div>
-            <span className="text-foreground font-normal">
-              {usageData.remaining.microstory}
-            </span>
-            <span className="text-muted-foreground font-light ml-1">Story</span>
-          </div>
-          <div className="w-px h-4 bg-border" />
-          <div>
-            <span className="text-foreground font-normal">
-              {usageData.remaining.main}
-            </span>
-            <span className="text-muted-foreground font-light ml-1">
-              Lesson
+              remaining of {TOTAL_DAILY_FREE}
             </span>
           </div>
         </div>

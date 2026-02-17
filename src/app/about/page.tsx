@@ -127,30 +127,40 @@ const milestones = [
   },
 ];
 
-const stats = [
-  {
-    value: "10,000+",
-    label: "Active Learners",
-    icon: Users,
-  },
-  {
-    value: "1M+",
-    label: "Lessons Completed",
-    icon: BookOpen,
-  },
-  {
-    value: "3",
-    label: "Languages Available",
-    icon: Globe,
-  },
-  {
-    value: "95%",
-    label: "Satisfaction Rate",
-    icon: Heart,
-  },
+import { useEffect, useState } from "react";
+
+type StatsData = {
+  activeLearners: number;
+  lessonsCompleted: number;
+  languagesAvailable: number;
+};
+
+const statsConfig: { key: keyof StatsData; label: string; icon: any }[] = [
+  { key: "activeLearners", label: "Active Learners", icon: Users },
+  { key: "lessonsCompleted", label: "Lessons Completed", icon: BookOpen },
+  { key: "languagesAvailable", label: "Languages Available", icon: Globe },
 ];
 
 export default function AboutPage() {
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch("/api/metrics");
+        if (!res.ok) throw new Error("Failed to fetch metrics");
+        const data = await res.json();
+        setStats(data);
+      } catch (e) {
+        setStats(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStats();
+  }, []);
+
   return (
     <main className="bg-background text-foreground antialiased with-swim-bg min-h-screen">
       {/* ========== NAVIGATION ========== */}
@@ -290,24 +300,32 @@ export default function AboutPage() {
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <ScrollReveal key={index} delay={index * 100}>
-                <Card className="text-center hover:border-ocean-turquoise/90 transition-all duration-300">
-                  <CardContent className="pt-8 pb-8">
-                    <div className="w-12 h-12 rounded-2xl bg-ocean-turquoise/10 flex items-center justify-center mx-auto mb-4">
-                      <stat.icon className="w-6 h-6 text-ocean-turquoise" />
-                    </div>
-                    <div className="text-3xl font-light mb-2 text-gradient-turquoise">
-                      {stat.value}
-                    </div>
-                    <div className="text-sm text-muted-foreground font-light">
-                      {stat.label}
-                    </div>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-            ))}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+            {statsConfig.map((stat, index) => {
+              const value = stats
+                ? stats[stat.key].toLocaleString()
+                : loading
+                  ? "..."
+                  : "-";
+              const Icon = stat.icon;
+              return (
+                <ScrollReveal key={stat.key} delay={index * 100}>
+                  <Card className="text-center hover:border-ocean-turquoise/90 transition-all duration-300">
+                    <CardContent className="pt-8 pb-8">
+                      <div className="w-12 h-12 rounded-2xl bg-ocean-turquoise/10 flex items-center justify-center mx-auto mb-4">
+                        <Icon className="w-6 h-6 text-ocean-turquoise" />
+                      </div>
+                      <div className="text-3xl font-light mb-2 text-gradient-turquoise">
+                        {value}
+                      </div>
+                      <div className="text-sm text-muted-foreground font-light">
+                        {stat.label}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </ScrollReveal>
+              );
+            })}
           </div>
         </div>
       </section>

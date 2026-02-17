@@ -8,32 +8,20 @@ import {
   ArrowLeft,
   BookOpen,
   Check,
-  Lock,
-  ChevronRight,
-  Star,
-  Target,
+  ArrowRight,
   Brain,
   RefreshCw,
-  Sparkles,
-  Trophy,
+  Clock,
+  TrendingUp,
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { FoundationWord } from "@/types/foundation-vocabulary";
-import {
-  generateFoundationVocabulary,
-  createLearningSessions,
-} from "@/data/foundation-vocabulary";
+import { generateFoundationVocabulary } from "@/data/foundation-vocabulary";
 import { getVocabularyData } from "@/lib/languages/data-loader";
-import { FadeIn, CircularProgress } from "@/components/ui/animations";
 import { createClient } from "@/lib/supabase/client";
 import type { SupportedLanguage } from "@/lib/languages";
 import { getNextSessionWords, getUserWords } from "@/lib/srs/foundation-srs";
@@ -55,14 +43,12 @@ export default function FoundationPage() {
   // Load progress and next session
   useEffect(() => {
     async function loadProgress() {
-      console.log("Loading foundation progress...");
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
         if (!user) {
-          console.log("No user found");
           setLoading(false);
           return;
         }
@@ -77,7 +63,6 @@ export default function FoundationPage() {
         const language = (profile?.target_language ||
           "fr") as SupportedLanguage;
         setTargetLanguage(language);
-        console.log("Target language:", language);
 
         // Generate vocabulary for the user's language
         const vocabularyData = getVocabularyData(language);
@@ -86,11 +71,9 @@ export default function FoundationPage() {
           language,
         );
         setAllWords(words);
-        console.log("Total foundation words:", words.length);
 
         // Get next session data
         const sessionData = await getNextSessionWords(words, language, 4);
-        console.log("Next session data:", sessionData);
         setNextSessionData({
           reviewCount: sessionData.reviewCount,
           newCount: sessionData.newCount,
@@ -100,13 +83,11 @@ export default function FoundationPage() {
 
         // Count words due for review
         const userWords = await getUserWords(language);
-        console.log("User words from DB:", userWords.length);
         const now = new Date();
         const dueCount = userWords.filter(
           (w) => new Date(w.next_review) <= now,
         ).length;
         setWordsDueCount(dueCount);
-        console.log("Words due for review:", dueCount);
       } catch (error) {
         console.error("Error loading foundation progress:", error);
       }
@@ -119,7 +100,6 @@ export default function FoundationPage() {
     // Also reload when the page becomes visible (user returns from session)
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        console.log("Page became visible, reloading progress...");
         loadProgress();
       }
     };
@@ -132,7 +112,7 @@ export default function FoundationPage() {
   }, [supabase]);
 
   // Calculate progress
-  const totalWords = allWords.length; // 100 words
+  const totalWords = allWords.length;
   const learnedWords = nextSessionData?.totalLearned || 0;
   const progressPercentage =
     totalWords > 0 ? Math.round((learnedWords / totalWords) * 100) : 0;
@@ -145,7 +125,7 @@ export default function FoundationPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-8 py-4 flex items-center justify-between">
           <Button
             variant="ghost"
             size="icon"
@@ -158,239 +138,213 @@ export default function FoundationPage() {
         </div>
       </div>
 
-      {/* Already Completed Banner */}
-      {nextSessionData?.allWordsLearned && (
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-b border-green-200 dark:border-green-900">
-          <div className="max-w-4xl mx-auto px-4 py-6">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-green-900 dark:text-green-100 mb-1">
-                  Foundation Complete! 🎉
-                </h3>
-                <p className="text-sm text-green-700 dark:text-green-300 mb-3">
-                  You've learned all {totalWords} foundational words! Keep
-                  reviewing them to maintain your knowledge, or move on to more
-                  advanced content.
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() => router.push("/learn/sentences")}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Continue to Next Phase
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => router.push("/dashboard")}
-                  >
-                    Back to Dashboard
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Hero Section */}
-      <div className="bg-gradient-to-b from-primary/10 to-background">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <FadeIn>
-            <div className="flex flex-col md:flex-row items-center gap-6">
-              {/* Progress Circle */}
-              <div className="relative">
-                <CircularProgress
-                  value={progressPercentage}
-                  max={100}
-                  size={140}
-                  strokeWidth={12}
-                  showPercentage
-                />
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 text-center md:text-left">
-                <h2 className="text-2xl md:text-3xl font-bold mb-2">
-                  Master the First 100 Words
-                </h2>
-                <p className="text-muted-foreground mb-4">
-                  Build your foundation with the most frequent words. Each
-                  session adapts to your learning using spaced repetition for
-                  optimal retention.
-                </p>
-
-                <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-primary" />
-                    <span className="text-sm">
-                      <strong>{learnedWords}</strong> / {totalWords} words
-                      learned
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <RefreshCw className="w-5 h-5 text-orange-500" />
-                    <span className="text-sm">
-                      <strong>{wordsDueCount}</strong> due for review
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </div>
-
-      {/* Next Session Card */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold mb-2">Your Next Session</h3>
-          <p className="text-muted-foreground">
-            Sessions dynamically adapt based on spaced repetition. Review words
-            when they're due, or learn new ones when you're ready.
+      <main className="max-w-5xl mx-auto p-8">
+        {/* Hero Section */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold mb-2">Master the Fundamentals</h1>
+          <p className="text-lg text-muted-foreground">
+            Build a strong foundation with the 100 most essential words
           </p>
         </div>
 
-        <FadeIn>
-          <Card
-            className={cn(
-              "transition-all ring-2 ring-primary ring-offset-2",
-              nextSessionData?.allWordsLearned &&
-                "bg-green-50/50 dark:bg-green-950/20",
-            )}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                {/* Icon */}
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+        {/* Next Session Card - Primary CTA */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 rounded-2xl p-8 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
+
+            <div className="relative">
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {nextSessionData?.allWordsLearned
+                      ? "Review Session"
+                      : nextSessionData?.reviewCount
+                        ? "Review Session"
+                        : "Next Lesson"}
+                  </p>
+                  <h2 className="text-3xl font-bold mb-2">
+                    {nextSessionData?.allWordsLearned
+                      ? "Foundation Complete"
+                      : nextSessionData?.reviewCount
+                        ? `Review ${nextSessionData.reviewCount} Word${nextSessionData.reviewCount > 1 ? "s" : ""}`
+                        : `Learn ${nextSessionData?.newCount || 4} New Word${nextSessionData?.newCount !== 1 ? "s" : ""}`}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {nextSessionData?.allWordsLearned
+                      ? wordsDueCount > 0
+                        ? `Keep ${wordsDueCount} words fresh with spaced repetition review`
+                        : "All words mastered. No reviews needed right now."
+                      : nextSessionData?.reviewCount &&
+                          nextSessionData?.newCount
+                        ? `Plus ${nextSessionData.newCount} new word${nextSessionData.newCount > 1 ? "s" : ""} to learn`
+                        : "Build your vocabulary with spaced repetition"}
+                  </p>
+                </div>
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                   {nextSessionData?.allWordsLearned ? (
-                    <Trophy className="w-8 h-8 text-green-600" />
+                    <Check className="w-8 h-8 text-primary" />
                   ) : nextSessionData?.reviewCount ? (
-                    <RefreshCw className="w-7 h-7 text-primary" />
+                    <RefreshCw className="w-8 h-8 text-primary" />
                   ) : (
-                    <Sparkles className="w-7 h-7 text-primary" />
+                    <Play className="w-8 h-8 text-primary" />
                   )}
                 </div>
+              </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  {nextSessionData?.allWordsLearned ? (
-                    <>
-                      <h4 className="font-semibold text-lg mb-1">
-                        All Words Learned!
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {wordsDueCount > 0
-                          ? `You have ${wordsDueCount} words ready for review to keep your knowledge fresh.`
-                          : "No reviews needed right now. Great work!"}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <h4 className="font-semibold text-lg mb-1">
-                        {nextSessionData?.reviewCount
-                          ? "Review Session"
-                          : "New Words Session"}
-                      </h4>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {nextSessionData?.reviewCount
-                          ? `${nextSessionData.reviewCount} word${nextSessionData.reviewCount > 1 ? "s" : ""} ready for review`
-                          : `Learn ${nextSessionData?.newCount || 4} new word${nextSessionData?.newCount !== 1 ? "s" : ""}`}
-                        {nextSessionData?.reviewCount &&
-                        nextSessionData?.newCount
-                          ? ` + ${nextSessionData.newCount} new word${nextSessionData.newCount > 1 ? "s" : ""}`
-                          : ""}
-                      </p>
-                      <div className="flex gap-2">
-                        {nextSessionData?.reviewCount ? (
-                          <span className="px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-xs rounded-full flex items-center gap-1">
-                            <RefreshCw className="w-3 h-3" />
-                            Review Priority
-                          </span>
-                        ) : null}
-                        {nextSessionData?.newCount ? (
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs rounded-full flex items-center gap-1">
-                            <Sparkles className="w-3 h-3" />
-                            New Content
-                          </span>
-                        ) : null}
-                      </div>
-                    </>
-                  )}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="w-4 h-4" />
+                  <span>~10 min</span>
                 </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <BookOpen className="w-4 h-4" />
+                  <span>
+                    {learnedWords} / {totalWords} words learned
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>{progressPercentage}% complete</span>
+                </div>
+              </div>
 
-                {/* Action */}
+              <Link href="/learn/foundation/session/next">
                 <Button
-                  variant="default"
                   size="lg"
-                  onClick={() => router.push("/learn/foundation/session/next")}
-                  className="shrink-0"
+                  className="group"
                   disabled={
                     nextSessionData?.allWordsLearned && wordsDueCount === 0
                   }
                 >
                   {nextSessionData?.allWordsLearned && wordsDueCount > 0
-                    ? "Review"
-                    : "Start Session"}
-                  <ChevronRight className="w-4 h-4 ml-1" />
+                    ? "Review Words"
+                    : nextSessionData?.allWordsLearned
+                      ? "All Complete"
+                      : "Start Learning"}
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </FadeIn>
-      </div>
+              </Link>
 
-      {/* Learning Tips */}
-      <div className="max-w-4xl mx-auto px-4 pb-12">
-        <FadeIn delay={200}>
-          <Card className="bg-muted/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Brain className="w-5 h-5 text-primary" />
-                How Spaced Repetition Works
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex gap-3">
-                <Star className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium">Adaptive learning</p>
-                  <p className="text-sm text-muted-foreground">
-                    Words you struggle with appear more frequently, while words
-                    you know well have longer intervals between reviews.
-                  </p>
-                </div>
+              {nextSessionData?.allWordsLearned && (
+                <Link href="/learn/sentences" className="ml-3">
+                  <Button size="lg" variant="outline" className="group">
+                    Continue to Next Phase
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Overview */}
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold mb-4">Your Progress</h3>
+          <div className="bg-card border border-border rounded-xl p-6">
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">
+                  Overall Progress
+                </span>
+                <span className="text-sm font-medium">
+                  {learnedWords} / {totalWords} words
+                </span>
               </div>
-              <div className="flex gap-3">
-                <Star className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium">Optimal timing</p>
-                  <p className="text-sm text-muted-foreground">
-                    Each session prioritizes words that are due for review,
-                    ensuring you practice at the perfect moment for long-term
-                    retention.
-                  </p>
-                </div>
+              <Progress value={progressPercentage} className="h-2" />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
+              <div>
+                <div className="text-2xl font-bold">{totalWords}</div>
+                <p className="text-sm text-muted-foreground">Total Words</p>
               </div>
-              <div className="flex gap-3">
-                <Star className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium">Steady progress</p>
-                  <p className="text-sm text-muted-foreground">
-                    New words are introduced when you're ready, balancing review
-                    and learning to maximize efficiency.
-                  </p>
-                </div>
+              <div>
+                <div className="text-2xl font-bold">{learnedWords}</div>
+                <p className="text-sm text-muted-foreground">Learned</p>
               </div>
-            </CardContent>
-          </Card>
-        </FadeIn>
-      </div>
+              <div>
+                <div className="text-2xl font-bold">{wordsDueCount}</div>
+                <p className="text-sm text-muted-foreground">Due for Review</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Learning Approach */}
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold mb-4">
+            How to Learn Effectively
+          </h3>
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Brain className="w-5 h-5 text-primary" />
+                  Think Before You Look
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  When you see a new word, pause and try to recall or guess its
+                  meaning before revealing the translation. This active effort
+                  strengthens memory formation and improves long-term retention.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <RefreshCw className="w-5 h-5 text-primary" />
+                  Shadow Every Word and Sentence
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Immediately repeat each word and sentence out loud after
+                  hearing the audio. This shadowing technique builds
+                  pronunciation muscle memory and trains your ear to recognize
+                  natural speech patterns.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                  Visualize Concrete Words
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  For nouns and action verbs, create vivid mental images of the
+                  objects or actions. Visual associations help anchor words in
+                  memory more effectively than text alone, especially when
+                  combined with the audio.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Spaced Repetition Info */}
+        <div className="bg-muted/50 border border-border rounded-xl p-6">
+          <h3 className="font-semibold mb-3">About Spaced Repetition</h3>
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              Words are reviewed at optimal intervals based on how well you know
+              them. Words you struggle with appear more frequently, while words
+              you know well have longer intervals between reviews.
+            </p>
+            <p>
+              Each session adapts to your current needs - prioritizing reviews
+              when words are due, and introducing new words when you're ready
+              for them.
+            </p>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

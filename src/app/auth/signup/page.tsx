@@ -127,12 +127,12 @@ export default function SignUpPage() {
         </div>
 
         <div className="relative z-10 space-y-6">
-          <h1 className="text-5xl font-light leading-tight">
+          <h1 className="text-6xl font-light leading-tight">
             Dive into
             <br />
             <span className="font-serif italic">language mastery</span>
           </h1>
-          <p className="text-lg font-light text-background/80 max-w-md">
+          <p className="text-xl font-light text-background/80 max-w-md">
             Join a community of learners immersing themselves in language. Flow
             with the currents of comprehension.
           </p>
@@ -146,8 +146,8 @@ export default function SignUpPage() {
       </div>
 
       {/* Right side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-md space-y-6 bg-muted/50 p-6 rounded-2xl shadow-md border border-border/30">
           <div className="space-y-2">
             <h2 className="text-3xl font-light tracking-tight">
               Create account
@@ -157,7 +157,7 @@ export default function SignUpPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {message && (
               <div
                 className={`p-4 rounded-xl border flex items-start gap-3 ${

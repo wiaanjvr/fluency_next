@@ -1,0 +1,965 @@
+/* ==========================================================================
+   FLUENSEA OCEAN THEME - The Ocean IS the UI
+   ========================================================================== */
+
+/* ===== Google Fonts ===== */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap");
+
+/* ===== Strict Color Palette ===== */
+:root {
+  --midnight: #0a0f1e; /* Abyssal deep water - primary background */
+  --deep-navy: #0d1b2a; /* Mid-depth water */
+  --ocean-mid: #1a3a4a; /* Mid-water layer */
+  --surface-teal: #1e6b72; /* SPARINGLY - glows, water surface shimmer */
+  --turquoise: #3dd6b5; /* VERY SPARINGLY - ONE CTA, active states */
+  --sand: #e8dcc8; /* Primary text color */
+  --seafoam: #a8d5c2; /* Secondary text, captions */
+  --white-wave: rgba(255, 255, 255, 0.08); /* Panel surfaces, glassy cards */
+
+  /* Depth gradient stops */
+  --sky-top: #1a2a3a;
+  --sky-bottom: #0d1b2a;
+  --abyss: #050810;
+  --seabed: #080d18;
+
+  /* Typography */
+  --font-display: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  --font-body: "DM Sans", "Outfit", system-ui, sans-serif;
+}
+
+/* ===== Typography ===== */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.text-sand {
+  color: var(--sand);
+}
+.text-seafoam {
+  color: var(--seafoam);
+}
+.text-turquoise {
+  color: var(--turquoise);
+}
+
+/* ===== Ocean Backgrounds ===== */
+.bg-midnight {
+  background-color: var(--midnight);
+}
+.bg-deep-navy {
+  background-color: var(--deep-navy);
+}
+.bg-ocean-mid {
+  background-color: var(--ocean-mid);
+}
+.bg-abyss {
+  background-color: var(--abyss);
+}
+
+/* ===== Floating Card Styles ===== */
+.ocean-card {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition:
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.ocean-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 16px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Card enter animation */
+@keyframes cardFloat {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ocean-card-animate {
+  animation: cardFloat 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  opacity: 0;
+}
+
+/* Staggered delays */
+.ocean-card-animate:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.ocean-card-animate:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.ocean-card-animate:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.ocean-card-animate:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.ocean-card-animate:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+/* ===== Light Rays ===== */
+@keyframes rayDrift {
+  0%,
+  100% {
+    transform: translateX(0) rotate(15deg);
+    opacity: 0.04;
+  }
+  50% {
+    transform: translateX(30px) rotate(15deg);
+    opacity: 0.06;
+  }
+}
+
+.light-ray {
+  position: absolute;
+  width: 2px;
+  height: 200%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 20%,
+    rgba(255, 255, 255, 0.03) 80%,
+    transparent 100%
+  );
+  transform: rotate(15deg);
+  animation: rayDrift 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ===== Wave Animation ===== */
+@keyframes waveFlow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 100;
+  }
+}
+
+@keyframes waveFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.wave-path {
+  stroke-dasharray: 50 20;
+  animation: waveFlow 8s linear infinite;
+}
+
+.wave-container {
+  animation: waveFloat 6s ease-in-out infinite;
+}
+
+/* ===== Bubble Animation ===== */
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.08;
+  }
+  100% {
+    transform: translateY(-100vh) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  animation: bubbleRise linear infinite;
+  pointer-events: none;
+}
+
+/* ===== Crepuscular Rays ===== */
+@keyframes rayPulse {
+  0%,
+  100% {
+    opacity: 0.02;
+  }
+  50% {
+    opacity: 0.04;
+  }
+}
+
+.crepuscular-ray {
+  position: absolute;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    transparent 100%
+  );
+  transform: rotate(18deg);
+  animation: rayPulse 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ===== Bioluminescence ===== */
+@keyframes bioGlow {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(1.2);
+  }
+}
+
+.bio-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--turquoise);
+  animation: bioGlow 4s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(1px);
+}
+
+/* ===== Frosted Navigation ===== */
+.ocean-nav {
+  background: rgba(10, 15, 30, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.ocean-nav.scrolled {
+  background: rgba(10, 15, 30, 0.85);
+  border-bottom: 1px solid rgba(61, 214, 181, 0.1);
+}
+
+/* ===== Water Drop Navigation ===== */
+@keyframes waterDrop {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(20px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.nav-tab::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--turquoise);
+  opacity: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.nav-tab:hover::after {
+  animation: waterDrop 0.5s ease-out forwards;
+}
+
+/* ===== Depth Gauge ===== */
+@keyframes depthFill {
+  from {
+    height: 0%;
+  }
+}
+
+.depth-gauge {
+  width: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.depth-gauge-fill {
+  background: linear-gradient(to top, var(--turquoise), var(--surface-teal));
+  animation: depthFill 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* ===== Turquoise CTA Button ===== */
+.ocean-cta {
+  background: linear-gradient(135deg, #3dd6b5, #1e9e8a);
+  border: none;
+  border-radius: 9999px;
+  color: var(--midnight);
+  font-family: var(--font-body);
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.ocean-cta::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.ocean-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(61, 214, 181, 0.3);
+}
+
+.ocean-cta:hover::before {
+  left: 100%;
+}
+
+/* ===== Water Caustics ===== */
+@keyframes caustic1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(10px, -10px) scale(1.1);
+  }
+  66% {
+    transform: translate(-5px, 5px) scale(0.95);
+  }
+}
+
+@keyframes caustic2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-8px, 8px) scale(1.05);
+  }
+  66% {
+    transform: translate(12px, -5px) scale(1.1);
+  }
+}
+
+@keyframes caustic3 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(5px, 10px) scale(0.95);
+  }
+  66% {
+    transform: translate(-10px, -8px) scale(1.08);
+  }
+}
+
+.caustic-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.caustic-bg::before,
+.caustic-bg::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.caustic-bg::before {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(30, 107, 114, 0.15) 0%,
+    transparent 50%
+  );
+  animation: caustic1 15s ease-in-out infinite;
+}
+
+.caustic-bg::after {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(61, 214, 181, 0.08) 0%,
+    transparent 40%
+  );
+  animation: caustic2 12s ease-in-out infinite;
+}
+
+/* ===== Cinematic Dive Animation ===== */
+
+/* Diver hair flowing animation */
+@keyframes hairFlow {
+  0% {
+    transform: translateX(0) skewX(0deg);
+  }
+  50% {
+    transform: translateX(8px) skewX(-5deg);
+  }
+  100% {
+    transform: translateX(15px) skewX(-10deg);
+  }
+}
+
+.diver-hair {
+  transition: transform 0.15s ease-out;
+}
+
+/* Splash column animation */
+@keyframes splashColumnRise {
+  0% {
+    transform: scaleY(0) scaleX(0.5);
+    opacity: 0;
+  }
+  30% {
+    transform: scaleY(1.2) scaleX(1);
+    opacity: 0.9;
+  }
+  60% {
+    transform: scaleY(0.9) scaleX(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scaleY(0) scaleX(1.3);
+    opacity: 0;
+  }
+}
+
+/* Splash curtain arc animation */
+@keyframes splashCurtainLeft {
+  0% {
+    transform: scaleX(0) scaleY(0) rotate(0deg);
+    opacity: 0;
+  }
+  25% {
+    transform: scaleX(0.8) scaleY(1) rotate(-15deg);
+    opacity: 0.8;
+  }
+  60% {
+    transform: scaleX(1) scaleY(0.7) rotate(-25deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scaleX(1.2) scaleY(0) rotate(-30deg);
+    opacity: 0;
+  }
+}
+
+@keyframes splashCurtainRight {
+  0% {
+    transform: scaleX(0) scaleY(0) rotate(0deg);
+    opacity: 0;
+  }
+  25% {
+    transform: scaleX(0.8) scaleY(1) rotate(15deg);
+    opacity: 0.8;
+  }
+  60% {
+    transform: scaleX(1) scaleY(0.7) rotate(25deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scaleX(1.2) scaleY(0) rotate(30deg);
+    opacity: 0;
+  }
+}
+
+/* Foam ring expansion */
+@keyframes foamRingExpand {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(2.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(5);
+    opacity: 0;
+  }
+}
+
+/* Water droplet physics */
+@keyframes dropletFall {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(200px);
+    opacity: 0;
+  }
+}
+
+/* Underwater caustic light patterns */
+@keyframes causticShift1 {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 0.15;
+  }
+  25% {
+    transform: translateX(30px) translateY(-20px) scale(1.1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateX(-20px) translateY(30px) scale(0.9);
+    opacity: 0.25;
+  }
+  75% {
+    transform: translateX(15px) translateY(15px) scale(1.05);
+    opacity: 0.18;
+  }
+}
+
+@keyframes causticShift2 {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 0.12;
+  }
+  33% {
+    transform: translateX(-25px) translateY(20px) rotate(120deg);
+    opacity: 0.18;
+  }
+  66% {
+    transform: translateX(20px) translateY(-15px) rotate(240deg);
+    opacity: 0.15;
+  }
+}
+
+@keyframes causticPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: blur(40px);
+    opacity: 0.1;
+  }
+  50% {
+    transform: scale(1.3);
+    filter: blur(60px);
+    opacity: 0.2;
+  }
+}
+
+/* Perspective dive zoom */
+@keyframes perspectiveDive {
+  0% {
+    transform: perspective(800px) translateZ(0);
+    filter: brightness(1);
+  }
+  100% {
+    transform: perspective(800px) translateZ(400px);
+    filter: brightness(0.3);
+  }
+}
+
+/* Underwater color wash */
+@keyframes underwaterWash {
+  0% {
+    background: transparent;
+  }
+  100% {
+    background: linear-gradient(
+      180deg,
+      rgba(10, 61, 71, 0.95) 0%,
+      rgba(5, 30, 40, 0.98) 50%,
+      rgba(2, 15, 20, 1) 100%
+    );
+  }
+}
+
+/* Silhouette descent */
+@keyframes silhouetteDescend {
+  0% {
+    transform: translateY(0) scale(1);
+    filter: blur(2px);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(150px) scale(0.7);
+    filter: blur(10px);
+    opacity: 0;
+  }
+}
+
+/* Legacy ripple (keeping for backward compatibility) */
+@keyframes rippleExpand {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+/* Legacy bubble animation */
+@keyframes diveBubble {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(0.3);
+    opacity: 0;
+  }
+}
+
+.dive-ripple {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(61, 214, 181, 0.6);
+  animation: rippleExpand 0.8s ease-out forwards;
+  pointer-events: none;
+}
+
+.dive-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  animation: diveBubble 0.6s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Premium splash styling */
+.splash-column {
+  transform-origin: bottom center;
+  animation: splashColumnRise 0.8s ease-out forwards;
+}
+
+.splash-curtain-left {
+  transform-origin: right bottom;
+  animation: splashCurtainLeft 0.7s ease-out forwards;
+}
+
+.splash-curtain-right {
+  transform-origin: left bottom;
+  animation: splashCurtainRight 0.7s ease-out forwards;
+}
+
+.foam-ring {
+  animation: foamRingExpand 1.2s ease-out forwards;
+}
+
+.underwater-silhouette {
+  animation: silhouetteDescend 1s ease-in forwards;
+}
+
+/* Caustic overlay layers */
+.caustic-layer-1 {
+  animation: causticShift1 8s ease-in-out infinite;
+}
+
+.caustic-layer-2 {
+  animation: causticShift2 12s ease-in-out infinite;
+}
+
+.caustic-pulse {
+  animation: causticPulse 4s ease-in-out infinite;
+}
+
+/* ===== Streak Counter Animation ===== */
+@keyframes flameFlicker {
+  0%,
+  100% {
+    transform: scaleY(1) scaleX(1);
+    filter: brightness(1);
+  }
+  25% {
+    transform: scaleY(1.05) scaleX(0.95);
+    filter: brightness(1.1);
+  }
+  50% {
+    transform: scaleY(0.95) scaleX(1.05);
+    filter: brightness(0.95);
+  }
+  75% {
+    transform: scaleY(1.03) scaleX(0.97);
+    filter: brightness(1.05);
+  }
+}
+
+.flame-flicker {
+  animation: flameFlicker 1s ease-in-out infinite;
+}
+
+/* ===== Parallax Helpers ===== */
+.parallax-slow {
+  will-change: transform;
+}
+
+.parallax-card {
+  will-change: transform, background-position;
+}
+
+/* ===== Horizon Glow ===== */
+.horizon-glow {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(61, 214, 181, 0.3) 0%,
+    rgba(30, 107, 114, 0.1) 30%,
+    transparent 70%
+  );
+  filter: blur(1px);
+}
+
+/* ===== Seabed Silhouette ===== */
+.seabed {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20%;
+  background: linear-gradient(to top, var(--abyss), transparent);
+  pointer-events: none;
+}
+
+/* ===== Number Count Up ===== */
+@keyframes countSpring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.count-up {
+  animation: countSpring 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ===== Scrollbar Styling - Ocean Theme ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--midnight);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ocean-mid);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--surface-teal);
+}
+
+/* ===== Focus States - Ocean Glow ===== */
+*:focus-visible {
+  outline: 2px solid var(--turquoise);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== Selection - Ocean Teal ===== */
+::selection {
+  background: rgba(61, 214, 181, 0.3);
+  color: var(--sand);
+}
+
+/* ===== Smooth Entry Animations ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.6s ease-out forwards;
+}
+
+/* ===== Glow Effects ===== */
+.glow-turquoise {
+  box-shadow: 0 0 20px rgba(61, 214, 181, 0.3);
+}
+
+.glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(61, 214, 181, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(61, 214, 181, 0.4);
+  }
+}
+
+/* ===== Text Gradients ===== */
+.text-gradient-ocean {
+  background: linear-gradient(135deg, var(--sand) 0%, var(--seafoam) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-turquoise {
+  background: linear-gradient(
+    135deg,
+    var(--turquoise) 0%,
+    var(--surface-teal) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 768px) {
+  .ocean-card {
+    border-radius: 20px;
+  }
+
+  .font-display {
+    font-size: 0.9em;
+  }
+}
+
+/* ===== Loading States ===== */
+.skeleton-ocean {
+  background: linear-gradient(
+    90deg,
+    var(--deep-navy) 25%,
+    var(--ocean-mid) 50%,
+    var(--deep-navy) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ===== Ambient Movement ===== */
+@keyframes ambientFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.ambient-float {
+  animation: ambientFloat 4s ease-in-out infinite;
+}
+
+/* ===== Interactive Ripple Effect ===== */
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-container::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(61, 214, 181, 0.3);
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.6s,
+    height 0.6s,
+    opacity 0.6s;
+  opacity: 0;
+}
+
+.ripple-container:active::before {
+  width: 300px;
+  height: 300px;
+  opacity: 0;
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  .ocean-card {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  .ocean-nav,
+  .bio-dot,
+  .bubble,
+  .light-ray {
+    display: none !important;
+  }
+}

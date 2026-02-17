@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Volume2, Check, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -957,8 +957,8 @@ export function ExerciseSession({
 
   // Render appropriate exercise component
   const renderExercise = () => {
+    const reactKey = `${currentExercise.type}-${currentExercise.word.id}-${currentIndex}`;
     const props = {
-      key: `${currentExercise.type}-${currentExercise.word.id}-${currentIndex}`,
       targetWord: currentExercise.word,
       allWords,
       onResult: handleResult,
@@ -967,15 +967,15 @@ export function ExerciseSession({
 
     switch (currentExercise.type) {
       case "word-to-image":
-        return <WordToImageExercise {...props} />;
+        return <WordToImageExercise key={reactKey} {...props} />;
       case "audio-to-image":
-        return <AudioToImageExercise {...props} />;
+        return <AudioToImageExercise key={reactKey} {...props} />;
       case "audio-to-word":
-        return <AudioToWordTextExercise {...props} />;
+        return <AudioToWordTextExercise key={reactKey} {...props} />;
       case "image-to-word":
-        return <ImageToWordExercise {...props} />;
+        return <ImageToWordExercise key={reactKey} {...props} />;
       case "sentence-identify":
-        return <SentenceIdentifyExercise {...props} />;
+        return <SentenceIdentifyExercise key={reactKey} {...props} />;
       default:
         return null;
     }
