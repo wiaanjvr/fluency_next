@@ -210,19 +210,22 @@ export default function OnboardingPage() {
   };
 
   const toggleInterest = (interest: string) => {
-    setSelectedInterests((prev) =>
-      prev.includes(interest)
-        ? prev.filter((i) => i !== interest)
-        : [...prev, interest],
-    );
+    setSelectedInterests((prev) => {
+      if (prev.includes(interest)) {
+        return prev.filter((i) => i !== interest);
+      }
+      // Enforce exactly 3 interests max
+      if (prev.length >= 3) return prev;
+      return [...prev, interest];
+    });
   };
 
   const handleComplete = async () => {
     if (!testResults) return;
 
-    // Validate that at least 3 interests are selected (matches UI requirement)
-    if (selectedInterests.length < 3) {
-      setError("Please select at least 3 interests to continue.");
+    // Validate exactly 3 interests are selected
+    if (selectedInterests.length !== 3) {
+      setError("Please select exactly 3 interests to continue.");
       return;
     }
 
@@ -628,8 +631,8 @@ export default function OnboardingPage() {
             <CardHeader>
               <CardTitle>What are you interested in?</CardTitle>
               <CardDescription>
-                Select 3-5 topics. You'll learn through content you actually
-                care about.
+                Select exactly 3 topics. Every lesson will be themed around your
+                interests.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -656,16 +659,16 @@ export default function OnboardingPage() {
               <div className="mt-6">
                 <Button
                   onClick={() => {
-                    if (selectedInterests.length < 3) {
+                    if (selectedInterests.length !== 3) {
                       setError(
-                        "Please select at least 3 interests to continue.",
+                        "Please select exactly 3 interests to continue.",
                       );
                       return;
                     }
                     setError(null);
                     setStep("roadmap");
                   }}
-                  disabled={selectedInterests.length < 3}
+                  disabled={selectedInterests.length !== 3}
                   className="w-full"
                   size="lg"
                 >

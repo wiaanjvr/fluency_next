@@ -15,7 +15,7 @@ import {
 } from "@/types/lesson";
 import { WordRating } from "@/types";
 
-// Phase Components - Import from index
+// Phase Components
 import {
   SpacedRetrievalWarmupPhase,
   PredictionStagePhase,
@@ -40,9 +40,9 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { DiveIn } from "@/components/ui/ocean-animations";
-import { Loader2, RefreshCw, Sparkles, MessageSquare } from "lucide-react";
+import { Loader2, Headphones, BookOpen, Mic, ArrowLeft, X } from "lucide-react";
 
-// Content types for variety (users with 100+ words)
+// Content types for variety
 const CONTENT_TYPES = [
   { id: "narrative", label: "Narrative", description: "A short story or tale" },
   {
@@ -64,7 +64,7 @@ const CONTENT_TYPES = [
 
 type ContentType = (typeof CONTENT_TYPES)[number]["id"];
 
-// Legacy phase order (for old lessons without content structure)
+// Legacy phase order
 const LEGACY_PHASE_ORDER: LessonPhase[] = [
   "audio-comprehension" as LessonPhase,
   "verbal-check" as LessonPhase,
@@ -74,7 +74,6 @@ const LEGACY_PHASE_ORDER: LessonPhase[] = [
   "final-assessment" as LessonPhase,
 ];
 
-// Check if lesson uses new 10-phase structure
 const isNewLessonStructure = (lesson: Lesson | null): boolean => {
   return !!lesson?.content;
 };
@@ -132,6 +131,7 @@ export default function LessonPage() {
   // Progress tracking
   const [overallProgress, setOverallProgress] = useState(0);
   const [lessonStartTime, setLessonStartTime] = useState<number | null>(null);
+  const [disableDiveAnimation, setDisableDiveAnimation] = useState(true);
 
   // Custom prompt and content type (for users with 100+ vocabulary)
   const [vocabularyCount, setVocabularyCount] = useState(0);
@@ -203,6 +203,8 @@ export default function LessonPage() {
         setCurrentPhase(existingLesson.currentPhase || defaultPhase);
         setListenCount(existingLesson.listenCount || 0);
         setLessonStartTime(Date.now()); // Track session time from resume
+        // Dive animation disabled by default — no replay on resume
+        setDisableDiveAnimation(true);
       }
     } catch (error) {
       console.error("Error loading lesson:", error);
@@ -265,6 +267,8 @@ export default function LessonPage() {
       setListenCount(0);
       setOverallProgress(0);
       setLessonStartTime(Date.now());
+      // Dive animation disabled by default — no replay on initial start
+      setDisableDiveAnimation(true);
 
       // Reset custom prompt for next time
       setCustomPrompt("");
@@ -597,130 +601,129 @@ export default function LessonPage() {
     return <LessonLoading />;
   }
 
-  // No lesson - show generation screen
+  // No lesson — immersive entry screen, not a quiz prompt
   if (!lesson && !completed) {
-    const canCustomize = vocabularyCount >= VOCABULARY_THRESHOLD;
-
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+      <div
+        className="min-h-screen flex items-center justify-center px-6"
+        style={{ background: "var(--midnight)" }}
+      >
         <div className="max-w-lg w-full text-center space-y-10">
-          {/* Icon */}
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-ocean-turquoise/10 flex items-center justify-center">
-            <RefreshCw className="h-10 w-10 text-ocean-turquoise" />
-          </div>
+          {/* Subtle depth glow */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse at 50% 60%, rgba(30, 107, 114, 0.08) 0%, transparent 60%)",
+            }}
+          />
 
-          {/* Heading */}
-          <div className="space-y-4">
-            <h1 className="text-4xl sm:text-5xl font-light tracking-tight">
-              Ready to{" "}
-              <span className="font-serif italic text-ocean-turquoise">
-                learn
-              </span>
-              ?
-            </h1>
-            <p className="text-lg text-muted-foreground font-light max-w-sm mx-auto">
-              Generate a personalized lesson based on your vocabulary and
-              progress.
-            </p>
-            {canCustomize && (
-              <p className="text-sm text-ocean-turquoise/80 font-medium">
-                🎉 {vocabularyCount} words learned — custom topics unlocked!
-              </p>
-            )}
-          </div>
-
-          {/* Custom Options for Advanced Users (100+ words) */}
-          {canCustomize && (
-            <div className="space-y-4">
-              <button
-                onClick={() => setShowCustomOptions(!showCustomOptions)}
-                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          {/* Three pillars — always visible */}
+          <div className="flex items-center justify-center gap-8 relative z-10">
+            <div className="flex flex-col items-center gap-2">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: "rgba(255, 255, 255, 0.04)" }}
               >
-                <Sparkles className="h-4 w-4" />
-                {showCustomOptions ? "Hide" : "Customize"} your lesson
-              </button>
-
-              {showCustomOptions && (
-                <div className="bg-card border border-border rounded-2xl p-6 space-y-5 text-left">
-                  {/* Custom Topic Input */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4 text-ocean-turquoise" />
-                      What&apos;s on your mind?
-                    </label>
-                    <p className="text-xs text-muted-foreground">
-                      Tell us a topic and we&apos;ll create a lesson about it
-                    </p>
-                    <textarea
-                      value={customPrompt}
-                      onChange={(e) => setCustomPrompt(e.target.value)}
-                      placeholder="e.g., ordering at a café, my trip to Paris, discussing the weather..."
-                      className="w-full p-3 rounded-xl bg-muted/50 border border-border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ocean-turquoise/50 min-h-[80px]"
-                      maxLength={200}
-                    />
-                    <div className="text-xs text-muted-foreground text-right">
-                      {customPrompt.length}/200
-                    </div>
-                  </div>
-
-                  {/* Content Type Selection */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Content Style</label>
-                    <p className="text-xs text-muted-foreground">
-                      Choose how the lesson should be structured
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {CONTENT_TYPES.map((type) => (
-                        <button
-                          key={type.id}
-                          onClick={() =>
-                            setSelectedContentType(
-                              selectedContentType === type.id ? "" : type.id,
-                            )
-                          }
-                          className={`p-3 rounded-xl border text-left transition-all ${
-                            selectedContentType === type.id
-                              ? "border-ocean-turquoise bg-ocean-turquoise/10"
-                              : "border-border hover:border-ocean-turquoise/50"
-                          }`}
-                        >
-                          <div className="text-sm font-medium">
-                            {type.label}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {type.description}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
+                <BookOpen
+                  className="w-5 h-5"
+                  style={{ color: "var(--seafoam)", opacity: 0.6 }}
+                />
+              </div>
+              <span
+                className="text-xs font-body"
+                style={{ color: "var(--seafoam)", opacity: 0.5 }}
+              >
+                Read
+              </span>
             </div>
-          )}
+            <div className="flex flex-col items-center gap-2">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: "rgba(255, 255, 255, 0.04)" }}
+              >
+                <Headphones
+                  className="w-5 h-5"
+                  style={{ color: "var(--seafoam)", opacity: 0.6 }}
+                />
+              </div>
+              <span
+                className="text-xs font-body"
+                style={{ color: "var(--seafoam)", opacity: 0.5 }}
+              >
+                Listen
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: "rgba(255, 255, 255, 0.04)" }}
+              >
+                <Mic
+                  className="w-5 h-5"
+                  style={{ color: "var(--seafoam)", opacity: 0.6 }}
+                />
+              </div>
+              <span
+                className="text-xs font-body"
+                style={{ color: "var(--seafoam)", opacity: 0.5 }}
+              >
+                Shadow
+              </span>
+            </div>
+          </div>
+
+          {/* Poetic heading */}
+          <div className="space-y-4 relative z-10">
+            <h1
+              className="font-display text-4xl sm:text-5xl font-semibold tracking-tight"
+              style={{ color: "var(--sand)" }}
+            >
+              {generating ? "Descending..." : "Enter the water"}
+            </h1>
+            <p
+              className="font-body text-lg max-w-sm mx-auto"
+              style={{ color: "var(--seafoam)" }}
+            >
+              {generating
+                ? "Your session is being shaped around what you know."
+                : "A session crafted from your vocabulary. Read, listen, shadow."}
+            </p>
+          </div>
 
           {/* Actions */}
-          <div className="space-y-4">
+          <div className="space-y-4 relative z-10">
             <button
               onClick={() => handleGenerateLesson()}
               disabled={generating}
-              className="w-full py-4 px-8 bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-ocean-midnight font-medium rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 px-8 font-body font-semibold rounded-xl transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: generating
+                  ? "rgba(61, 214, 181, 0.15)"
+                  : "var(--turquoise)",
+                color: generating ? "var(--seafoam)" : "var(--midnight)",
+              }}
             >
               {generating ? (
                 <span className="flex items-center justify-center gap-3">
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Generating Your Lesson...
+                  Preparing your immersion...
                 </span>
               ) : (
-                "Start New Lesson"
+                "Begin session"
               )}
             </button>
 
             <button
               onClick={handleExit}
-              className="w-full py-4 px-8 bg-transparent border border-border hover:bg-card text-foreground font-light rounded-xl transition-all duration-300"
+              className="w-full py-4 px-8 font-body font-light rounded-xl transition-all duration-300"
+              style={{
+                background: "transparent",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                color: "var(--seafoam)",
+              }}
             >
-              Back to Dashboard
+              Back to surface
             </button>
           </div>
         </div>
@@ -743,230 +746,309 @@ export default function LessonPage() {
     );
   }
 
-  // Main lesson phases
+  // ========== IMMERSION SESSION ==========
+  // The heart of the product: a reading & listening environment
   return (
-    <div className="min-h-screen bg-background">
-      <LessonHeader
-        lesson={lesson!}
-        currentPhase={currentPhase}
-        progress={overallProgress}
-        onExit={handleExit}
-      />
+    <div className="min-h-screen" style={{ background: "var(--midnight)" }}>
+      {/* Minimal session header — depth, not quiz steps */}
+      <header
+        className="fixed top-0 left-0 right-0 z-50"
+        style={{
+          background: "rgba(10, 15, 30, 0.85)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+        }}
+      >
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="flex items-center justify-between h-14">
+            {/* Exit — back to surface */}
+            <button
+              onClick={handleExit}
+              className="flex items-center gap-2 transition-opacity hover:opacity-100 opacity-60"
+              style={{ color: "var(--seafoam)" }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="text-sm font-body hidden sm:inline">
+                Surface
+              </span>
+            </button>
 
-      <main className="container max-w-3xl mx-auto px-6 pt-32 pb-12">
-        {/* ===== NEW 10-PHASE LESSON FLOW ===== */}
+            {/* Depth indicator */}
+            <div className="flex items-center gap-2">
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{
+                  background: "var(--turquoise)",
+                  boxShadow: "0 0 6px rgba(61, 214, 181, 0.4)",
+                }}
+              />
+              <span
+                className="text-sm font-body"
+                style={{ color: "var(--sand)", opacity: 0.7 }}
+              >
+                {lesson?.level || ""}
+              </span>
+            </div>
 
-        {/* Phase 1: Spaced Retrieval Warmup */}
-        {currentPhase === "spaced-retrieval-warmup" && lesson?.content && (
-          <DiveIn key="spaced-retrieval-warmup">
-            <SpacedRetrievalWarmupPhase
-              warmup={lesson.content.spacedRetrievalWarmup}
-              onComplete={(responses) => {
-                setWarmupResponses(responses);
-                handlePhaseComplete("spaced-retrieval-warmup");
+            {/* Close */}
+            <button
+              onClick={handleExit}
+              className="transition-opacity hover:opacity-100 opacity-40"
+              style={{ color: "var(--seafoam)" }}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Subtle progress — the tide line */}
+          <div
+            className="h-px w-full mb-0"
+            style={{ background: "rgba(255, 255, 255, 0.05)" }}
+          >
+            <div
+              className="h-full transition-all duration-700 ease-out"
+              style={{
+                width: `${overallProgress}%`,
+                background:
+                  "linear-gradient(90deg, var(--surface-teal), var(--turquoise))",
               }}
             />
-          </DiveIn>
-        )}
+          </div>
+        </div>
+      </header>
 
-        {/* Phase 2: Prediction Stage */}
-        {currentPhase === "prediction-stage" && lesson?.content && (
-          <DiveIn key="prediction-stage">
-            <PredictionStagePhase
-              stage={lesson.content.predictionStage}
-              onComplete={(pred) => {
-                setPrediction(pred);
-                handlePhaseComplete("prediction-stage");
-              }}
-            />
-          </DiveIn>
-        )}
+      {/* Session content — reading / listening environment */}
+      <main className="max-w-3xl mx-auto px-6 pt-24 pb-16">
+        <div
+          className="min-h-[70vh] flex flex-col"
+          style={{ color: "var(--sand)" }}
+        >
+          {/* ===== NEW 10-PHASE LESSON FLOW ===== */}
 
-        {/* Phase 3: Audio Text (Listen to Story) */}
-        {currentPhase === "audio-text" && lesson?.content && (
-          <DiveIn key="audio-text">
-            <AudioTextPhase
-              audioText={lesson.content.audioText}
-              listenCount={listenCount}
-              onListenComplete={() => setListenCount((prev) => prev + 1)}
-              onPhaseComplete={() => handlePhaseComplete("audio-text")}
-            />
-          </DiveIn>
-        )}
+          {/* Phase 1: Spaced Retrieval Warmup */}
+          {currentPhase === "spaced-retrieval-warmup" && lesson?.content && (
+            <DiveIn
+              key="spaced-retrieval-warmup"
+              animated={!disableDiveAnimation}
+            >
+              <SpacedRetrievalWarmupPhase
+                warmup={lesson.content.spacedRetrievalWarmup}
+                onComplete={(responses) => {
+                  setWarmupResponses(responses);
+                  handlePhaseComplete("spaced-retrieval-warmup");
+                }}
+              />
+            </DiveIn>
+          )}
 
-        {/* Phase 4: First Recall Prompt */}
-        {currentPhase === "first-recall" && lesson?.content && (
-          <DiveIn key="first-recall">
-            <FirstRecallPhase
-              prompt={lesson.content.firstRecallPrompt}
-              onComplete={(response) => {
-                setFirstRecallResponse(response);
-                handlePhaseComplete("first-recall");
-              }}
-            />
-          </DiveIn>
-        )}
+          {/* Phase 2: Prediction Stage */}
+          {currentPhase === "prediction-stage" && lesson?.content && (
+            <DiveIn key="prediction-stage" animated={!disableDiveAnimation}>
+              <PredictionStagePhase
+                stage={lesson.content.predictionStage}
+                onComplete={(pred) => {
+                  setPrediction(pred);
+                  handlePhaseComplete("prediction-stage");
+                }}
+              />
+            </DiveIn>
+          )}
 
-        {/* Phase 5: Transcript with Highlights */}
-        {currentPhase === "transcript-reveal" && lesson?.content && (
-          <DiveIn key="transcript-reveal">
-            <TranscriptRevealPhase
-              transcript={lesson.content.transcriptWithHighlights}
-              onComplete={() => handlePhaseComplete("transcript-reveal")}
-            />
-          </DiveIn>
-        )}
-
-        {/* Phase 6: Guided Noticing */}
-        {currentPhase === "guided-noticing" && lesson?.content && (
-          <DiveIn key="guided-noticing">
-            <GuidedNoticingPhase
-              noticing={lesson.content.guidedNoticing}
-              onComplete={(inferences) => {
-                setNoticingInferences(inferences);
-                handlePhaseComplete("guided-noticing");
-              }}
-            />
-          </DiveIn>
-        )}
-
-        {/* Phase 7: Micro Drills */}
-        {currentPhase === "micro-drills" && lesson?.content && (
-          <DiveIn key="micro-drills">
-            <MicroDrillsPhase
-              drills={lesson.content.microDrills}
-              onComplete={(results) => {
-                setDrillResults(results);
-                handlePhaseComplete("micro-drills");
-              }}
-            />
-          </DiveIn>
-        )}
-
-        {/* Phase 8: Shadowing Stage */}
-        {currentPhase === "shadowing" && lesson?.content && (
-          <DiveIn key="shadowing">
-            <ShadowingPhase
-              stage={lesson.content.shadowingStage}
-              onComplete={(count) => {
-                setShadowingCount(count);
-                handlePhaseComplete("shadowing");
-              }}
-            />
-          </DiveIn>
-        )}
-
-        {/* Phase 9: Second Recall Prompt */}
-        {currentPhase === "second-recall" && lesson?.content && (
-          <DiveIn key="second-recall">
-            <SecondRecallPhase
-              prompt={lesson.content.secondRecallPrompt}
-              onComplete={(response) => {
-                setSecondRecallResponse(response);
-                handlePhaseComplete("second-recall");
-              }}
-            />
-          </DiveIn>
-        )}
-
-        {/* Phase 10: Progress Reflection */}
-        {currentPhase === "progress-reflection" && lesson?.content && (
-          <DiveIn key="progress-reflection">
-            <ProgressReflectionPhase
-              reflection={lesson.content.progressReflection}
-              onComplete={(responses) => {
-                setReflectionResponses(responses);
-                handlePhaseComplete("progress-reflection");
-              }}
-            />
-          </DiveIn>
-        )}
-
-        {/* ===== LEGACY 6-PHASE LESSON FLOW ===== */}
-
-        {/* Legacy Phase 1: Audio-Only Comprehension */}
-        {currentPhase === ("audio-comprehension" as LessonPhase) &&
-          !lesson?.content && (
-            <DiveIn key="audio-comprehension">
-              <AudioComprehensionPhase
-                lesson={lesson!}
+          {/* Phase 3: Audio Text (Listen to Story) */}
+          {currentPhase === "audio-text" && lesson?.content && (
+            <DiveIn key="audio-text" animated={!disableDiveAnimation}>
+              <AudioTextPhase
+                audioText={lesson.content.audioText}
                 listenCount={listenCount}
-                onListenComplete={handleListenComplete}
-                onPhaseComplete={handleAudioPhaseComplete}
+                onListenComplete={() => setListenCount((prev) => prev + 1)}
+                onPhaseComplete={() => handlePhaseComplete("audio-text")}
               />
             </DiveIn>
           )}
 
-        {/* Legacy Phase 2: Verbal Comprehension Check */}
-        {currentPhase === ("verbal-check" as LessonPhase) &&
-          !lesson?.content && (
-            <DiveIn key="verbal-check">
-              <VerbalCheckPhase
-                lesson={lesson!}
-                onResponse={handleVerbalResponse}
-                onPhaseComplete={() =>
-                  handlePhaseComplete("verbal-check" as LessonPhase)
-                }
+          {/* Phase 4: First Recall Prompt */}
+          {currentPhase === "first-recall" && lesson?.content && (
+            <DiveIn key="first-recall" animated={!disableDiveAnimation}>
+              <FirstRecallPhase
+                prompt={lesson.content.firstRecallPrompt}
+                onComplete={(response) => {
+                  setFirstRecallResponse(response);
+                  handlePhaseComplete("first-recall");
+                }}
               />
             </DiveIn>
           )}
 
-        {/* Legacy Phase 3: Conversational Feedback Loop */}
-        {currentPhase === ("conversation-feedback" as LessonPhase) &&
-          !lesson?.content && (
-            <DiveIn key="conversation-feedback">
-              <ConversationFeedbackPhase
-                lesson={lesson!}
-                initialEvaluation={initialResponse?.evaluation}
-                onPhaseComplete={() =>
-                  handlePhaseComplete("conversation-feedback" as LessonPhase)
-                }
+          {/* Phase 5: Transcript with Highlights */}
+          {currentPhase === "transcript-reveal" && lesson?.content && (
+            <DiveIn key="transcript-reveal" animated={!disableDiveAnimation}>
+              <TranscriptRevealPhase
+                transcript={lesson.content.transcriptWithHighlights}
+                onComplete={() => handlePhaseComplete("transcript-reveal")}
               />
             </DiveIn>
           )}
 
-        {/* Legacy Phase 4: Text Reveal + Vocabulary Marking */}
-        {currentPhase === ("text-reveal" as LessonPhase) &&
-          !lesson?.content && (
-            <DiveIn key="text-reveal">
-              <TextRevealPhase
-                lesson={lesson!}
-                onWordRating={handleWordRating}
-                vocabularyRatings={vocabularyRatings}
-                onPhaseComplete={() =>
-                  handlePhaseComplete("text-reveal" as LessonPhase)
-                }
+          {/* Phase 6: Guided Noticing */}
+          {currentPhase === "guided-noticing" && lesson?.content && (
+            <DiveIn key="guided-noticing" animated={!disableDiveAnimation}>
+              <GuidedNoticingPhase
+                noticing={lesson.content.guidedNoticing}
+                onComplete={(inferences) => {
+                  setNoticingInferences(inferences);
+                  handlePhaseComplete("guided-noticing");
+                }}
               />
             </DiveIn>
           )}
 
-        {/* Legacy Phase 5: Interactive Exercises */}
-        {currentPhase === ("interactive-exercises" as LessonPhase) &&
-          !lesson?.content && (
-            <DiveIn key="interactive-exercises">
-              <InteractiveExercisesPhase
-                lesson={lesson!}
-                onExerciseAttempt={handleExerciseAttempt}
-                onPhaseComplete={() =>
-                  handlePhaseComplete("interactive-exercises" as LessonPhase)
-                }
+          {/* Phase 7: Micro Drills */}
+          {currentPhase === "micro-drills" && lesson?.content && (
+            <DiveIn key="micro-drills" animated={!disableDiveAnimation}>
+              <MicroDrillsPhase
+                drills={lesson.content.microDrills}
+                onComplete={(results) => {
+                  setDrillResults(results);
+                  handlePhaseComplete("micro-drills");
+                }}
               />
             </DiveIn>
           )}
 
-        {/* Legacy Phase 6: Final Verbal Assessment */}
-        {currentPhase === ("final-assessment" as LessonPhase) &&
-          !lesson?.content && (
-            <DiveIn key="final-assessment">
-              <FinalAssessmentPhase
-                lesson={lesson!}
-                onResponse={handleFinalResponse}
-                onPhaseComplete={() =>
-                  handlePhaseComplete("final-assessment" as LessonPhase)
-                }
+          {/* Phase 8: Shadowing Stage */}
+          {currentPhase === "shadowing" && lesson?.content && (
+            <DiveIn key="shadowing" animated={!disableDiveAnimation}>
+              <ShadowingPhase
+                stage={lesson.content.shadowingStage}
+                onComplete={(count) => {
+                  setShadowingCount(count);
+                  handlePhaseComplete("shadowing");
+                }}
               />
             </DiveIn>
           )}
+
+          {/* Phase 9: Second Recall Prompt */}
+          {currentPhase === "second-recall" && lesson?.content && (
+            <DiveIn key="second-recall" animated={!disableDiveAnimation}>
+              <SecondRecallPhase
+                prompt={lesson.content.secondRecallPrompt}
+                onComplete={(response) => {
+                  setSecondRecallResponse(response);
+                  handlePhaseComplete("second-recall");
+                }}
+              />
+            </DiveIn>
+          )}
+
+          {/* Phase 10: Progress Reflection */}
+          {currentPhase === "progress-reflection" && lesson?.content && (
+            <DiveIn key="progress-reflection" animated={!disableDiveAnimation}>
+              <ProgressReflectionPhase
+                reflection={lesson.content.progressReflection}
+                onComplete={(responses) => {
+                  setReflectionResponses(responses);
+                  handlePhaseComplete("progress-reflection");
+                }}
+              />
+            </DiveIn>
+          )}
+
+          {/* ===== LEGACY 6-PHASE LESSON FLOW ===== */}
+
+          {/* Legacy Phase 1: Audio-Only Comprehension */}
+          {currentPhase === ("audio-comprehension" as LessonPhase) &&
+            !lesson?.content && (
+              <DiveIn
+                key="audio-comprehension"
+                animated={!disableDiveAnimation}
+              >
+                <AudioComprehensionPhase
+                  lesson={lesson!}
+                  listenCount={listenCount}
+                  onListenComplete={handleListenComplete}
+                  onPhaseComplete={handleAudioPhaseComplete}
+                />
+              </DiveIn>
+            )}
+
+          {/* Legacy Phase 2: Verbal Comprehension Check */}
+          {currentPhase === ("verbal-check" as LessonPhase) &&
+            !lesson?.content && (
+              <DiveIn key="verbal-check" animated={!disableDiveAnimation}>
+                <VerbalCheckPhase
+                  lesson={lesson!}
+                  onResponse={handleVerbalResponse}
+                  onPhaseComplete={() =>
+                    handlePhaseComplete("verbal-check" as LessonPhase)
+                  }
+                />
+              </DiveIn>
+            )}
+
+          {/* Legacy Phase 3: Conversational Feedback Loop */}
+          {currentPhase === ("conversation-feedback" as LessonPhase) &&
+            !lesson?.content && (
+              <DiveIn
+                key="conversation-feedback"
+                animated={!disableDiveAnimation}
+              >
+                <ConversationFeedbackPhase
+                  lesson={lesson!}
+                  initialEvaluation={initialResponse?.evaluation}
+                  onPhaseComplete={() =>
+                    handlePhaseComplete("conversation-feedback" as LessonPhase)
+                  }
+                />
+              </DiveIn>
+            )}
+
+          {/* Legacy Phase 4: Text Reveal + Vocabulary Marking */}
+          {currentPhase === ("text-reveal" as LessonPhase) &&
+            !lesson?.content && (
+              <DiveIn key="text-reveal" animated={!disableDiveAnimation}>
+                <TextRevealPhase
+                  lesson={lesson!}
+                  onWordRating={handleWordRating}
+                  vocabularyRatings={vocabularyRatings}
+                  onPhaseComplete={() =>
+                    handlePhaseComplete("text-reveal" as LessonPhase)
+                  }
+                />
+              </DiveIn>
+            )}
+
+          {/* Legacy Phase 5: Interactive Exercises */}
+          {currentPhase === ("interactive-exercises" as LessonPhase) &&
+            !lesson?.content && (
+              <DiveIn
+                key="interactive-exercises"
+                animated={!disableDiveAnimation}
+              >
+                <InteractiveExercisesPhase
+                  lesson={lesson!}
+                  onExerciseAttempt={handleExerciseAttempt}
+                  onPhaseComplete={() =>
+                    handlePhaseComplete("interactive-exercises" as LessonPhase)
+                  }
+                />
+              </DiveIn>
+            )}
+
+          {/* Legacy Phase 6: Final Verbal Assessment */}
+          {currentPhase === ("final-assessment" as LessonPhase) &&
+            !lesson?.content && (
+              <DiveIn key="final-assessment" animated={!disableDiveAnimation}>
+                <FinalAssessmentPhase
+                  lesson={lesson!}
+                  onResponse={handleFinalResponse}
+                  onPhaseComplete={() =>
+                    handlePhaseComplete("final-assessment" as LessonPhase)
+                  }
+                />
+              </DiveIn>
+            )}
+        </div>
       </main>
     </div>
   );

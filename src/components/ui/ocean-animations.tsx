@@ -11,6 +11,7 @@ interface DiveInProps {
   delay?: number;
   className?: string;
   duration?: "fast" | "normal" | "slow";
+  animated?: boolean;
 }
 
 export function DiveIn({
@@ -18,13 +19,15 @@ export function DiveIn({
   delay = 0,
   className,
   duration = "normal",
+  animated = true,
 }: DiveInProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(animated ? false : true);
 
   useEffect(() => {
+    if (!animated) return;
     const timer = setTimeout(() => setIsVisible(true), delay);
     return () => clearTimeout(timer);
-  }, [delay]);
+  }, [delay, animated]);
 
   const durationClasses = {
     fast: "duration-500",

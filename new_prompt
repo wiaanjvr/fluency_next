@@ -1,0 +1,43 @@
+Fluensea is a language learning app that needs a fundamental product and UX redesign based on a new core philosophy. Here is everything you need to understand before touching a single component.
+The Core Philosophy
+Language acquisition is not a ladder with locked rungs. It is an ocean tide — it rises continuously, invisibly, and naturally under the learner. The user never "unlocks" a mode. They simply go deeper. Fluensea's engine delivers comprehensible input at i+1 difficulty (Krashen) by guaranteeing 95% known vocabulary in every piece of content, with spaced repetition embedded invisibly into the narrative. The user reads, listens, and shadows — and fluency emerges as a byproduct of immersion, not as a reward for completing exercises.
+The current architecture forces users through Foundation → Sentences → Stories sequentially, gatekeeping the actual engine behind busywork. This needs to be dismantled entirely.
+The New Architecture
+There is one mode. It has one continuous experience. Under the hood it stages itself into depth levels, but the user never sees "modes" or "unlocks." They see depth. They see immersion getting richer.
+The cold start problem is real — a new user has zero known vocabulary, so the 95% guarantee cannot activate yet. Solve this with a fast, invisible bootstrap phase that feels like the beginning of the journey, not a prerequisite. It should take no longer than one or two sessions before the engine has enough signal to fully personalise.
+The four internal depth levels are:
+
+Depth 1 — Single words and their sounds. Pure listening and recognition. The user hears the word, sees it, echoes it. No drilling, no flashcards. Just exposure with audio.
+Depth 2 — Short connected phrases and sentences. Reading and listening together. The learner begins shadowing — repeating what they hear at natural speed.
+Depth 3 — Micro stories of 100–300 words. Every story is generated around the learner's current vocabulary ceiling. Listening, reading, and active shadowing of full sentences in narrative context.
+Depth 4 — Expansive stories, conversations, and native-speed audio. Full immersion. The engine is running at maximum personalisation.
+
+The engine decides when to move between depths based on performance signals — not the user. The user simply continues. Progress feels like walking into deeper water, not climbing a staircase.
+The Three Pillars of Input
+Every depth level involves three input channels working together, not separately:
+
+Reading — comprehensible text at i+1
+Listening — audio of every word, phrase, and story at natural speed
+Shadowing — the user repeats what they hear, building pronunciation and prosody through imitation, not instruction
+
+These are never presented as separate lesson types. They are woven into every session simultaneously. The UI should reflect this — text is always accompanied by audio controls, shadowing prompts appear naturally within the flow, not as a separate screen.
+Monetisation — Never Paywall Structure
+Free users experience the full engine and all depth levels. What is limited:
+
+Daily immersion time (e.g. 20 minutes of active session per day)
+Story length at Depth 3 and 4
+Number of new words introduced per day
+Analytics depth and personal vocabulary insights
+
+Premium unlocks volume, personalisation (custom topics, preferred content domains), and advanced shadowing tools like speed control and pitch analysis. The magic is always accessible. Premium makes it deeper and more personal.
+What to Redesign
+Redesign the entire application with this philosophy as the foundation:
+Onboarding — Replace the current language selection + level picker with an immersive entry experience. The user hears the language before they choose it. They shadow one sentence before the app asks them anything. The first session begins within 60 seconds of opening the app. No tutorial screens. No feature walkthroughs.
+Dashboard — Remove all references to "Foundation," "Sentences," "Stories," "Mastery" as separate modes. Replace with a single continuous session card that shows the user's current depth and today's content. Show a visual representation of their tide rising — not a progress bar, not XP, but something that feels like immersion deepening. Stats shown: words absorbed, hours immersed, shadowing sessions completed.
+Session Screen — This is the heart of the product. Design it as a reading and listening environment, not a quiz environment. Text is large and readable. Audio plays automatically or on demand. Shadowing prompts appear as gentle cues, not mandatory steps. Unknown words are tappable for instant audio + meaning without leaving the flow. The session ends when the daily limit is hit or the user chooses to surface.
+Progression — The only visible progression is depth. Show the user how deep they are in the ocean. No streaks as the primary metric — immersion time and vocabulary absorbed are what matter. Streaks can exist but they are secondary.
+Navigation — Simplify to three destinations: Today's Session, My Progress, Settings. Nothing else at the top level.
+Design Language
+Maintain the existing ocean aesthetic — midnight navy backgrounds, sand-coloured text, turquoise used sparingly as the single accent. Cormorant Garamond for display text, Outfit for UI. All animations flow like water. The session screen in particular should feel like reading by the light filtering through shallow water — calm, focused, immersive.
+The Positioning
+Fluensea is not a gamified learning app. It is an immersion engine. The user does not study the language. They enter it. Every design decision — every screen, every animation, every piece of copy — should reinforce this. The learner is not a student climbing levels. They are a diver going deeper.

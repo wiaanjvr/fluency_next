@@ -21,7 +21,16 @@ import {
   User as UserIcon,
   ChevronRight,
   RefreshCcw,
+  X,
+  AlertTriangle,
 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { getLevelLabel } from "@/lib/placement/scoring";
 import { ProficiencyLevel } from "@/types";
 import { cn } from "@/lib/utils";
@@ -62,6 +71,8 @@ export default function SettingsPage() {
     daysRemaining: number;
   } | null>(null);
   const [processingRefund, setProcessingRefund] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [fullName, setFullName] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("fr");
@@ -442,13 +453,6 @@ export default function SettingsPage() {
               </div>
             )}
 
-          {profile?.subscription_tier === "free" && (
-            <p className="text-sm text-muted-foreground font-light">
-              Premium: $8/month for unlimited lessons, multiple languages, and
-              AI conversation feedback. 7-day money-back guarantee.
-            </p>
-          )}
-
           {/* Subscription */}
           <div className="card-luxury p-8">
             <div className="mb-8">
@@ -465,8 +469,8 @@ export default function SettingsPage() {
                   </p>
                   <p className="text-sm text-muted-foreground font-light mt-1">
                     {profile?.subscription_tier === "free"
-                      ? "1 session per day"
-                      : "Unlimited sessions"}
+                      ? "5 lessons per day"
+                      : "Unlimited lessons"}
                   </p>
                 </div>
                 {profile?.subscription_tier === "free" && (
@@ -500,11 +504,92 @@ export default function SettingsPage() {
               >
                 Sign Out
               </Button>
-              <Button variant="outline" className="w-full text-destructive">
+              <Button
+                variant="outline"
+                className="w-full"
+                style={{ color: "#ff2222", borderColor: "rgba(255,34,34,0.3)" }}
+                onClick={() => setShowDeleteConfirm(true)}
+              >
                 Delete Account
               </Button>
             </div>
           </div>
+          {showDeleteConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
+              <Card className="max-w-md w-full mx-4 shadow-lg">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-red-500" />
+                      <CardTitle>Delete account</CardTitle>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="h-8 w-8"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <CardDescription>
+                    Are you sure you want to delete this account? This action
+                    cannot be undone.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-end gap-3">
+                    <Button
+                      variant="ghost"
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={deleting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                      onClick={async () => {
+                        setDeleting(true);
+                        setMessage(null);
+                        try {
+                          const res = await fetch("/api/auth/delete", {
+                            method: "POST",
+                          });
+
+                          if (res.ok) {
+                            const data = await res.json();
+                            setMessage({
+                              type: "success",
+                              text: data?.message || "Account deleted",
+                            });
+                            await signout();
+                            router.replace("/");
+                          } else {
+                            const err = await res.json().catch(() => ({}));
+                            setMessage({
+                              type: "error",
+                              text: err?.error || "Failed to delete account",
+                            });
+                          }
+                        } catch (error) {
+                          setMessage({
+                            type: "error",
+                            text: "Failed to delete account. Please try again.",
+                          });
+                        } finally {
+                          setDeleting(false);
+                          setShowDeleteConfirm(false);
+                        }
+                      }}
+                      disabled={deleting}
+                    >
+                      {deleting ? "Deleting..." : "Delete account"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MilestoneCelebration } from "@/components/progression";
@@ -12,21 +12,18 @@ import {
   OceanBackground,
   OceanNavigation,
   NextLessonHero,
-  WordProgressSection,
   DepthChart,
   DiveTransitionProvider,
   useDiveTransition,
 } from "@/components/ocean";
 import { VocabularyViewer } from "@/components/dashboard";
 import { Check, Crown, ArrowRight } from "lucide-react";
-import { getLessonPathForWordCount } from "@/lib/srs/seed-vocabulary";
 import { ProficiencyLevel, WordStatus, ProgressMilestone } from "@/types";
 import { checkProficiencyUpdate } from "@/lib/srs/proficiency-calculator";
 import { checkMilestoneAchievement } from "@/lib/progression";
 import { cn } from "@/lib/utils";
 import { getLanguageConfig } from "@/lib/languages";
 
-// Import ocean theme styles
 import "@/styles/ocean-theme.css";
 
 interface VocabularyStats {
@@ -37,11 +34,27 @@ interface VocabularyStats {
   total: number;
 }
 
-// Separate component for dashboard content to use dive transition context
+// ============================================================================
+// Depth level logic — internal only, never shown as "modes" to user
+// ============================================================================
+function getDepthInfo(wordCount: number) {
+  if (wordCount >= 500) {
+    return { level: 4, name: "The Deep", path: "/lesson-v2" };
+  } else if (wordCount >= 200) {
+    return { level: 3, name: "Twilight Zone", path: "/lesson-v2" };
+  } else if (wordCount >= 50) {
+    return { level: 2, name: "Sunlit Zone", path: "/lesson-v2" };
+  } else {
+    return { level: 1, name: "Shallows", path: "/lesson-v2" };
+  }
+}
+
+// ============================================================================
+// Dashboard Content
+// ============================================================================
 function DashboardContent({
   stats,
   vocabularyStats,
-  lessonType,
   subscriptionTier,
   userId,
   targetLanguage,
@@ -50,6 +63,7 @@ function DashboardContent({
   celebratingMilestone,
   setCelebratingMilestone,
   avatarUrl,
+  isProgressView,
 }: {
   stats: {
     totalSessions: number;
@@ -60,7 +74,6 @@ function DashboardContent({
     wordsEncountered: number;
   };
   vocabularyStats: VocabularyStats;
-  lessonType: { title: string; description: string; path: string };
   subscriptionTier: string;
   userId: string;
   targetLanguage: string;
@@ -69,12 +82,15 @@ function DashboardContent({
   celebratingMilestone: ProgressMilestone | null;
   setCelebratingMilestone: (milestone: ProgressMilestone | null) => void;
   avatarUrl?: string;
+  isProgressView?: boolean;
 }) {
   const { triggerDive } = useDiveTransition();
   const contentRef = useRef<HTMLDivElement>(null);
+  const depthChartRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  // Parallax mouse move effect for cards
+  const depthInfo = getDepthInfo(stats.wordsEncountered);
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!contentRef.current) return;
     const rect = contentRef.current.getBoundingClientRect();
@@ -93,17 +109,29 @@ function DashboardContent({
   }, [handleMouseMove]);
 
   const handleDiveClick = () => {
-    triggerDive(lessonType.path);
+    triggerDive(depthInfo.path);
   };
+
+  // Scroll to depth chart when progress view is active
+  useEffect(() => {
+    if (isProgressView && depthChartRef.current) {
+      setTimeout(() => {
+        depthChartRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, [isProgressView]);
 
   return (
     <OceanBackground>
-      {/* Fixed Navigation */}
+      {/* Navigation — Simplified: Immerse, Progress, Settings */}
       <OceanNavigation
-        streak={stats.streak}
         wordsEncountered={stats.wordsEncountered}
+        totalMinutes={stats.totalTime}
         avatarUrl={avatarUrl}
-        currentPath={lessonType.path}
+        currentPath="/dashboard"
       />
 
       {/* Main Content */}
@@ -111,7 +139,7 @@ function DashboardContent({
         ref={contentRef}
         className="relative z-10 min-h-screen pt-24 pb-16 px-6"
       >
-        {/* ========== PAYMENT SUCCESS NOTIFICATION ========== */}
+        {/* Payment Success Notification */}
         {showPaymentSuccess && (
           <div className="fixed top-20 right-6 z-50 max-w-md">
             <div
@@ -133,13 +161,13 @@ function DashboardContent({
                     className="font-display font-semibold mb-1"
                     style={{ color: "var(--turquoise)" }}
                   >
-                    Welcome to Pro! 🎉
+                    Welcome to Pro
                   </h3>
                   <p
                     className="text-sm font-body"
                     style={{ color: "var(--seafoam)" }}
                   >
-                    Your subscription is now active. Enjoy unlimited lessons!
+                    Unlimited immersion unlocked. Go deeper.
                   </p>
                 </div>
                 <button
@@ -154,7 +182,7 @@ function DashboardContent({
           </div>
         )}
 
-        {/* ========== MILESTONE CELEBRATION MODAL ========== */}
+        {/* Milestone Celebration Modal */}
         {celebratingMilestone && (
           <MilestoneCelebration
             milestone={celebratingMilestone}
@@ -166,7 +194,7 @@ function DashboardContent({
           {/* Usage Limit Banner */}
           <UsageLimitBanner className="mb-4" />
 
-          {/* Pro Badge (if applicable) */}
+          {/* Pro Badge */}
           {subscriptionTier === "premium" && (
             <div className="flex justify-center">
               <div
@@ -178,13 +206,13 @@ function DashboardContent({
                   className="text-sm font-body font-medium"
                   style={{ color: "#ffb300" }}
                 >
-                  Pro Member
+                  Pro
                 </span>
               </div>
             </div>
           )}
 
-          {/* ========== NEXT LESSON HERO CARD ========== */}
+          {/* ========== SESSION HERO — Single entry to immersion ========== */}
           <section
             style={{
               transform: `translate(${mousePosition.x * -4}px, ${mousePosition.y * -4}px)`,
@@ -192,61 +220,50 @@ function DashboardContent({
             }}
           >
             <NextLessonHero
-              title={lessonType.title}
-              description={lessonType.description}
-              timeEstimate="~15 min"
-              avgScore={stats.avgComprehension}
-              lessonPath={lessonType.path}
+              depthName={depthInfo.name}
+              wordsAbsorbed={stats.wordsEncountered}
+              sessionPath={depthInfo.path}
               onDiveClick={handleDiveClick}
             />
           </section>
 
-          {/* ========== WORD PROGRESS SECTION ========== */}
+          {/* ========== DEPTH CHART — The tide rising ========== */}
           <section
-            style={{
-              transform: `translate(${mousePosition.x * -2}px, ${mousePosition.y * -2}px)`,
-              transition: "transform 0.3s ease-out",
-            }}
+            ref={depthChartRef}
+            className="ocean-card-animate"
+            style={{ animationDelay: "0.4s" }}
           >
-            <WordProgressSection
-              newWords={vocabularyStats.new}
-              knownWords={vocabularyStats.known}
-              masteredWords={vocabularyStats.mastered}
+            <DepthChart
+              wordCount={stats.wordsEncountered}
+              totalMinutes={stats.totalTime}
+              shadowingSessions={stats.totalSessions}
             />
           </section>
 
-          {/* ========== DEPTH CHART ROADMAP ========== */}
-          <section
-            className="ocean-card-animate"
-            style={{ animationDelay: "0.5s" }}
-          >
-            <DepthChart wordCount={stats.wordsEncountered} />
-          </section>
-
-          {/* ========== VOCABULARY VIEWER (if words exist) ========== */}
+          {/* ========== VOCABULARY VIEWER ========== */}
           {userId && stats.wordsEncountered > 0 && (
             <section
               className="ocean-card p-6 ocean-card-animate"
-              style={{ animationDelay: "0.6s" }}
+              style={{ animationDelay: "0.5s" }}
             >
               <h3
                 className="font-display text-2xl font-semibold mb-6"
                 style={{ color: "var(--sand)" }}
               >
-                Your Vocabulary
+                Words You Know
               </h3>
               <VocabularyViewer userId={userId} language={targetLanguage} />
             </section>
           )}
 
-          {/* ========== PREMIUM CTA (for free users after 3 sessions) ========== */}
-          {stats.totalSessions >= 3 && subscriptionTier === "free" && (
+          {/* ========== PREMIUM CTA (for free users after depth 2) ========== */}
+          {stats.wordsEncountered >= 50 && subscriptionTier === "free" && (
             <section
               className="ocean-card ocean-card-animate p-6"
               style={{
-                animationDelay: "0.7s",
+                animationDelay: "0.6s",
                 background:
-                  "linear-gradient(135deg, rgba(255, 179, 0, 0.08) 0%, rgba(255, 140, 0, 0.05) 100%)",
+                  "linear-gradient(135deg, rgba(255, 179, 0, 0.06) 0%, rgba(255, 140, 0, 0.03) 100%)",
               }}
             >
               <div className="flex items-center justify-between">
@@ -255,14 +272,14 @@ function DashboardContent({
                     className="font-display text-xl font-semibold mb-1"
                     style={{ color: "var(--sand)" }}
                   >
-                    Ready to accelerate?
+                    Go deeper
                   </h3>
                   <p
                     className="text-sm font-body"
                     style={{ color: "var(--seafoam)" }}
                   >
-                    Unlock unlimited sessions, detailed analytics, and
-                    personalized learning.
+                    Unlimited immersion time, longer stories, and advanced
+                    shadowing tools.
                   </p>
                 </div>
                 <Link href="/pricing">
@@ -272,7 +289,7 @@ function DashboardContent({
                       background: "linear-gradient(135deg, #ffb300, #ff8c00)",
                     }}
                   >
-                    Go Premium
+                    Unlock Pro
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </Link>
@@ -285,8 +302,13 @@ function DashboardContent({
   );
 }
 
+// ============================================================================
+// Dashboard Page — Main Export
+// ============================================================================
 export default function DashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isProgressView = searchParams.get("view") === "progress";
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
@@ -317,13 +339,11 @@ export default function DashboardPage() {
   const [userId, setUserId] = useState<string>("");
 
   useEffect(() => {
-    // Check for payment success query parameter
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const paymentStatus = urlParams.get("payment");
       if (paymentStatus === "success") {
         setShowPaymentSuccess(true);
-        // Force refresh of subscription status after successful payment
         const refreshSubscription = async () => {
           const {
             data: { user },
@@ -340,7 +360,6 @@ export default function DashboardPage() {
           }
         };
         refreshSubscription();
-        // Clean up URL
         window.history.replaceState({}, "", "/dashboard");
       }
     }
@@ -423,11 +442,9 @@ export default function DashboardPage() {
               return;
             }
           }
-          // Set the target language from profile
           if (profile?.target_language) {
             setTargetLanguage(profile.target_language);
           }
-          // Set the subscription tier from profile
           if (profile?.subscription_tier) {
             setSubscriptionTier(profile.subscription_tier);
           }
@@ -456,13 +473,9 @@ export default function DashboardPage() {
         }
 
         const { data: allWords } = await supabase
-          .from("user_words")
-          .select(
-            "id, word, lemma, status, rating, next_review, ease_factor, interval, repetitions, created_at, updated_at, last_rated_at",
-          )
-          .eq("user_id", user.id)
-          .order("status", { ascending: false })
-          .order("word", { ascending: true });
+          .from("learner_words_v2")
+          .select("id, status")
+          .eq("user_id", user.id);
 
         const wordsCount = allWords?.length || 0;
 
@@ -476,16 +489,16 @@ export default function DashboardPage() {
 
         if (allWords) {
           allWords.forEach((word) => {
-            const status = word.status as WordStatus;
-            if (status in vocabStats) {
-              vocabStats[status]++;
-            }
+            const v2Status = word.status as string;
+            // Map v2 statuses to v1 VocabularyStats keys
+            if (v2Status === "introduced") vocabStats.new++;
+            else if (v2Status === "learning") vocabStats.learning++;
+            else if (v2Status === "mastered") vocabStats.mastered++;
           });
         }
 
         setVocabularyStats(vocabStats);
 
-        // Check for new milestone achievement
         const milestone = checkMilestoneAchievement(
           previousWordCount,
           wordsCount,
@@ -531,47 +544,86 @@ export default function DashboardPage() {
     fetchUserStats();
   }, [supabase, router, previousWordCount]);
 
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  // Re-fetch stats when user returns to the tab (e.g. after completing a lesson)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && authChecked) {
+        const refreshStats = async () => {
+          try {
+            const {
+              data: { user },
+            } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select(
+                "streak, total_practice_minutes, sessions_completed, proficiency_level, target_language, subscription_tier",
+              )
+              .eq("id", user.id)
+              .single();
+
+            if (!profile) return;
+
+            const { data: completedLessons } = await supabase
+              .from("lessons")
+              .select("final_comprehension_score, comprehension_percentage")
+              .eq("user_id", user.id)
+              .eq("completed", true);
+
+            let avgComprehension = 0;
+            if (completedLessons && completedLessons.length > 0) {
+              const scores = completedLessons
+                .map(
+                  (l) =>
+                    l.final_comprehension_score ??
+                    l.comprehension_percentage ??
+                    0,
+                )
+                .filter((s) => s > 0);
+              if (scores.length > 0) {
+                avgComprehension = Math.round(
+                  scores.reduce((a, b) => a + b, 0) / scores.length,
+                );
+              }
+            }
+
+            const { data: allWords } = await supabase
+              .from("learner_words_v2")
+              .select("id, status")
+              .eq("user_id", user.id);
+
+            const wordsCount = allWords?.length || 0;
+
+            setStats({
+              totalSessions: profile.sessions_completed || 0,
+              currentLevel: profile.proficiency_level || "A1",
+              streak: profile.streak || 0,
+              totalTime: profile.total_practice_minutes || 0,
+              avgComprehension,
+              wordsEncountered: wordsCount,
+            });
+          } catch (err) {
+            console.error("Error refreshing stats:", err);
+          }
+        };
+        refreshStats();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [supabase, authChecked]);
+
   const languageConfig = useMemo(
     () => getLanguageConfig(targetLanguage),
     [targetLanguage],
   );
 
-  // Loading state
   if (!authChecked || loading) {
     return <LoadingScreen />;
   }
-
-  // Determine lesson path and type
-  const getLessonTypeInfo = () => {
-    if (stats.wordsEncountered >= 500) {
-      return {
-        title: "Acquisition Mode",
-        description: "Listen without text. Speak before reading.",
-        path: "/learn/stories",
-      };
-    } else if (stats.wordsEncountered >= 300) {
-      return {
-        title: "Micro Stories",
-        description: "Short stories using your known words.",
-        path: "/learn/stories",
-      };
-    } else if (stats.wordsEncountered >= 100) {
-      return {
-        title: "Sentence Patterns",
-        description: "Practice with simple sentences.",
-        path: "/learn/sentences",
-      };
-    } else {
-      return {
-        title: "Foundation Vocabulary",
-        description: `Learn your first 100 ${languageConfig.name} words.`,
-        path: "/learn/foundation",
-      };
-    }
-  };
-
-  const lessonType = getLessonTypeInfo();
 
   return (
     <ProtectedRoute>
@@ -579,7 +631,6 @@ export default function DashboardPage() {
         <DashboardContent
           stats={stats}
           vocabularyStats={vocabularyStats}
-          lessonType={lessonType}
           subscriptionTier={subscriptionTier}
           userId={userId}
           targetLanguage={targetLanguage}
@@ -588,6 +639,7 @@ export default function DashboardPage() {
           celebratingMilestone={celebratingMilestone}
           setCelebratingMilestone={setCelebratingMilestone}
           avatarUrl={avatarUrl}
+          isProgressView={isProgressView}
         />
       </DiveTransitionProvider>
     </ProtectedRoute>

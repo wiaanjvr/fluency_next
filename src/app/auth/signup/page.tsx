@@ -6,8 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { signup, signInWithOAuth } from "../actions";
-import { CheckCircle2, Waves } from "lucide-react";
+import { signup, signInWithOAuth, resendConfirmationEmail } from "../actions";
+import { CheckCircle2, Mail, RefreshCw } from "lucide-react";
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();
@@ -15,6 +15,13 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  // When set, the form is replaced with the email-confirmation screen
+  const [confirmedEmail, setConfirmedEmail] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
@@ -84,12 +91,26 @@ export default function SignUpPage() {
       setMessage({ type: "error", text: result.error });
       setLoading(false);
     } else if (result?.success) {
-      setMessage({
-        type: "success",
-        text: result.message || "Account created! Check your email to verify.",
-      });
+      // Switch to the confirmation screen
+      setConfirmedEmail(email);
       setLoading(false);
     }
+  };
+
+  const handleResend = async () => {
+    if (!confirmedEmail) return;
+    setResendLoading(true);
+    setResendMessage(null);
+    const result = await resendConfirmationEmail(confirmedEmail);
+    if (result?.error) {
+      setResendMessage({ type: "error", text: result.error });
+    } else {
+      setResendMessage({
+        type: "success",
+        text: "Email resent! Check your inbox.",
+      });
+    }
+    setResendLoading(false);
   };
 
   const handleOAuthSignup = async (provider: "google" | "github") => {
@@ -104,6 +125,90 @@ export default function SignUpPage() {
     }
   };
 
+  // ── Email confirmation screen ─────────────────────────────────────────────
+  if (confirmedEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="w-full max-w-md space-y-6 bg-muted/50 p-8 rounded-2xl shadow-md border border-border/30 text-center">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
+              <Mail className="w-8 h-8 text-success" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-light tracking-tight">
+              Check your email
+            </h2>
+            <p className="text-muted-foreground font-light text-sm">
+              We sent a confirmation link to
+            </p>
+            <p className="font-medium text-foreground break-all">
+              {confirmedEmail}
+            </p>
+          </div>
+
+          <div className="bg-muted rounded-xl p-4 text-left space-y-2">
+            <p className="text-sm font-light text-muted-foreground">
+              1. Open the email from{" "}
+              <span className="font-normal text-foreground">Fluensea</span>
+            </p>
+            <p className="text-sm font-light text-muted-foreground">
+              2. Click the{" "}
+              <span className="font-normal text-foreground">
+                "Confirm your email"
+              </span>{" "}
+              button
+            </p>
+            <p className="text-sm font-light text-muted-foreground">
+              3. You'll be automatically signed in and taken to the app
+            </p>
+          </div>
+
+          {resendMessage && (
+            <div
+              className={`p-3 rounded-xl border text-sm font-light ${
+                resendMessage.type === "success"
+                  ? "bg-success/10 border-success/20 text-success"
+                  : "bg-destructive/10 border-destructive/20 text-destructive"
+              }`}
+            >
+              {resendMessage.text}
+            </div>
+          )}
+
+          <Button
+            variant="outline"
+            className="w-full h-11 rounded-xl font-light border-border/50"
+            onClick={handleResend}
+            disabled={resendLoading}
+          >
+            {resendLoading ? (
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 h-4 w-4" />
+            )}
+            {resendLoading ? "Sending..." : "Resend confirmation email"}
+          </Button>
+
+          <p className="text-center text-sm text-muted-foreground font-light">
+            Wrong email?{" "}
+            <button
+              onClick={() => {
+                setConfirmedEmail(null);
+                setMessage(null);
+              }}
+              className="text-foreground hover:underline font-normal"
+            >
+              Go back
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Sign-up form ─────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left side - Branding */}

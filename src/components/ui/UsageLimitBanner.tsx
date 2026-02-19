@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { Crown, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 interface UsageData {
@@ -45,6 +46,7 @@ export function UsageLimitBanner({
 }) {
   const [usageData, setUsageData] = useState<UsageData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   useEffect(() => {
     async function fetchUsage() {
@@ -62,6 +64,24 @@ export function UsageLimitBanner({
     }
 
     fetchUsage();
+  }, []);
+
+  // Check auth status
+  useEffect(() => {
+    const supabase = createClient();
+    let mounted = true;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (!mounted) return;
+        setIsSignedIn(!!data?.user);
+      } catch (e) {
+        console.error("Error checking auth status", e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading || !usageData) return null;
@@ -109,7 +129,7 @@ export function UsageLimitBanner({
                 <>
                   You've used all {limit} sessions today. Come back tomorrow or{" "}
                   <Link
-                    href="/pricing"
+                    href={isSignedIn ? "/checkout" : "/auth/login"}
                     className="text-ocean-turquoise hover:underline"
                   >
                     upgrade to Premium
@@ -120,7 +140,7 @@ export function UsageLimitBanner({
             </p>
           </div>
           {remaining === 0 && (
-            <Link href="/pricing">
+            <Link href={isSignedIn ? "/checkout" : "/auth/login"}>
               <Button size="sm" className="gap-2">
                 <Crown className="w-4 h-4" />
                 Go Premium
@@ -152,7 +172,7 @@ export function UsageLimitBanner({
               Come back tomorrow to continue learning, or upgrade to Premium for
               unlimited access to all lesson types.
             </p>
-            <Link href="/pricing">
+            <Link href={isSignedIn ? "/checkout" : "/auth/login"}>
               <Button className="gap-2">
                 <Crown className="w-4 h-4" />
                 Upgrade to Premium
@@ -189,7 +209,7 @@ export function UsageLimitBanner({
             </span>
           </div>
         </div>
-        <Link href="/pricing">
+        <Link href={isSignedIn ? "/checkout" : "/auth/login"}>
           <Button variant="ghost" size="sm" className="gap-2">
             <Crown className="w-4 h-4" />
             Go Premium

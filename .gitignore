@@ -1,37 +1,90 @@
-# dependencies
-/node_modules
+# Node dependencies
+node_modules/
+
+# Yarn PnP
 /.pnp
 .pnp.js
 
-# testing
-/coverage
-
-# next.js
+# Next.js build output
 /.next/
 /out/
 
-# production
-/build
+# Production build
+/build/
+/dist/
 
-# misc
-.DS_Store
-*.pem
+# Generated static assets (TTS audio)
+/public/audio/lessons/*.mp3
 
-# debug
+# Testing
+/coverage/
+/.playwright/
+
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# local env files
-.env*.local
+# Environment
 .env
+.env.*
+.env.local
+.env.local.example
+.env.local.*
 
-# vercel
-.vercel
+# Vercel & deployment
+.vercel/
+.vercel_build_output/
 
-# generated lesson audio (TTS)
-/public/audio/lessons/*.mp3
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
 
-# typescript
+# OS files
+.DS_Store
+Thumbs.db
+
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Logs
+*.log
+logs/
+
+# Misc caches
+.cache/
+.parcel-cache/
+.turbo/
+.next/cache/
+
+# SQLite
+*.sqlite
+*.sqlite3
+
+# JetBrains
+/.idea/
+
+# Build artifacts
+/dist
+
+# Certificates, keys
+*.pem
+*.key
+
+# Docker
+docker-compose.override.yml
+
+# Coverage and test results
+/coverage/
+
+# Supabase local or secrets
+/.supabase
+/supabase/.temp
+
+# Local IDE env files
+/.env.local
+node_modules

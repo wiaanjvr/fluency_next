@@ -4,39 +4,39 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Flame, BookOpen, User } from "lucide-react";
+import { Waves, BarChart3, Settings, User } from "lucide-react";
 
 // ============================================================================
-// Ocean Navigation - Frosted glass top navigation bar
+// Ocean Navigation - Simplified immersive nav
+// Three destinations: Immerse, Progress, Settings
+// No modes. No levels. Just depth.
 // ============================================================================
 
 interface OceanNavigationProps {
-  streak: number;
-  wordsEncountered: number;
+  streak?: number;
+  wordsEncountered?: number;
+  totalMinutes?: number;
   avatarUrl?: string;
   currentPath?: string;
   className?: string;
 }
 
-const navTabs = [
-  { href: "/learn/foundation", label: "Foundation", depth: "Surface" },
-  { href: "/learn/sentences", label: "Sentences", depth: "Mid-water" },
-  { href: "/learn/stories", label: "Stories", depth: "Deep" },
-  { href: "/dashboard?view=mastery", label: "Mastery", depth: "Abyss" },
+const navItems = [
+  { href: "/dashboard", label: "Immerse", icon: Waves },
+  { href: "/dashboard?view=progress", label: "Progress", icon: BarChart3 },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function OceanNavigation({
-  streak,
-  wordsEncountered,
+  wordsEncountered = 0,
+  totalMinutes = 0,
   avatarUrl,
   currentPath = "/dashboard",
   className,
 }: OceanNavigationProps) {
   const [scrolled, setScrolled] = useState(false);
-  const [streakCount, setStreakCount] = useState(0);
   const [wordsCount, setWordsCount] = useState(0);
 
-  // Detect scroll for nav compression
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -45,17 +45,14 @@ export function OceanNavigation({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Animated count up on mount
   useEffect(() => {
     const duration = 1000;
     const steps = 30;
-    const streakStep = streak / steps;
     const wordsStep = wordsEncountered / steps;
     let current = 0;
 
     const interval = setInterval(() => {
       current++;
-      setStreakCount(Math.min(Math.round(streakStep * current), streak));
       setWordsCount(
         Math.min(Math.round(wordsStep * current), wordsEncountered),
       );
@@ -63,7 +60,14 @@ export function OceanNavigation({
     }, duration / steps);
 
     return () => clearInterval(interval);
-  }, [streak, wordsEncountered]);
+  }, [wordsEncountered]);
+
+  const formatTime = (minutes: number) => {
+    if (minutes < 60) return `${minutes}m`;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  };
 
   return (
     <nav
@@ -94,94 +98,107 @@ export function OceanNavigation({
           </span>
         </Link>
 
-        {/* Center: Navigation Tabs - Depth Markers */}
+        {/* Center: Three Destinations */}
         <div className="hidden md:flex items-center gap-8">
-          {navTabs.map((tab) => {
-            const isActive = currentPath.includes(tab.href.split("?")[0]);
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/dashboard"
+                ? (currentPath === "/dashboard" &&
+                    !currentPath.includes("progress")) ||
+                  currentPath.startsWith("/learn") ||
+                  currentPath.startsWith("/lesson")
+                : item.href === "/dashboard?view=progress"
+                  ? currentPath.includes("progress")
+                  : currentPath.startsWith(item.href);
+            const Icon = item.icon;
+
             return (
               <Link
-                key={tab.href}
-                href={tab.href}
+                key={item.href}
+                href={item.href}
                 className="nav-tab relative group"
               >
-                <div className="flex flex-col items-center">
+                <div className="flex items-center gap-2">
+                  <Icon
+                    className="w-4 h-4 transition-colors duration-200"
+                    style={{
+                      color: isActive ? "var(--turquoise)" : "var(--seafoam)",
+                      opacity: isActive ? 1 : 0.6,
+                    }}
+                  />
                   <span
                     className={cn(
                       "text-sm font-body font-medium transition-colors duration-200",
-                      isActive
-                        ? "text-turquoise"
-                        : "text-sand opacity-70 group-hover:opacity-100",
                     )}
                     style={{
                       color: isActive ? "var(--turquoise)" : "var(--sand)",
+                      opacity: isActive ? 1 : 0.7,
                     }}
                   >
-                    {tab.label}
+                    {item.label}
                   </span>
-                  {/* Depth indicator line */}
-                  <div
-                    className={cn(
-                      "mt-1 h-0.5 rounded-full transition-all duration-300",
-                      isActive
-                        ? "w-full bg-turquoise opacity-100"
-                        : "w-0 group-hover:w-full opacity-0 group-hover:opacity-50",
-                    )}
-                    style={{
-                      background: isActive
-                        ? "var(--turquoise)"
-                        : "var(--seafoam)",
-                    }}
-                  />
-                  {/* Active water drop indicator */}
-                  {isActive && (
-                    <div
-                      className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
-                      style={{
-                        background: "var(--turquoise)",
-                        boxShadow: "0 0 8px var(--turquoise)",
-                      }}
-                    />
-                  )}
                 </div>
+                {/* Active indicator */}
+                <div
+                  className={cn(
+                    "mt-1 h-0.5 rounded-full transition-all duration-300",
+                    isActive
+                      ? "w-full opacity-100"
+                      : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
+                  )}
+                  style={{
+                    background: isActive
+                      ? "var(--turquoise)"
+                      : "var(--seafoam)",
+                  }}
+                />
               </Link>
             );
           })}
         </div>
 
-        {/* Right: Stats & Avatar */}
+        {/* Right: Immersion Stats & Avatar */}
         <div className="flex items-center gap-5">
-          {/* Streak */}
-          <div className="flex items-center gap-2">
-            <div className="flame-flicker">
-              <Flame
-                className="w-5 h-5"
-                style={{ color: "#ff9500" }}
-                fill="#ff9500"
-              />
-            </div>
+          {/* Words absorbed */}
+          <div className="flex items-center gap-2" title="Words absorbed">
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ background: "var(--turquoise)", opacity: 0.8 }}
+            />
             <span
-              className="text-sm font-body font-semibold count-up"
-              style={{ color: "var(--sand)" }}
-            >
-              {streakCount}
-            </span>
-          </div>
-
-          {/* Words */}
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5" style={{ color: "var(--seafoam)" }} />
-            <span
-              className="text-sm font-body font-semibold"
+              className="text-sm font-body font-semibold tabular-nums"
               style={{ color: "var(--sand)" }}
             >
               {wordsCount}
             </span>
+            <span
+              className="text-xs font-body hidden sm:inline"
+              style={{ color: "var(--seafoam)", opacity: 0.6 }}
+            >
+              words
+            </span>
           </div>
+
+          {/* Time immersed */}
+          {totalMinutes > 0 && (
+            <div className="flex items-center gap-2" title="Time immersed">
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ background: "var(--seafoam)", opacity: 0.6 }}
+              />
+              <span
+                className="text-sm font-body font-semibold"
+                style={{ color: "var(--sand)" }}
+              >
+                {formatTime(totalMinutes)}
+              </span>
+            </div>
+          )}
 
           {/* Avatar */}
           <Link href="/settings">
             <div
-              className="w-9 h-9 rounded-full overflow-hidden border-2 transition-all duration-300 hover:scale-105 hover:border-turquoise"
+              className="w-9 h-9 rounded-full overflow-hidden border-2 transition-all duration-300 hover:scale-105"
               style={{
                 borderColor: "rgba(255, 255, 255, 0.1)",
                 background: "var(--ocean-mid)",

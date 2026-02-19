@@ -6,6 +6,10 @@ const publicRoutes = [
   "/", // homepage
   "/auth/login",
   "/auth/signup",
+  "/auth/callback", // email confirmation & OAuth redirect – must be public so unauthenticated users can exchange the code for a session
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/auth-code-error",
   "/api/public", // example public API route
   "/favicon.ico",
   "/_next", // next.js internals

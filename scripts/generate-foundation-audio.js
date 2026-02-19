@@ -48,36 +48,13 @@ const VOICE_MAPPING = {
  * Convert accented characters to ASCII equivalent (e.g., é -> e, ç -> c)
  */
 function sanitizeFilename(text) {
-  // Character map for French, German, and Italian accented characters
-  const charMap = {
-    "à": "a", "á": "a", "â": "a", "ã": "a", "ä": "a", "å": "a", "ă": "a",
-    "è": "e", "é": "e", "ê": "e", "ë": "e", "ę": "e", "ė": "e", "ě": "e",
-    "ì": "i", "í": "i", "î": "i", "ï": "i", "ĩ": "i", "ī": "i", "ĭ": "i",
-    "ò": "o", "ó": "o", "ô": "o", "õ": "o", "ö": "o", "ø": "o", "ő": "o",
-    "ù": "u", "ú": "u", "û": "u", "ü": "u", "ũ": "u", "ū": "u", "ŭ": "u",
-    "ý": "y", "ỳ": "y", "ŷ": "y", "ỹ": "y", "ÿ": "y", "yi": "y",
-    "ç": "c", "č": "c", "ć": "c", "ĉ": "c", "ċ": "c",
-    "DZ": "dz", "D": "d", "dz": "dz", "d": "d", "ð": "d",
-    "ñ": "n", "ń": "n", "ň": "n", "ņ": "n", "ŉ": "n", "ǹ": "n",
-    "ſ": "s", "ŕ": "r", "ŗ": "r", "ř": "r",
-    "ś": "s", "ŝ": "s", "ş": "s", "š": "s",
-    "ţ": "t", "ť": "t", "ŧ": "t", "ț": "t", "ţ": "t",
-    "ŵ": "w", "ž": "z", "ź": "z", "ż": "z", "ž": "z"
-  };
-
-  // Replace accented characters with their ASCII equivalents
-  let sanitized = text.replace(/./g, (char) => charMap[char] || char);
-
-  // Also try NFD normalization for any remaining accents
-  sanitized = sanitized
-    .normalize("NFD")
+  return text
+    .normalize("NFD") // Decompose accented characters
     .replace(/[\u0300-\u036f]/g, "") // Remove diacritical marks
     .replace(/[^\w\s-]/g, "") // Remove non-word characters
     .replace(/\s+/g, "_") // Replace spaces with underscores
     .replace(/-+/g, "_") // Replace hyphens with underscores
     .toLowerCase();
-
-  return sanitized;
 }
 
 /**
@@ -228,26 +205,14 @@ async function insertWordToDatabase(
         english_translation: word.exampleSentence?.english,
         audio_url: sentenceAudioUrl,
       },
-      { onConflict: null }, // Don't specify conflict, let it insert or fail gracefully
+      { onConflict: ["word_id", "target_language_text"] },
     );
 
   if (sentenceError) {
-    // If it's a constraint error, try updating instead
-    if (sentenceError.code === '23505' || sentenceError.code === '42P10') {
-      await supabase
-        .from("foundation_sentences")
-        .update({
-          english_translation: word.exampleSentence?.english,
-          audio_url: sentenceAudioUrl,
-        })
-        .eq('word_id', wordData.id)
-        .eq('target_language_text', sentenceText);
-    } else {
-      console.error(
-        `  Error upserting sentence for ${word.word}:`,
-        sentenceError,
-      );
-    }
+    console.error(
+      `  Error upserting sentence for ${word.word}:`,
+      sentenceError,
+    );
   }
 }
 

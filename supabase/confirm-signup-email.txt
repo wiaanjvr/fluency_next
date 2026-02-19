@@ -1,0 +1,13 @@
+Welcome to Fluensea — your journey to language flow starts now.
+
+Hi {{ if .User.UserMetadata.full_name }}{{ .User.UserMetadata.full_name }}{{ else }}{{ .User.Email }}{{ end }},
+
+Thanks for joining Fluensea. To finish creating your account and jump straight into lessons, please confirm your email by visiting the link below:
+
+{{ .ConfirmationURL }}
+
+After you confirm, you'll be automatically signed in and taken to your dashboard.
+
+Need help? Reply to this email.
+
+— The Fluensea team

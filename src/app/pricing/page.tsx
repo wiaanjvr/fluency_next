@@ -202,6 +202,12 @@ export default function PricingPage() {
     fetchRates();
   }, []);
 
+  // If the selected currency is not one of the "more" options,
+  // the dropdown should display the placeholder "More...".
+  const isMoreSelected = moreCurrencies.some(
+    (c) => c.code === selectedCurrency,
+  );
+
   // Format price for Pro: show selected currency equivalent, but always charge ZAR
   const formatProPrice = (billingPeriod: "monthly" | "yearly") => {
     // Always charge in ZAR, but display selected currency equivalent
@@ -348,10 +354,12 @@ export default function PricingPage() {
               <div className="relative">
                 <select
                   className="px-3 py-1.5 text-sm font-light rounded-lg border border-ocean-turquoise/30 bg-background text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ocean-turquoise"
-                  value={selectedCurrency}
+                  value={isMoreSelected ? selectedCurrency : "MORE"}
                   onChange={(e) => setSelectedCurrency(e.target.value)}
                 >
-                  <option disabled>More...</option>
+                  <option value="MORE" disabled>
+                    More...
+                  </option>
                   {moreCurrencies.map((currency) => (
                     <option key={currency.code} value={currency.code}>
                       {currency.code} - {currency.name}

@@ -1,35 +1,76 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Clock, TrendingUp, ArrowRight } from "lucide-react";
+import { ArrowRight, Headphones, BookOpen, Mic } from "lucide-react";
 
 // ============================================================================
-// Next Lesson Hero Card - The largest, most prominent card
-// Features water caustic animations and the signature turquoise CTA
+// Session Hero Card - The single entry point to immersion
+// No modes. No lesson types. Just "Enter the water."
 // ============================================================================
 
-interface NextLessonHeroProps {
-  title: string;
-  description: string;
-  timeEstimate?: string;
-  avgScore?: number;
-  lessonPath: string;
+interface SessionHeroProps {
+  depthName: string;
+  wordsAbsorbed: number;
+  sessionPath: string;
   onDiveClick?: () => void;
   className?: string;
 }
 
+// Generates a poetic depth prompt based on word count
+function getDepthMessage(words: number): { heading: string; sub: string } {
+  if (words === 0) {
+    return {
+      heading: "Begin your immersion",
+      sub: "Listen. Echo. Let the language wash over you.",
+    };
+  }
+  if (words < 50) {
+    return {
+      heading: "The first sounds",
+      sub: "Words are taking shape beneath the surface.",
+    };
+  }
+  if (words < 150) {
+    return {
+      heading: "Phrases are forming",
+      sub: "Sentences begin to connect. Keep listening.",
+    };
+  }
+  if (words < 300) {
+    return {
+      heading: "Stories await",
+      sub: "Your vocabulary is deep enough for narratives.",
+    };
+  }
+  if (words < 500) {
+    return {
+      heading: "The current carries you",
+      sub: "Full stories, natural speed. You belong here.",
+    };
+  }
+  return {
+    heading: "Deep immersion",
+    sub: "The language moves through you now.",
+  };
+}
+
 export function NextLessonHero({
-  title,
-  description,
-  timeEstimate = "~15 min",
-  avgScore = 0,
-  lessonPath,
+  depthName,
+  wordsAbsorbed,
+  sessionPath,
   onDiveClick,
   className,
-}: NextLessonHeroProps) {
+}: SessionHeroProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [pillarsVisible, setPillarsVisible] = useState(false);
+  const message = getDepthMessage(wordsAbsorbed);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setPillarsVisible(true), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleDiveClick = (e: React.MouseEvent) => {
     if (onDiveClick) {
@@ -47,12 +88,12 @@ export function NextLessonHero({
       )}
       style={{
         background: `linear-gradient(135deg, rgba(13, 27, 42, 0.95) 0%, rgba(10, 15, 30, 0.9) 100%)`,
-        minHeight: "280px",
+        minHeight: "320px",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Third caustic layer for extra depth */}
+      {/* Caustic light layer */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -61,26 +102,31 @@ export function NextLessonHero({
         }}
       />
 
-      {/* Subtle grid pattern overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-5"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
-          `,
-          backgroundSize: "40px 40px",
-        }}
-      />
-
       {/* Content */}
-      <div className="relative z-10 p-10">
-        {/* Heading */}
+      <div className="relative z-10 p-10 flex flex-col h-full min-h-[320px]">
+        {/* Depth indicator */}
+        <div className="flex items-center gap-2 mb-6">
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{
+              background: "var(--turquoise)",
+              boxShadow: "0 0 8px rgba(61, 214, 181, 0.4)",
+            }}
+          />
+          <span
+            className="font-body text-sm uppercase tracking-widest"
+            style={{ color: "var(--seafoam)", opacity: 0.7 }}
+          >
+            {depthName}
+          </span>
+        </div>
+
+        {/* Heading — poetic, not instructional */}
         <h2
-          className="font-display text-5xl md:text-6xl font-semibold mb-4 tracking-tight"
+          className="font-display text-4xl md:text-5xl lg:text-6xl font-semibold mb-3 tracking-tight"
           style={{ color: "var(--sand)" }}
         >
-          {title}
+          {message.heading}
         </h2>
 
         {/* Subtext */}
@@ -88,45 +134,76 @@ export function NextLessonHero({
           className="font-body text-lg mb-8 max-w-md"
           style={{ color: "var(--seafoam)" }}
         >
-          {description}
+          {message.sub}
         </p>
 
-        {/* Stats Row */}
-        <div className="flex items-center gap-6 mb-8">
+        {/* Three Pillars — Reading, Listening, Shadowing */}
+        <div
+          className={cn(
+            "flex items-center gap-6 mb-10 transition-all duration-700",
+            pillarsVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-2",
+          )}
+        >
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4" style={{ color: "var(--seafoam)" }} />
+            <BookOpen
+              className="w-4 h-4"
+              style={{ color: "var(--seafoam)", opacity: 0.6 }}
+            />
             <span
               className="text-sm font-body"
-              style={{ color: "var(--sand)", opacity: 0.8 }}
+              style={{ color: "var(--sand)", opacity: 0.6 }}
             >
-              {timeEstimate}
+              Read
             </span>
           </div>
-          {avgScore > 0 && (
-            <div className="flex items-center gap-2">
-              <TrendingUp
-                className="w-4 h-4"
-                style={{ color: "var(--seafoam)" }}
-              />
-              <span
-                className="text-sm font-body"
-                style={{ color: "var(--sand)", opacity: 0.8 }}
-              >
-                {avgScore}% avg score
-              </span>
-            </div>
-          )}
+          <div
+            className="w-px h-4"
+            style={{ background: "rgba(255,255,255,0.1)" }}
+          />
+          <div className="flex items-center gap-2">
+            <Headphones
+              className="w-4 h-4"
+              style={{ color: "var(--seafoam)", opacity: 0.6 }}
+            />
+            <span
+              className="text-sm font-body"
+              style={{ color: "var(--sand)", opacity: 0.6 }}
+            >
+              Listen
+            </span>
+          </div>
+          <div
+            className="w-px h-4"
+            style={{ background: "rgba(255,255,255,0.1)" }}
+          />
+          <div className="flex items-center gap-2">
+            <Mic
+              className="w-4 h-4"
+              style={{ color: "var(--seafoam)", opacity: 0.6 }}
+            />
+            <span
+              className="text-sm font-body"
+              style={{ color: "var(--sand)", opacity: 0.6 }}
+            >
+              Shadow
+            </span>
+          </div>
         </div>
 
-        {/* Dive In CTA - THE turquoise button */}
-        <Link href={lessonPath} onClick={handleDiveClick}>
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Dive In CTA */}
+        <Link href={sessionPath} onClick={handleDiveClick}>
           <button
             className={cn(
               "ocean-cta px-8 py-4 text-lg font-semibold flex items-center gap-3 group",
               "transition-all duration-300",
             )}
           >
-            <span>Dive In</span>
+            <span>Enter the water</span>
             <ArrowRight
               className={cn(
                 "w-5 h-5 transition-transform duration-300",
@@ -139,10 +216,10 @@ export function NextLessonHero({
 
       {/* Decorative corner accent */}
       <div
-        className="absolute top-6 right-6 w-20 h-20 rounded-full pointer-events-none"
+        className="absolute top-6 right-6 w-24 h-24 rounded-full pointer-events-none"
         style={{
-          background: `radial-gradient(circle, rgba(61, 214, 181, 0.1) 0%, transparent 70%)`,
-          filter: "blur(10px)",
+          background: `radial-gradient(circle, rgba(61, 214, 181, 0.08) 0%, transparent 70%)`,
+          filter: "blur(12px)",
         }}
       />
     </div>

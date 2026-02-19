@@ -963,3 +963,114 @@
     display: none !important;
   }
 }
+
+/* ==========================================================================
+   SESSION ENVIRONMENT — Reading by light filtering through shallow water
+   ========================================================================== */
+
+/* Session reading area — calm, focused, immersive */
+.session-reading-area {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.9;
+  color: var(--sand);
+  letter-spacing: 0.01em;
+}
+
+.session-reading-area p {
+  margin-bottom: 1.5em;
+}
+
+/* Unknown word highlight — tappable for instant meaning */
+.session-word-unknown {
+  color: var(--turquoise);
+  cursor: pointer;
+  border-bottom: 1px dotted rgba(61, 214, 181, 0.3);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.session-word-unknown:hover {
+  border-bottom-color: var(--turquoise);
+}
+
+/* Shadowing cue — gentle, not mandatory */
+.session-shadowing-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(61, 214, 181, 0.06);
+  border: 1px solid rgba(61, 214, 181, 0.1);
+  color: var(--seafoam);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  opacity: 0.7;
+  transition:
+    opacity 0.3s ease,
+    background 0.3s ease;
+  cursor: pointer;
+}
+
+.session-shadowing-cue:hover {
+  opacity: 1;
+  background: rgba(61, 214, 181, 0.1);
+}
+
+/* Audio control — inline, minimal */
+.session-audio-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--seafoam);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.session-audio-control:hover {
+  background: rgba(61, 214, 181, 0.1);
+  border-color: rgba(61, 214, 181, 0.2);
+  color: var(--turquoise);
+}
+
+/* Tide-fade entrance for session content */
+@keyframes tideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.session-fade-in {
+  animation: tideFadeIn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  opacity: 0;
+}
+
+/* Word tooltip — appears on tap */
+.session-word-tooltip {
+  position: absolute;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(13, 27, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(61, 214, 181, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--sand);
+  z-index: 100;
+  animation: tideFadeIn 0.3s ease forwards;
+}

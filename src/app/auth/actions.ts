@@ -116,6 +116,16 @@ export async function signup(formData: FormData) {
     };
   }
 
+  // Build callback URL, threading the redirect destination as `next` so it
+  // survives the email-confirmation round-trip.
+  const callbackUrl = new URL(
+    "/auth/callback",
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  );
+  if (redirectTo && redirectTo.startsWith("/")) {
+    callbackUrl.searchParams.set("next", redirectTo);
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -123,7 +133,7 @@ export async function signup(formData: FormData) {
       data: {
         full_name: fullName,
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      emailRedirectTo: callbackUrl.toString(),
     },
   });
 
@@ -166,6 +176,21 @@ export async function signup(formData: FormData) {
     success: true,
     message: "Check your email to confirm your account!",
   };
+}
+
+export async function resendConfirmationEmail(email: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
 }
 
 export async function signout() {

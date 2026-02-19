@@ -39,14 +39,37 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
       setLoading(true);
       try {
         const { data, error } = await supabase
-          .from("user_words")
-          .select("*")
+          .from("learner_words_v2")
+          .select(
+            "id, word, lemma, status, part_of_speech, frequency_rank, introduced_at, last_reviewed_at, correct_streak, total_reviews, total_correct",
+          )
           .eq("user_id", userId)
-          .eq("language", language)
-          .order("created_at", { ascending: false });
+          .order("introduced_at", { ascending: false });
 
         if (error) throw error;
-        setWords(data || []);
+
+        // Map learner_words_v2 rows to the UserWord shape expected by child views
+        const now = new Date().toISOString();
+        const mapped: UserWord[] = (data || []).map((w: any) => ({
+          id: w.id,
+          user_id: userId,
+          word: w.word,
+          language,
+          lemma: w.lemma,
+          // Map v2 status values to legacy WordStatus values
+          status: (w.status === "introduced" ? "new" : w.status) as any,
+          ease_factor: 2.5,
+          repetitions: w.total_reviews ?? 0,
+          interval: 0,
+          next_review: now,
+          created_at: w.introduced_at ?? now,
+          updated_at: w.last_reviewed_at ?? w.introduced_at ?? now,
+          part_of_speech: w.part_of_speech,
+          frequency_rank: w.frequency_rank,
+          rating: w.total_correct ?? 0,
+        }));
+
+        setWords(mapped);
       } catch (error) {
         console.error("Error fetching vocabulary:", error);
       } finally {

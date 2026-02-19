@@ -618,6 +618,9 @@ export function useDiveTransition() {
 // ============================================================================
 export function DiveTransitionProvider({ children }: DiveTransitionProps) {
   const router = useRouter();
+  // Feature flag to globally disable the dive animation.
+  // Set to `true` to skip the animated transition and navigate immediately.
+  const DISABLE_DIVE_ANIMATION = true;
   const [state, setState] = useState<DiveState>({
     isActive: false,
     phase: "idle",
@@ -649,6 +652,11 @@ export function DiveTransitionProvider({ children }: DiveTransitionProps) {
 
   const triggerDive = useCallback(
     (targetPath: string) => {
+      if (DISABLE_DIVE_ANIMATION) {
+        // Immediately navigate without running the animation sequence.
+        router.push(targetPath);
+        return;
+      }
       const centerX =
         typeof window !== "undefined" ? window.innerWidth / 2 : 500;
 
