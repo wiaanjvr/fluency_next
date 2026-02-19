@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { ProficiencyLevel } from "@/types";
-import OpenAI from "openai";
+import { generateText } from "@/lib/ai-client";
+import { redis } from "@/lib/redis";
 import {
   selectWordsForGeneration,
   generateStoryPrompt,
@@ -10,6 +11,11 @@ import {
   getRecommendedWordCount,
   getRecommendedNewWordPercentage,
 } from "@/lib/srs/story-generator";
+import { getCachedProfile } from "@/lib/profile-cache";
+import { consumeDailyBudget } from "@/lib/daily-budget";
+
+/** Cache TTL for user_words in seconds */
+const USER_WORDS_CACHE_TTL = 120; // 2 minutes
 
 /**
  * Generate a simple mock story for development/fallback
@@ -43,6 +49,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Absolute daily generation budget (applies to ALL tiers, including premium)
+    const budgetResult = await consumeDailyBudget(user.id);
+    if (!budgetResult.allowed) {
+      return NextResponse.json(
+        {
+          error: "Daily generation budget exceeded",
+          message: `You've reached the maximum of ${budgetResult.budget} generations per day. Please try again tomorrow.`,
+          budgetExceeded: true,
+          budget: budgetResult.budget,
+          count: budgetResult.count,
+        },
+        { status: 429 },
+      );
+    }
+
     const body = await request.json();
     const {
       language = "fr",
@@ -62,12 +83,12 @@ export async function POST(request: NextRequest) {
       prioritize_review?: boolean;
     };
 
-    // Get user's profile for defaults
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("proficiency_level, target_language")
-      .eq("id", user.id)
-      .single();
+    // Get user's profile for defaults (Redis-cached, 5 min TTL)
+    const profile = await getCachedProfile(
+      supabase,
+      user.id,
+      "proficiency_level, target_language",
+    );
 
     const userLevel = level || profile?.proficiency_level || "A1";
     const targetLanguage = language || profile?.target_language || "fr";
@@ -75,16 +96,40 @@ export async function POST(request: NextRequest) {
     const newWordPct =
       new_word_percentage || getRecommendedNewWordPercentage(userLevel);
 
-    // Fetch user's known words
-    const { data: userWords, error: wordsError } = await supabase
-      .from("user_words")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("language", targetLanguage);
+    // Fetch user's known words (with Redis cache)
+    const wordsCacheKey = `user_words:${user.id}:${targetLanguage}`;
+    let userWords: any[] | null = null;
 
-    if (wordsError) {
-      console.error("Error fetching user words:", wordsError);
-      return NextResponse.json({ error: wordsError.message }, { status: 500 });
+    try {
+      const cached = await redis.get<any[]>(wordsCacheKey);
+      if (cached) userWords = cached;
+    } catch {
+      // Redis miss — fall through to DB
+    }
+
+    if (!userWords) {
+      const { data: dbWords, error: wordsError } = await supabase
+        .from("user_words")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("language", targetLanguage);
+
+      if (wordsError) {
+        console.error("Error fetching user words:", wordsError);
+        return NextResponse.json(
+          { error: wordsError.message },
+          { status: 500 },
+        );
+      }
+
+      userWords = dbWords || [];
+
+      // Cache for next request
+      try {
+        await redis.set(wordsCacheKey, userWords, { ex: USER_WORDS_CACHE_TTL });
+      } catch {
+        // Non-fatal
+      }
     }
 
     console.log("User words count:", userWords?.length || 0);
@@ -122,52 +167,34 @@ export async function POST(request: NextRequest) {
     });
 
     let storyContent: string;
-    const openaiApiKey = process.env.OPENAI_API_KEY;
+    const googleApiKey = process.env.GOOGLE_API_KEY;
 
-    // Generate story using OpenAI or fallback to mock
-    if (openaiApiKey && openaiApiKey !== "your_openai_api_key") {
+    // Generate story using Gemini or fallback to mock
+    if (googleApiKey && googleApiKey !== "your_google_api_key") {
       try {
-        console.log("Generating story with OpenAI...");
-        const openai = new OpenAI({ apiKey: openaiApiKey });
+        console.log("Generating story with Gemini...");
 
-        const completion = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo", // Cheapest model - perfect for simple stories
-          messages: [
-            {
-              role: "system",
-              content: `Create natural ${targetLanguage} stories for ${userLevel} learners. Keep it simple and engaging.`,
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
+        storyContent = await generateText({
+          contents: prompt,
+          systemInstruction: `Create natural ${targetLanguage} stories for ${userLevel} learners. Keep it simple and engaging.`,
           temperature: 0.7,
-          max_tokens: Math.min(wordCount * 2, 500), // Cost optimization: limit output
+          maxOutputTokens: 600,
         });
 
-        storyContent =
-          completion.choices[0]?.message?.content?.trim() ||
-          "Error: No story generated";
+        if (!storyContent) {
+          storyContent = "Error: No story generated";
+        }
 
-        // Log token usage for cost tracking
-        const usage = completion.usage;
-        console.log("OpenAI usage:", {
-          prompt_tokens: usage?.prompt_tokens,
-          completion_tokens: usage?.completion_tokens,
-          total_tokens: usage?.total_tokens,
-          estimated_cost: `$${((usage?.total_tokens || 0) * 0.000002).toFixed(6)}`, // GPT-3.5-turbo pricing
-        });
-        console.log("Story generated successfully with OpenAI");
-      } catch (openaiError) {
-        console.error("OpenAI API error:", openaiError);
-        // Fallback to mock story on OpenAI error
+        console.log("Story generated successfully with Gemini");
+      } catch (geminiError) {
+        console.error("Gemini API error:", geminiError);
+        // Fallback to mock story on Gemini error
         storyContent = generateMockStory(targetLanguage, userLevel, wordCount);
-        console.log("Using fallback mock story due to OpenAI error");
+        console.log("Using fallback mock story due to Gemini error");
       }
     } else {
       // No valid API key - use mock story
-      console.log("No OpenAI API key - using mock story");
+      console.log("No Google API key - using mock story");
       storyContent = generateMockStory(targetLanguage, userLevel, wordCount);
     }
 

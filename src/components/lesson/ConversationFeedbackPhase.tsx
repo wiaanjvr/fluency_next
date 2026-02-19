@@ -201,21 +201,30 @@ export function ConversationFeedbackPhase({
       (t) => t.role === "user",
     ).length;
 
+    // Build the minimal payload.
+    // On turn 1, initialize server-side conversation state with lesson context.
+    // On subsequent turns, only the lessonId + response is needed — the server
+    // reconstructs the prompt from its Redis-stored state, avoiding sending the
+    // full conversation history over the wire and preventing client-side
+    // prompt-injection via a manipulated history array.
+    const requestBody: Record<string, unknown> = {
+      lessonId: lesson.id,
+      userResponse,
+      turnNumber: currentUserTurnCount,
+    };
+
+    if (currentUserTurnCount === 1) {
+      // First turn: bootstrap server-side state
+      requestBody.targetText = lesson.targetText;
+      requestBody.translation = lesson.translation;
+      requestBody.level = lesson.level;
+    }
+
     try {
       const response = await fetch("/api/lesson/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          targetText: lesson.targetText,
-          translation: lesson.translation,
-          userResponse,
-          conversationHistory: currentTurns.map((t) => ({
-            role: t.role,
-            text: t.text,
-          })),
-          level: lesson.level,
-          turnNumber: currentUserTurnCount,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       let feedback;
@@ -287,7 +296,9 @@ export function ConversationFeedbackPhase({
         </div>
         <h1 className="text-3xl sm:text-4xl font-light tracking-tight">
           Let's{" "}
-          <span className="font-serif italic text-ocean-turquoise">Discuss</span>{" "}
+          <span className="font-serif italic text-ocean-turquoise">
+            Discuss
+          </span>{" "}
           What You Heard
         </h1>
         <p className="text-muted-foreground font-light max-w-md mx-auto">

@@ -35,6 +35,56 @@ export function AudioComprehensionPhase({
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // ─── Async TTS polling ──────────────────────────────────────────────────
+  // TTS audio is generated in the background after lesson creation.
+  // Poll until audio_url is populated, then update the <audio> element src.
+  const [resolvedAudioUrl, setResolvedAudioUrl] = useState<string | null>(
+    lesson.audioUrl || null,
+  );
+  const [audioLoading, setAudioLoading] = useState(!lesson.audioUrl);
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollAttemptsRef = useRef(0);
+  const MAX_POLL_ATTEMPTS = 30; // 30 × 2 s = 60 s max wait
+  const POLL_INTERVAL_MS = 2000;
+
+  useEffect(() => {
+    if (resolvedAudioUrl || !lesson.id) return;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(
+          `/api/lesson/audio-ready?lessonId=${encodeURIComponent(lesson.id)}`,
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ready && data.audioUrl) {
+            setResolvedAudioUrl(data.audioUrl);
+            setAudioLoading(false);
+            return; // done
+          }
+        }
+      } catch {
+        // network hiccup — silently retry
+      }
+
+      pollAttemptsRef.current += 1;
+      if (pollAttemptsRef.current < MAX_POLL_ATTEMPTS) {
+        pollTimerRef.current = setTimeout(poll, POLL_INTERVAL_MS);
+      } else {
+        // Give up — player stays disabled
+        setAudioLoading(false);
+      }
+    };
+
+    poll();
+    return () => {
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.id]);
+
+  // ────────────────────────────────────────────────────────────────────────
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -127,29 +177,50 @@ export function AudioComprehensionPhase({
         </div>
 
         <div className="p-6 space-y-6">
-          <audio ref={audioRef} src={lesson.audioUrl} preload="metadata" />
+          <audio
+            ref={audioRef}
+            src={resolvedAudioUrl || undefined}
+            preload="metadata"
+          />
 
-          {/* Visualizer */}
+          {/* Visualizer / loading state */}
           <div className="h-28 bg-gradient-to-r from-ocean-turquoise/5 via-ocean-turquoise/10 to-ocean-turquoise/5 rounded-xl flex items-center justify-center">
-            <div
-              className={cn(
-                "flex items-center gap-1.5",
-                isPlaying && "animate-pulse",
-              )}
-            >
-              {[...Array(12)].map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "w-1.5 bg-ocean-turquoise/60 rounded-full transition-all duration-300",
-                  )}
-                  style={{
-                    height: isPlaying ? `${Math.random() * 48 + 16}px` : "16px",
-                    animationDelay: `${i * 0.08}s`,
-                  }}
-                />
-              ))}
-            </div>
+            {audioLoading ? (
+              <div className="flex flex-col items-center gap-2 text-ocean-turquoise/70">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-1.5 bg-ocean-turquoise/40 rounded-full animate-pulse"
+                      style={{ height: "24px", animationDelay: `${i * 0.15}s` }}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs font-light">Preparing audio…</span>
+              </div>
+            ) : (
+              <div
+                className={cn(
+                  "flex items-center gap-1.5",
+                  isPlaying && "animate-pulse",
+                )}
+              >
+                {[...Array(12)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "w-1.5 bg-ocean-turquoise/60 rounded-full transition-all duration-300",
+                    )}
+                    style={{
+                      height: isPlaying
+                        ? `${Math.random() * 48 + 16}px`
+                        : "16px",
+                      animationDelay: `${i * 0.08}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Progress bar */}
@@ -170,14 +241,22 @@ export function AudioComprehensionPhase({
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={handleRestart}
-              className="h-12 w-12 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+              disabled={audioLoading}
+              className={cn(
+                "h-12 w-12 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors",
+                audioLoading && "opacity-40 cursor-not-allowed",
+              )}
             >
               <RotateCcw className="h-5 w-5" />
             </button>
 
             <button
               onClick={togglePlayPause}
-              className="h-16 w-16 rounded-2xl bg-ocean-turquoise hover:bg-ocean-turquoise/90 flex items-center justify-center transition-all duration-300 shadow-luxury"
+              disabled={audioLoading}
+              className={cn(
+                "h-16 w-16 rounded-2xl bg-ocean-turquoise hover:bg-ocean-turquoise/90 flex items-center justify-center transition-all duration-300 shadow-luxury",
+                audioLoading && "opacity-40 cursor-not-allowed",
+              )}
             >
               {isPlaying ? (
                 <Pause className="h-7 w-7 text-background" />
@@ -188,7 +267,11 @@ export function AudioComprehensionPhase({
 
             <button
               onClick={() => changeSpeed(playbackRate === 1 ? 0.75 : 1)}
-              className="h-12 w-12 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+              disabled={audioLoading}
+              className={cn(
+                "h-12 w-12 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors",
+                audioLoading && "opacity-40 cursor-not-allowed",
+              )}
             >
               <span className="text-sm font-medium">{playbackRate}x</span>
             </button>

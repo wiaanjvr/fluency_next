@@ -11,31 +11,41 @@ import {
   evaluateComprehension,
   generateConversationResponse,
 } from "@/lib/lesson/comprehension-evaluator";
-import OpenAI from "openai";
+import { generateText } from "@/lib/ai-client";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+
+/** Max audio upload size: 1 MB */
+const MAX_AUDIO_BYTES = 1_048_576;
 
 /**
- * Transcribe audio using OpenAI Whisper API
+ * Transcribe audio using Gemini's native audio understanding
  */
 async function transcribeAudio(
   audioBlob: Blob,
-  apiKey: string,
   language: string = "fr",
 ): Promise<string> {
-  const openai = new OpenAI({ apiKey });
+  const audioBuffer = await audioBlob.arrayBuffer();
+  const base64Audio = Buffer.from(audioBuffer).toString("base64");
+  const mimeType = audioBlob.type || "audio/webm";
 
-  // Convert blob to File object for OpenAI SDK
-  const audioFile = new File([audioBlob], "recording.webm", {
-    type: audioBlob.type || "audio/webm",
+  return generateText({
+    contents: [
+      {
+        parts: [
+          {
+            inlineData: {
+              mimeType,
+              data: base64Audio,
+            },
+          },
+          {
+            text: `Transcribe this audio recording. The speaker is speaking ${language === "fr" ? "French" : language}. Return ONLY the transcribed text, nothing else, no explanations.`,
+          },
+        ],
+      },
+    ],
+    maxOutputTokens: 500,
   });
-
-  const response = await openai.audio.transcriptions.create({
-    file: audioFile,
-    model: "whisper-1",
-    language,
-    response_format: "text",
-  });
-
-  return response.trim();
 }
 
 /**
@@ -108,6 +118,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // ── Rate-limit: 50 requests / hour per user ─────────────────────────
+    const rl = await checkRateLimit(user.id, "evaluate");
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Please try again later." },
+        { status: 429, headers: rateLimitHeaders(rl) },
+      );
+    }
+
     // Handle multipart form data (audio) or JSON
     const contentType = request.headers.get("content-type") || "";
     let body: EvaluationRequest;
@@ -121,12 +140,10 @@ export async function POST(request: NextRequest) {
       body = JSON.parse(jsonData);
 
       // Transcribe audio if provided
-      const apiKey = process.env.OPENAI_API_KEY;
-      if (audioFile && apiKey && apiKey !== "your_openai_api_key") {
+      if (audioFile && audioFile.size <= MAX_AUDIO_BYTES) {
         try {
           transcription = await transcribeAudio(
             audioFile,
-            apiKey,
             body.language || "fr",
           );
         } catch (transcribeError) {
@@ -134,6 +151,12 @@ export async function POST(request: NextRequest) {
           // Fall back to provided text or empty
           transcription = body.userResponse;
         }
+      } else if (audioFile && audioFile.size > MAX_AUDIO_BYTES) {
+        // Audio too large — skip transcription, use provided text
+        console.warn(
+          `Audio file too large (${audioFile.size} bytes), skipping transcription`,
+        );
+        transcription = body.userResponse;
       } else {
         transcription = body.userResponse;
       }
@@ -243,33 +266,34 @@ export async function POST(request: NextRequest) {
 
     // Update vocabulary ratings if provided (from text-reveal phase)
     if (vocabularyRatings && vocabularyRatings.length > 0) {
-      for (const rating of vocabularyRatings) {
-        await supabase.from("user_words").upsert(
-          {
-            user_id: user.id,
-            word: rating.word.toLowerCase(),
-            language: body.language || "fr",
-            rating: rating.rating,
-            last_rated_at: new Date().toISOString(),
-            // Update SRS fields based on rating
-            ...(rating.rating >= 4
-              ? {
-                  next_review: new Date(
-                    Date.now() + rating.rating * 24 * 60 * 60 * 1000,
-                  ).toISOString(),
-                  interval: rating.rating,
-                  ease_factor: Math.max(1.3, 2.5 + (rating.rating - 3) * 0.1),
-                }
-              : {
-                  next_review: new Date().toISOString(),
-                  interval: 0,
-                  ease_factor: Math.max(1.3, 2.5 - (3 - rating.rating) * 0.2),
-                }),
-          },
-          {
-            onConflict: "user_id,word,language",
-          },
-        );
+      const upsertRows = vocabularyRatings.map((rating: any) => ({
+        user_id: user.id,
+        word: rating.word.toLowerCase(),
+        language: body.language || "fr",
+        rating: rating.rating,
+        last_rated_at: new Date().toISOString(),
+        // Update SRS fields based on rating
+        ...(rating.rating >= 4
+          ? {
+              next_review: new Date(
+                Date.now() + rating.rating * 24 * 60 * 60 * 1000,
+              ).toISOString(),
+              interval: rating.rating,
+              ease_factor: Math.max(1.3, 2.5 + (rating.rating - 3) * 0.1),
+            }
+          : {
+              next_review: new Date().toISOString(),
+              interval: 0,
+              ease_factor: Math.max(1.3, 2.5 - (3 - rating.rating) * 0.2),
+            }),
+      }));
+
+      const { error: upsertError } = await supabase
+        .from("user_words")
+        .upsert(upsertRows, { onConflict: "user_id,word,language" });
+
+      if (upsertError) {
+        console.error("Error batch-upserting vocabulary ratings:", upsertError);
       }
     }
 

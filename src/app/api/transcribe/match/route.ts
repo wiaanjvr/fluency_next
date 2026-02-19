@@ -1,12 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { generateText } from "@/lib/ai-client";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+
+/** Max audio upload size: 1 MB */
+const MAX_AUDIO_BYTES = 1_048_576;
 
 /**
  * POST /api/transcribe/match - Transcribe audio and check if it matches an expected word
  *
  * This endpoint is specifically for pronunciation validation in foundation vocabulary learning.
- * It uses OpenAI Whisper to transcribe the audio, then checks if the transcription matches
+ * It uses Gemini to transcribe the audio, then checks if the transcription matches
  * the expected word (with some fuzzy matching for minor variations).
  */
 export async function POST(request: NextRequest) {
@@ -21,11 +25,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
+    // ── Rate-limit: shares the transcribe budget (30 req/hour) ─────────
+    const rl = await checkRateLimit(user.id, "transcribe");
+    if (!rl.allowed) {
       return NextResponse.json(
-        { error: "OpenAI API key not configured" },
-        { status: 500 },
+        { error: "Rate limit exceeded. Please try again later." },
+        { status: 429, headers: rateLimitHeaders(rl) },
       );
     }
 
@@ -48,22 +53,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const openai = new OpenAI({ apiKey });
+    // ── Enforce audio size cap ──────────────────────────────────────────
+    if (audioFile.size > MAX_AUDIO_BYTES) {
+      return NextResponse.json(
+        { error: "Audio file too large. Maximum size is 1 MB." },
+        { status: 413 },
+      );
+    }
 
-    // Convert blob to File object for OpenAI SDK
-    const file = new File([audioFile], "recording.webm", {
-      type: audioFile.type || "audio/webm",
+    // Convert blob to base64 for Gemini audio input
+    const audioBuffer = await audioFile.arrayBuffer();
+    const base64Audio = Buffer.from(audioBuffer).toString("base64");
+    const mimeType = audioFile.type || "audio/webm";
+
+    // Transcribe the audio using Gemini via ai-client singleton
+    const transcribedText = await generateText({
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType,
+                data: base64Audio,
+              },
+            },
+            {
+              text: `Transcribe this audio recording. The speaker is saying a single word or short phrase in ${language === "fr" ? "French" : language}. Return ONLY the transcribed text, nothing else.`,
+            },
+          ],
+        },
+      ],
+      maxOutputTokens: 200,
     });
-
-    // Transcribe the audio
-    const transcription = await openai.audio.transcriptions.create({
-      file,
-      model: "whisper-1",
-      language,
-      response_format: "text",
-    });
-
-    const transcribedText = transcription.trim();
 
     // Check if the transcription matches the expected word
     const matches = checkWordMatch(transcribedText, expectedWord, language);

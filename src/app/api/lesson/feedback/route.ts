@@ -1,6 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { generateJSON } from "@/lib/ai-client";
+import { redis } from "@/lib/redis";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+
+/** Shape of conversation state stored in Redis */
+interface ConversationState {
+  targetText: string;
+  translation: string;
+  level: string;
+  history: { role: string; text: string }[];
+}
+
+/** TTL for conversation state: 30 minutes */
+const CONVERSATION_TTL = 30 * 60;
 
 /**
  * POST /api/lesson/feedback - Generate guided teacher conversation feedback
@@ -10,6 +23,11 @@ import OpenAI from "openai";
  * - Helps with small mistakes (like using English words)
  * - Asks follow-up "what if" questions to deepen understanding
  * - Guides the conversation through 3 turns
+ *
+ * Conversation state (targetText, translation, history) is stored server-side
+ * in Redis to prevent prompt injection and reduce payload size.
+ * Client sends only: { lessonId, userResponse } (and optionally targetText,
+ * translation, level on the first turn to initialize the state).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -23,47 +41,74 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
+    // ── Rate-limit: 30 requests / hour per user ─────────────────────────
+    const rl = await checkRateLimit(user.id, "feedback");
+    if (!rl.allowed) {
       return NextResponse.json(
-        { error: "OpenAI API key not configured" },
-        { status: 500 },
+        { error: "Rate limit exceeded. Please try again later." },
+        { status: 429, headers: rateLimitHeaders(rl) },
       );
     }
 
+    const body = await request.json();
     const {
-      targetText,
-      translation,
+      lessonId,
+      targetText: clientTargetText,
+      translation: clientTranslation,
       userResponse,
-      conversationHistory,
-      level,
-      turnNumber, // 1, 2, or 3
-    } = await request.json();
+      conversationHistory: clientHistory,
+      level: clientLevel,
+      turnNumber,
+    } = body;
 
-    if (!targetText || !userResponse) {
+    if (!userResponse) {
       return NextResponse.json(
-        { error: "Target text and user response are required" },
+        { error: "userResponse is required" },
         { status: 400 },
       );
     }
 
-    const openai = new OpenAI({ apiKey });
+    // ─── Server-side conversation state ──────────────────────────────────
+    const stateKey = `conv:${user.id}:${lessonId || "default"}`;
+    let state: ConversationState | null = null;
 
-    // Build conversation context
-    const historyContext = conversationHistory?.length
-      ? conversationHistory
+    try {
+      state = await redis.get<ConversationState>(stateKey);
+    } catch {
+      // Redis miss — will initialize below
+    }
+
+    if (!state) {
+      // First turn or state expired: initialize from client-provided data
+      if (!clientTargetText) {
+        return NextResponse.json(
+          { error: "targetText is required on the first turn" },
+          { status: 400 },
+        );
+      }
+      state = {
+        targetText: clientTargetText,
+        translation: clientTranslation || "",
+        level: clientLevel || "A1",
+        history: [],
+      };
+    }
+
+    const { targetText, translation, level, history } = state;
+
+    // Determine the current turn number (1-3)
+    const currentTurn =
+      turnNumber || history.filter((t) => t.role === "user").length + 1;
+
+    // Build conversation context from server-side history
+    const historyContext = history.length
+      ? history
           .map(
-            (turn: { role: string; text: string }) =>
+            (turn) =>
               `${turn.role === "assistant" ? "Teacher" : "Student"}: ${turn.text}`,
           )
           .join("\n")
       : "";
-
-    // Determine the current turn number (1-3)
-    const currentTurn =
-      turnNumber ||
-      (conversationHistory?.filter((t: { role: string }) => t.role === "user")
-        .length || 0) + 1;
 
     // Turn-specific guidance for the teacher
     const turnGuidance = {
@@ -86,7 +131,7 @@ export async function POST(request: NextRequest) {
 - Do NOT ask another question - this is the wrap-up`,
     };
 
-    const prompt = `You are a warm, patient French teacher having a real conversation with a ${level || "A1"} student about a listening exercise they just completed.
+    const prompt = `You are a warm, patient French teacher having a real conversation with a ${level} student about a listening exercise they just completed.
 
 === THE AUDIO TEXT (student hasn't seen this yet) ===
 French: "${targetText}"
@@ -132,28 +177,27 @@ Return a JSON object:
 
 Return ONLY valid JSON, no markdown.`;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a warm, encouraging French teacher. You listen carefully, help with vocabulary gaps, and guide students through understanding. Return only valid JSON without markdown code blocks.",
-        },
-        { role: "user", content: prompt },
-      ],
-      max_tokens: 600,
-      temperature: 0.7,
-    });
-
-    const content = response.choices[0].message.content?.trim() || "{}";
-
     let feedback;
     try {
-      const jsonContent = content.replace(/^```json?\n?|\n?```$/g, "").trim();
-      feedback = JSON.parse(jsonContent);
+      feedback = await generateJSON<{
+        response?: string;
+        englishWordsDetected?: Array<{
+          english: string;
+          french: string;
+          example?: string;
+        }>;
+        questionType?: string;
+        vocabularyHint?: { word: string; translation: string; context: string };
+        comprehensionScore?: number;
+      }>({
+        contents: prompt,
+        systemInstruction:
+          "You are a warm, encouraging French teacher. You listen carefully, help with vocabulary gaps, and guide students through understanding. Return only valid JSON.",
+        maxOutputTokens: 600,
+        temperature: 0.7,
+      });
     } catch (parseError) {
-      console.error("Failed to parse feedback:", content);
+      console.error("Failed to generate/parse feedback:", parseError);
       // Fallback response based on turn
       const fallbacks = {
         1: "Thank you for sharing! I'd love to hear more. What else caught your attention in the audio?",
@@ -173,7 +217,25 @@ Return ONLY valid JSON, no markdown.`;
       feedback.englishWordsDetected = [];
     }
 
-    return NextResponse.json(feedback);
+    // ─── Update server-side conversation state ───────────────────────────
+    history.push({ role: "user", text: userResponse });
+    history.push({ role: "assistant", text: feedback.response || "" });
+
+    const updatedState: ConversationState = {
+      targetText,
+      translation,
+      level,
+      history,
+    };
+
+    try {
+      await redis.set(stateKey, updatedState, { ex: CONVERSATION_TTL });
+    } catch {
+      // Non-fatal: state not persisted but conversation still works
+      console.warn("Failed to persist conversation state to Redis");
+    }
+
+    return NextResponse.json(feedback, { headers: rateLimitHeaders(rl) });
   } catch (error) {
     console.error("Error generating feedback:", error);
     return NextResponse.json(

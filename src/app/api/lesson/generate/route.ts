@@ -8,7 +8,8 @@ import {
   ContentType,
 } from "@/types/lesson";
 import { ProficiencyLevel } from "@/types";
-import OpenAI from "openai";
+import { generateJSONStream, getAI } from "@/lib/ai-client";
+import { GoogleGenAI } from "@google/genai";
 import {
   selectWordsForLesson,
   generateLessonPrompt,
@@ -18,6 +19,13 @@ import {
   WORD_COUNT_BY_LEVEL,
   NEW_WORD_PERCENTAGE_BY_LEVEL,
 } from "@/lib/lesson/engine";
+import { generationQueue } from "@/lib/queue";
+import { getCachedProfile } from "@/lib/profile-cache";
+import {
+  getCachedLessonTemplate,
+  invalidateLessonTemplateCache,
+} from "@/lib/lesson-template-cache";
+import { consumeDailyBudget } from "@/lib/daily-budget";
 
 // Template interface for cached lessons
 interface LessonTemplate {
@@ -34,31 +42,75 @@ interface LessonTemplate {
 }
 
 /**
- * Generate TTS audio for a lesson text and upload to Supabase Storage
+ * Wrap raw PCM data from Gemini TTS in a WAV container.
+ */
+function pcmToWav(
+  pcm: Buffer,
+  sampleRate = 24000,
+  channels = 1,
+  bitsPerSample = 16,
+): Buffer {
+  const dataSize = pcm.length;
+  const header = Buffer.alloc(44);
+  header.write("RIFF", 0);
+  header.writeUInt32LE(36 + dataSize, 4);
+  header.write("WAVE", 8);
+  header.write("fmt ", 12);
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20); // PCM
+  header.writeUInt16LE(channels, 22);
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE((sampleRate * channels * bitsPerSample) / 8, 28);
+  header.writeUInt16LE((channels * bitsPerSample) / 8, 32);
+  header.writeUInt16LE(bitsPerSample, 34);
+  header.write("data", 36);
+  header.writeUInt32LE(dataSize, 40);
+  return Buffer.concat([header, pcm]);
+}
+
+/**
+ * Generate TTS audio for a lesson text using Gemini and upload to Supabase Storage
  */
 async function generateTTSAudio(
-  openai: OpenAI,
+  ai: GoogleGenAI,
   text: string,
   lessonId: string,
   userId: string,
 ): Promise<string> {
-  const mp3 = await openai.audio.speech.create({
-    model: "tts-1",
-    voice: "nova", // Good for French
-    input: text,
-    speed: 0.9, // Slightly slower for learners
+  const ttsResponse = await ai.models.generateContent({
+    model: "gemini-2.5-flash-lite",
+    contents: [{ parts: [{ text }] }],
+    config: {
+      responseModalities: ["AUDIO"],
+      speechConfig: {
+        voiceConfig: {
+          prebuiltVoiceConfig: {
+            voiceName: "Aoede", // Natural, clear voice — good for language learners
+          },
+        },
+      },
+      httpOptions: { timeout: 30000 },
+    } as any,
   });
 
-  const buffer = Buffer.from(await mp3.arrayBuffer());
+  const audioBase64 =
+    ttsResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+  if (!audioBase64) {
+    throw new Error("Gemini TTS returned no audio data");
+  }
+
+  // Gemini returns raw PCM; wrap in WAV container for browser compatibility
+  const pcm = Buffer.from(audioBase64, "base64");
+  const buffer = pcmToWav(pcm);
 
   // Upload to Supabase Storage
   const supabase = await createClient();
-  const fileName = `${userId}/${lessonId}.mp3`;
+  const fileName = `${userId}/${lessonId}.wav`;
 
   const { error: uploadError } = await supabase.storage
     .from("lesson-audio")
     .upload(fileName, buffer, {
-      contentType: "audio/mpeg",
+      contentType: "audio/wav",
       upsert: true,
     });
 
@@ -87,10 +139,10 @@ const CONTENT_TYPE_INSTRUCTIONS: Record<string, string> = {
 };
 
 /**
- * Generate lesson text using OpenAI
+ * Generate lesson text using Gemini (streaming to prevent 504 timeouts)
  */
 async function generateLessonText(
-  openai: OpenAI,
+  ai: GoogleGenAI,
   wordSelection: ReturnType<typeof selectWordsForLesson>,
   options: {
     wordCount: number;
@@ -120,25 +172,17 @@ async function generateLessonText(
     ? `\n${CONTENT_TYPE_INSTRUCTIONS[options.contentType] || ""}`
     : "";
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `Generate natural ${language} lessons for ${level} learners.${contentTypeInstruction}
+  const response = await generateJSONStream<{
+    title?: string;
+    text?: string;
+    translation?: string;
+  }>({
+    contents: prompt,
+    systemInstruction: `Generate natural ${language} lessons for ${level} learners.${contentTypeInstruction}
         Output JSON with format: {"title": "Lesson Title", "text": "The lesson text...", "translation": "English translation..."}`,
-      },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-    response_format: { type: "json_object" },
     temperature: 0.7,
-    max_tokens: Math.min(options.wordCount * 4, 1000),
+    maxOutputTokens: 1200,
   });
-
-  const response = JSON.parse(completion.choices[0]?.message?.content || "{}");
 
   if (!response.text) {
     throw new Error("Failed to generate lesson text");
@@ -166,9 +210,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check usage limits for free tier users
-    const { canStartSession } = await import("@/lib/usage-limits");
-    const usageStatus = await canStartSession(user.id, "main");
+    // Atomic claim: checks limit AND increments counter in one DB call.
+    // Prevents TOCTOU race where concurrent requests all pass the check.
+    const { claimSession } = await import("@/lib/usage-limits");
+    const usageStatus = await claimSession(user.id, "main");
 
     if (!usageStatus.allowed) {
       return NextResponse.json(
@@ -184,19 +229,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Require OpenAI API key - no local fallbacks
-    const openaiApiKey = process.env.OPENAI_API_KEY;
-    if (!openaiApiKey || openaiApiKey === "your_openai_api_key") {
+    // Absolute daily generation budget (applies to ALL tiers, including premium)
+    const budgetResult = await consumeDailyBudget(user.id);
+    if (!budgetResult.allowed) {
+      return NextResponse.json(
+        {
+          error: "Daily generation budget exceeded",
+          message: `You've reached the maximum of ${budgetResult.budget} generations per day. Please try again tomorrow.`,
+          budgetExceeded: true,
+          budget: budgetResult.budget,
+          count: budgetResult.count,
+        },
+        { status: 429 },
+      );
+    }
+
+    // Require Google API key - no local fallbacks
+    try {
+      getAI();
+    } catch {
       return NextResponse.json(
         {
           error:
-            "OpenAI API key is required for lesson generation. Please configure OPENAI_API_KEY in your environment.",
+            "Google API key is required for lesson generation. Please configure GOOGLE_API_KEY in your environment.",
         },
         { status: 503 },
       );
     }
 
-    const openai = new OpenAI({ apiKey: openaiApiKey });
+    const ai = getAI();
 
     const body = await request.json();
     const {
@@ -208,12 +269,24 @@ export async function POST(request: NextRequest) {
       prioritizeReview = true,
     } = body as GenerateLessonRequest;
 
-    // Get user's profile for defaults
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("proficiency_level, target_language, interests")
-      .eq("id", user.id)
-      .single();
+    // Get user's profile (Redis-cached, 5 min TTL) and known words in parallel
+    const [profile, wordsResult] = await Promise.all([
+      getCachedProfile(
+        supabase,
+        user.id,
+        "proficiency_level, target_language, interests",
+      ),
+      supabase
+        .from("user_words")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("language", language || "fr"),
+    ]);
+
+    const userWords = wordsResult.data;
+    if (wordsResult.error) {
+      console.error("Error fetching user words:", wordsResult.error);
+    }
 
     const userLevel = (level ||
       profile?.proficiency_level ||
@@ -230,17 +303,6 @@ export async function POST(request: NextRequest) {
         ? userInterests[Math.floor(Math.random() * userInterests.length)]
         : undefined);
 
-    // Fetch user's known words
-    const { data: userWords, error: wordsError } = await supabase
-      .from("user_words")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("language", targetLanguage);
-
-    if (wordsError) {
-      console.error("Error fetching user words:", wordsError);
-    }
-
     // ========================================
     // TEMPLATE CACHING: Check for existing template
     // ========================================
@@ -251,20 +313,19 @@ export async function POST(request: NextRequest) {
     let usedTemplate = false;
     let templateId: string | null = null;
 
-    // Try to find an existing template with matching criteria
-    const { data: existingTemplate } = await supabase
-      .from("lesson_templates")
-      .select("*")
-      .eq("language", targetLanguage)
-      .eq("level", userLevel)
-      .eq("topic", selectedTopic || "")
-      .single();
+    // Try to find an existing template (Redis-cached, 5 min TTL)
+    const existingTemplate = await getCachedLessonTemplate(
+      supabase,
+      targetLanguage,
+      userLevel,
+      selectedTopic || "",
+    );
 
     // Generate lesson ID early (needed for audio)
     const lessonId = `lesson-${Date.now()}`;
 
     if (existingTemplate && existingTemplate.audio_url) {
-      // USE EXISTING TEMPLATE - saves OpenAI API calls!
+      // USE EXISTING TEMPLATE - saves Gemini API calls!
       console.log(
         `Using cached template: ${existingTemplate.id} (used ${existingTemplate.times_used} times)`,
       );
@@ -276,14 +337,21 @@ export async function POST(request: NextRequest) {
       usedTemplate = true;
       templateId = existingTemplate.id;
 
-      // Update template usage stats
-      await supabase
+      // Update template usage stats (fire-and-forget — non-critical analytics)
+      void supabase
         .from("lesson_templates")
         .update({
           times_used: (existingTemplate.times_used || 1) + 1,
           last_used_at: new Date().toISOString(),
         })
-        .eq("id", existingTemplate.id);
+        .eq("id", existingTemplate.id)
+        .then(({ error }) => {
+          if (error)
+            console.warn(
+              "Failed to update template usage stats:",
+              error.message,
+            );
+        });
     } else {
       // NO TEMPLATE FOUND - Generate new content
       console.log(
@@ -297,9 +365,9 @@ export async function POST(request: NextRequest) {
         reviewWordPriority: prioritizeReview,
       });
 
-      // Generate lesson text using OpenAI
+      // Generate lesson text using Gemini
       const generatedContent = await generateLessonText(
-        openai,
+        ai,
         wordSelection,
         {
           wordCount,
@@ -316,10 +384,12 @@ export async function POST(request: NextRequest) {
       lessonText = generatedContent.text;
       translation = generatedContent.translation;
 
-      // Generate TTS audio
-      audioUrl = await generateTTSAudio(openai, lessonText, lessonId, user.id);
+      // Enqueue TTS audio generation as a background job instead of blocking.
+      // The client will poll /api/lesson/{id}/audio-ready for the URL.
+      audioUrl = ""; // Will be filled in by the TTS worker
+      let pendingTemplateId: string | null = null;
 
-      // SAVE AS NEW TEMPLATE for future users
+      // SAVE AS NEW TEMPLATE for future users (audio_url filled later by worker)
       const { data: newTemplate, error: templateError } = await supabase
         .from("lesson_templates")
         .insert({
@@ -329,7 +399,7 @@ export async function POST(request: NextRequest) {
           title: lessonTitle,
           target_text: lessonText,
           translation: translation,
-          audio_url: audioUrl,
+          audio_url: null, // Will be updated by the TTS worker
           word_count: wordCount,
           generation_params: {
             targetWordCount: wordCount,
@@ -341,11 +411,37 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (templateError) {
-        // Non-fatal: template caching failed but lesson still works
         console.warn("Failed to save lesson template:", templateError.message);
       } else {
-        templateId = newTemplate?.id || null;
+        pendingTemplateId = newTemplate?.id || null;
+        templateId = pendingTemplateId;
         console.log(`Saved new template: ${templateId}`);
+        // Invalidate the Redis cache so the next lookup sees the new template
+        await invalidateLessonTemplateCache(
+          targetLanguage,
+          userLevel,
+          selectedTopic || "",
+        );
+      }
+
+      // Enqueue background TTS job
+      try {
+        await generationQueue.add(
+          "generate-tts",
+          {
+            userId: user.id,
+            lessonId,
+            type: "tts" as const,
+            targetLanguage,
+            ttsText: lessonText,
+            templateId: pendingTemplateId || undefined,
+          },
+          { jobId: `tts_${user.id}_${lessonId}` },
+        );
+        console.log(`Enqueued TTS background job for lesson ${lessonId}`);
+      } catch (queueError) {
+        console.error("Failed to enqueue TTS job:", queueError);
+        // Non-fatal: lesson still works without audio
       }
     }
 
@@ -443,6 +539,16 @@ export async function POST(request: NextRequest) {
     };
 
     // Save lesson to Supabase database
+    // Strip words JSONB to lightweight shape to prevent table bloat.
+    // Full word analysis is already in the `lesson` object returned to the client;
+    // the DB only needs enough to reconstruct warmup review items.
+    const lightweightWords = analyzedWords.map((w) => ({
+      lemma: w.lemma,
+      isNew: w.isNew,
+      isDueForReview: w.isDueForReview,
+      ...(w.userKnowledge ? { status: w.userKnowledge } : {}),
+    }));
+
     const { data: insertedLesson, error: insertError } = await supabase
       .from("lessons")
       .insert({
@@ -454,7 +560,7 @@ export async function POST(request: NextRequest) {
         audio_url: lesson.audioUrl,
         language: lesson.language,
         level: lesson.level,
-        words: lesson.words,
+        words: lightweightWords,
         total_words: lesson.totalWords,
         new_word_count: lesson.newWordCount,
         review_word_count: lesson.reviewWordCount,

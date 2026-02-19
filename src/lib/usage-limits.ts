@@ -11,6 +11,7 @@
 ============================================================================= */
 
 import { createClient } from "@/lib/supabase/server";
+import { redis } from "@/lib/redis";
 
 export type SessionType = "foundation" | "sentence" | "microstory" | "main";
 
@@ -47,7 +48,48 @@ export const FREE_TIER_LIMITS: UsageLimits = {
 };
 
 /**
- * Check if a user can start a new session (without incrementing the counter)
+ * Atomic claim: check limit AND increment in a single Postgres call.
+ * This replaces the old canStartSession + incrementSessionCount two-step
+ * flow that had a TOCTOU race condition.
+ *
+ * Call this BEFORE doing expensive work (LLM calls). If allowed=true,
+ * the counter has already been incremented — no separate increment needed.
+ */
+export async function claimSession(
+  userId: string,
+  sessionType: SessionType,
+): Promise<UsageStatus> {
+  const supabase = await createClient();
+
+  try {
+    const { data, error } = await supabase.rpc("claim_session", {
+      p_user_id: userId,
+      p_session_type: sessionType,
+    });
+
+    if (error) {
+      console.error("Error claiming session:", error);
+      // FAIL CLOSED: deny the session on DB error to prevent runaway LLM costs
+      return { allowed: false, limitReached: true };
+    }
+
+    // Invalidate usage cache after successful claim
+    if (data?.allowed) {
+      await invalidateUsageCache(userId);
+    }
+
+    return data as UsageStatus;
+  } catch (error) {
+    console.error("Exception claiming session:", error);
+    // FAIL CLOSED: deny the session on exception
+    return { allowed: false, limitReached: true };
+  }
+}
+
+/**
+ * Check if a user can start a new session (without incrementing the counter).
+ * Use claimSession() instead for the actual generation flow.
+ * This is only for displaying UI state (e.g. greying out buttons).
  */
 export async function canStartSession(
   userId: string,
@@ -63,21 +105,21 @@ export async function canStartSession(
 
     if (error) {
       console.error("Error checking session limit:", error);
-      // On error, allow the session (fail open)
-      return { allowed: true };
+      // FAIL CLOSED — UI will show "limit reached" rather than allowing free LLM calls
+      return { allowed: false, limitReached: true };
     }
 
     return data as UsageStatus;
   } catch (error) {
     console.error("Exception checking session limit:", error);
-    // On error, allow the session (fail open)
-    return { allowed: true };
+    // FAIL CLOSED
+    return { allowed: false, limitReached: true };
   }
 }
 
 /**
- * Increment session count after successful completion
- * Returns whether the increment was successful and usage info
+ * Increment session count after successful completion.
+ * @deprecated Use claimSession() instead — it atomically checks + increments.
  */
 export async function incrementSessionCount(
   userId: string,
@@ -93,23 +135,34 @@ export async function incrementSessionCount(
 
     if (error) {
       console.error("Error incrementing session count:", error);
-      // Return success even on error to not block user
-      return { allowed: true };
+      // FAIL CLOSED
+      return { allowed: false, limitReached: true };
     }
 
     return data as UsageStatus;
   } catch (error) {
     console.error("Exception incrementing session count:", error);
-    return { allowed: true };
+    // FAIL CLOSED
+    return { allowed: false, limitReached: true };
   }
 }
 
 /**
- * Get today's usage stats for a user
+ * Get today's usage stats for a user.
+ * Results are cached in Redis for 30 seconds to reduce DB load.
  */
 export async function getTodayUsage(
   userId: string,
 ): Promise<DailyUsage | null> {
+  // Check Redis cache first
+  const cacheKey = `usage:${userId}:today`;
+  try {
+    const cached = await redis.get<DailyUsage>(cacheKey);
+    if (cached) return cached;
+  } catch {
+    // Redis miss or error — fall through to DB
+  }
+
   const supabase = await createClient();
 
   try {
@@ -122,17 +175,24 @@ export async function getTodayUsage(
       return null;
     }
 
-    // The function returns a single row, extract it
-    if (Array.isArray(data) && data.length > 0) {
-      return data[0] as DailyUsage;
+    const usage: DailyUsage =
+      Array.isArray(data) && data.length > 0
+        ? (data[0] as DailyUsage)
+        : {
+            foundation_sessions: 0,
+            sentence_sessions: 0,
+            microstory_sessions: 0,
+            main_lessons: 0,
+          };
+
+    // Cache for 30 seconds
+    try {
+      await redis.set(cacheKey, usage, { ex: 30 });
+    } catch {
+      // Non-fatal
     }
 
-    return {
-      foundation_sessions: 0,
-      sentence_sessions: 0,
-      microstory_sessions: 0,
-      main_lessons: 0,
-    };
+    return usage;
   } catch (error) {
     console.error("Exception getting today's usage:", error);
     return null;
@@ -140,11 +200,32 @@ export async function getTodayUsage(
 }
 
 /**
- * Get user's subscription tier
+ * Invalidate the cached daily usage after a session claim.
+ */
+export async function invalidateUsageCache(userId: string): Promise<void> {
+  try {
+    await redis.del(`usage:${userId}:today`);
+  } catch {
+    // Non-fatal
+  }
+}
+
+/**
+ * Get user's subscription tier.
+ * Results are cached in Redis for 5 minutes.
  */
 export async function getUserSubscriptionTier(
   userId: string,
 ): Promise<"free" | "premium" | null> {
+  // Check Redis cache first
+  const cacheKey = `user:${userId}:tier`;
+  try {
+    const cached = await redis.get<string>(cacheKey);
+    if (cached) return cached as "free" | "premium";
+  } catch {
+    // Redis miss or error — fall through to DB
+  }
+
   const supabase = await createClient();
 
   try {
@@ -159,10 +240,30 @@ export async function getUserSubscriptionTier(
       return null;
     }
 
-    return (data?.subscription_tier as "free" | "premium") || "free";
+    const tier = (data?.subscription_tier as "free" | "premium") || "free";
+
+    // Cache for 5 minutes
+    try {
+      await redis.set(cacheKey, tier, { ex: 300 });
+    } catch {
+      // Non-fatal
+    }
+
+    return tier;
   } catch (error) {
     console.error("Exception getting user subscription tier:", error);
     return null;
+  }
+}
+
+/**
+ * Invalidate the cached subscription tier (call after subscription changes).
+ */
+export async function invalidateTierCache(userId: string): Promise<void> {
+  try {
+    await redis.del(`user:${userId}:tier`);
+  } catch {
+    // Non-fatal
   }
 }
 

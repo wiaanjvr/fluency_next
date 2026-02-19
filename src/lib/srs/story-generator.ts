@@ -215,8 +215,8 @@ You are STRICTLY FORBIDDEN from using ANY words outside these two lists:
 DO NOT use synonyms, DO NOT use related words, DO NOT add "just one more word" that seems useful.
 If a word is not explicitly listed below, you CANNOT use it (except basic articles: le/la/les/un/une/des, and basic conjunctions: et/ou/mais).
 
-**KNOWN Vocabulary - USE THESE FOR 95% OF ALL WORDS (${knownWordCount} words available):**
-${[...wordSelection.knownWords, ...wordSelection.reviewWords].join(", ") || vocabularyToUse.join(", ")}
+**KNOWN Vocabulary - USE THESE FOR 95% OF ALL WORDS (${knownWordCount} words available, showing up to 200):**
+${[...wordSelection.knownWords, ...wordSelection.reviewWords].slice(0, 200).join(", ") || vocabularyToUse.slice(0, 200).join(", ")}
 
 ${
   wordSelection.newWords.length > 0

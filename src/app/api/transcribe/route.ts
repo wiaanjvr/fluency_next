@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { generateText, generateJSON } from "@/lib/ai-client";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+
+/** Max audio upload size: 1 MB */
+const MAX_AUDIO_BYTES = 1_048_576;
 
 interface TranscriptionFeedback {
   isValid: boolean;
@@ -11,7 +15,7 @@ interface TranscriptionFeedback {
 }
 
 /**
- * POST /api/transcribe - Transcribe audio using OpenAI Whisper
+ * POST /api/transcribe - Transcribe audio using Gemini
  */
 export async function POST(request: NextRequest) {
   try {
@@ -25,11 +29,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
+    // ── Rate-limit: 30 requests / hour per user ─────────────────────────
+    const rl = await checkRateLimit(user.id, "transcribe");
+    if (!rl.allowed) {
       return NextResponse.json(
-        { error: "OpenAI API key not configured" },
-        { status: 500 },
+        { error: "Rate limit exceeded. Please try again later." },
+        { status: 429, headers: rateLimitHeaders(rl) },
       );
     }
 
@@ -45,35 +50,49 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const openai = new OpenAI({ apiKey });
+    // ── Enforce audio size cap ──────────────────────────────────────────
+    if (audioFile.size > MAX_AUDIO_BYTES) {
+      return NextResponse.json(
+        { error: "Audio file too large. Maximum size is 1 MB." },
+        { status: 413 },
+      );
+    }
 
-    // Convert blob to File object for OpenAI SDK
-    const file = new File([audioFile], "recording.webm", {
-      type: audioFile.type || "audio/webm",
+    // Convert blob to base64 for Gemini audio input
+    const audioBuffer = await audioFile.arrayBuffer();
+    const base64Audio = Buffer.from(audioBuffer).toString("base64");
+    const mimeType = audioFile.type || "audio/webm";
+
+    const transcriptText = await generateText({
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType,
+                data: base64Audio,
+              },
+            },
+            {
+              text: `Transcribe this audio recording. The speaker is speaking ${language === "fr" ? "French" : language}. Return ONLY the transcribed text, nothing else, no explanations.`,
+            },
+          ],
+        },
+      ],
+      maxOutputTokens: 500,
     });
-
-    const transcription = await openai.audio.transcriptions.create({
-      file,
-      model: "whisper-1",
-      language,
-      response_format: "text",
-    });
-
-    const transcriptText = transcription.trim();
 
     // Analyze the transcription for feedback
     const feedback = await analyzeTranscription(
-      openai,
       transcriptText,
       language,
       questionContext,
     );
 
-    return NextResponse.json({
-      text: transcriptText,
-      language,
-      feedback,
-    });
+    return NextResponse.json(
+      { text: transcriptText, language, feedback },
+      { headers: rateLimitHeaders(rl) },
+    );
   } catch (error) {
     console.error("Transcription error:", error);
     return NextResponse.json(
@@ -87,7 +106,6 @@ export async function POST(request: NextRequest) {
  * Analyze transcription for silence, relevance, and English word usage
  */
 async function analyzeTranscription(
-  openai: OpenAI,
   transcript: string,
   targetLanguage: string,
   questionContext: string | null,
@@ -126,14 +144,15 @@ Rules:
 Respond ONLY with valid JSON.`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
+    const result = await generateJSON<{
+      isRelevant?: boolean;
+      englishWords?: Array<{ english: string; translation: string }>;
+      message?: string;
+    }>({
+      contents: prompt,
       temperature: 0.3,
-      response_format: { type: "json_object" },
+      maxOutputTokens: 400,
     });
-
-    const result = JSON.parse(completion.choices[0].message.content || "{}");
 
     const feedback: TranscriptionFeedback = {
       isValid: result.isRelevant !== false,

@@ -95,8 +95,25 @@ export function buildStoryPrompt(params: StoryPromptParams): StoryPromptResult {
   const wordSelection = selectWordsForStory(knownWords);
   const vocabLookup = buildVocabLookup(knownWords);
 
+  // Cap the vocab list to the 200 most-recently-reviewed words to bound
+  // input token cost. knownWords arrive sorted by frequency_rank ASC;
+  // sort by lastReviewedAt DESC so active words appear first.
+  const recentEntries = Object.entries(vocabLookup)
+    .sort(([aLemma], [bLemma]) => {
+      const aWord = knownWords.find((w) => w.lemma === aLemma);
+      const bWord = knownWords.find((w) => w.lemma === bLemma);
+      const aTime = aWord?.lastReviewedAt
+        ? new Date(aWord.lastReviewedAt).getTime()
+        : 0;
+      const bTime = bWord?.lastReviewedAt
+        ? new Date(bWord.lastReviewedAt).getTime()
+        : 0;
+      return bTime - aTime;
+    })
+    .slice(0, 200);
+
   // Build available vocab list for the prompt
-  const vocabList = Object.entries(vocabLookup)
+  const vocabList = recentEntries
     .map(([lemma, translation]) => `${lemma} = "${translation}"`)
     .join(", ");
 
@@ -148,7 +165,7 @@ Mastery stage: ${stage.label} (${masteryCount} words mastered).
 Mixing ratio: ${english}% English / ${target}% ${langName}.
 Tone: ${tone}.
 
-The learner knows these ${langName} words: ${wordSelection.targetLemmas.join(", ") || "(none yet)"}.
+The learner knows these ${langName} words: ${wordSelection.targetLemmas.slice(0, 200).join(", ") || "(none yet)"}.
 ${newWordLemmas.length > 0 ? `New words to weave in (max 2): ${newWordLemmas.join(", ")}.` : ""}
 
 Remember: exactly 5 sentences, max 5 words each, complete narrative arc, natural reading, ${langName} words in meaningful positions only.`;

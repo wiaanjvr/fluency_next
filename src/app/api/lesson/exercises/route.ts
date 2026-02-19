@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
 import { Exercise } from "@/types/lesson";
+import { claimSession } from "@/lib/usage-limits";
+import { generateJSONStream, getAI } from "@/lib/ai-client";
+import { consumeDailyBudget } from "@/lib/daily-budget";
 
 /**
- * POST /api/lesson/exercises - Generate exercises for a lesson using OpenAI
+ * POST /api/lesson/exercises - Generate exercises for a lesson using Gemini
  */
 export async function POST(request: NextRequest) {
   try {
@@ -18,10 +20,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Atomic claim: prevents free users from bypassing daily limits.
+    const usageStatus = await claimSession(user.id, "main");
+    if (!usageStatus.allowed) {
+      return NextResponse.json(
+        {
+          error: "Daily limit reached",
+          message:
+            "You've reached your daily exercise limit. Upgrade to Premium for unlimited access.",
+          limitReached: true,
+          limit: usageStatus.limit,
+          currentCount: usageStatus.currentCount,
+        },
+        { status: 429 },
+      );
+    }
+
+    // Absolute daily generation budget (applies to ALL tiers, including premium)
+    const budgetResult = await consumeDailyBudget(user.id);
+    if (!budgetResult.allowed) {
+      return NextResponse.json(
+        {
+          error: "Daily generation budget exceeded",
+          message: `You've reached the maximum of ${budgetResult.budget} generations per day. Please try again tomorrow.`,
+          budgetExceeded: true,
+          budget: budgetResult.budget,
+          count: budgetResult.count,
+        },
+        { status: 429 },
+      );
+    }
+
+    const apiKey = process.env.GOOGLE_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "OpenAI API key not configured" },
+        { error: "Google API key not configured" },
         { status: 500 },
       );
     }
@@ -40,8 +73,6 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-
-    const openai = new OpenAI({ apiKey });
 
     const prompt = `Generate ${count} multiple-choice exercises for a ${level || "A1"} French learner based on this text:
 
@@ -65,30 +96,18 @@ Return a JSON array with exactly ${count} exercises. Each exercise must have:
 
 IMPORTANT: Return ONLY valid JSON array, no markdown formatting or extra text.`;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a French language teacher creating exercises. Return only valid JSON arrays without markdown code blocks.",
-        },
-        { role: "user", content: prompt },
-      ],
-      max_tokens: 2000,
-      temperature: 0.7,
-    });
-
-    const content = response.choices[0].message.content?.trim() || "[]";
-
-    // Parse the response, handling potential markdown wrapping
+    // Use streaming to avoid 504 timeouts on exercise generation
     let exercises: Exercise[];
     try {
-      // Remove markdown code block if present
-      const jsonContent = content.replace(/^```json?\n?|\n?```$/g, "").trim();
-      exercises = JSON.parse(jsonContent);
+      exercises = await generateJSONStream<Exercise[]>({
+        contents: prompt,
+        systemInstruction:
+          "You are a French language teacher creating exercises. Return only valid JSON arrays.",
+        maxOutputTokens: 2000,
+        temperature: 0.7,
+      });
     } catch (parseError) {
-      console.error("Failed to parse exercises:", content);
+      console.error("Failed to parse exercises:", parseError);
       return NextResponse.json(
         { error: "Failed to parse exercise response" },
         { status: 500 },

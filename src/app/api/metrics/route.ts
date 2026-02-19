@@ -1,8 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { redis } from "@/lib/redis";
 
 /**
  * GET /api/metrics - Returns global metrics for About page
+ *
+ * Results are cached in Redis for 1 hour to avoid repeated full-table scans.
  *
  * Returns: {
  *   activeLearners: number,
@@ -11,6 +14,19 @@ import { NextRequest, NextResponse } from "next/server";
  * }
  */
 export async function GET(request: NextRequest) {
+  // Check Redis cache first (1 hour TTL)
+  const cacheKey = "metrics:global";
+  try {
+    const cached = await redis.get<{
+      activeLearners: number;
+      lessonsCompleted: number;
+      languagesAvailable: number;
+    }>(cacheKey);
+    if (cached) return NextResponse.json(cached);
+  } catch {
+    // Cache miss — fall through to DB
+  }
+
   const supabase = await createClient();
 
   // Count active learners from profiles table
@@ -23,24 +39,15 @@ export async function GET(request: NextRequest) {
     .from("lessons")
     .select("id", { count: "exact", head: true });
 
-  // Get distinct languages from vocabulary table
-  // Aggregate distinct languages from several tables to be robust
-  const [
-    { data: vocabData },
-    { data: foundationData },
-    { data: allocData },
-    { data: contentData },
-  ] = await Promise.all([
-    supabase.from("vocabulary").select("language"),
-    supabase.from("foundation_words").select("language"),
-    supabase.from("vocabulary_level_allocation").select("language"),
-    supabase.from("content_segments").select("language"),
+  // Get distinct languages using head:true count per table — much cheaper.
+  // We only need to know WHICH languages exist, not all rows.
+  const [{ data: vocabData }, { data: contentData }] = await Promise.all([
+    supabase.from("vocabulary").select("language").limit(100),
+    supabase.from("content_segments").select("language").limit(100),
   ]);
 
   const allLangs = [
     ...(vocabData || []).map((r: any) => r.language),
-    ...(foundationData || []).map((r: any) => r.language),
-    ...(allocData || []).map((r: any) => r.language),
     ...(contentData || []).map((r: any) => r.language),
   ];
 
@@ -48,9 +55,18 @@ export async function GET(request: NextRequest) {
     new Set(allLangs.filter(Boolean)),
   ).length;
 
-  return NextResponse.json({
+  const result = {
     activeLearners: activeLearners || 0,
     lessonsCompleted: lessonsCompleted || 0,
     languagesAvailable,
-  });
+  };
+
+  // Cache for 1 hour
+  try {
+    await redis.set(cacheKey, result, { ex: 3600 });
+  } catch {
+    // Non-fatal
+  }
+
+  return NextResponse.json(result);
 }

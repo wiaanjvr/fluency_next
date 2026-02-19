@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { generateText } from "@/lib/ai-client";
 
 /**
  * POST /api/translate - Translate text
@@ -6,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function POST(request: NextRequest) {
   try {
+    // Use Gemini for translation via ai-client singleton
     const { text, sourceLang, targetLang } = await request.json();
 
     if (!text) {
@@ -45,48 +47,22 @@ export async function POST(request: NextRequest) {
     const translation = data.data.translations[0].translatedText;
     */
 
-    // Use OpenAI for translation
-    // Requires OPENAI_API_KEY in environment
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "Missing OpenAI API key" },
-        { status: 500 },
-      );
-    }
-
-    // Compose prompt for translation
+    // Compose prompt for translation (ai-client handles API key via singleton)
     const prompt = `Translate the following text from ${sourceLang} to ${targetLang}. Only return the translation, nothing else.\nText: ${text}`;
 
-    const openaiRes = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [
-            { role: "system", content: "You are a translation engine." },
-            { role: "user", content: prompt },
-          ],
-          max_tokens: 100,
-          temperature: 0.2,
-        }),
-      },
-    );
+    const translation = await generateText({
+      contents: prompt,
+      systemInstruction: "You are a translation engine.",
+      temperature: 0.2,
+      maxOutputTokens: 400,
+    });
 
-    if (!openaiRes.ok) {
+    if (!translation) {
       return NextResponse.json(
-        { error: "OpenAI translation failed" },
+        { error: "Translation failed" },
         { status: 500 },
       );
     }
-
-    const openaiData = await openaiRes.json();
-    const translation = openaiData.choices?.[0]?.message?.content?.trim() || "";
 
     return NextResponse.json({
       translation,

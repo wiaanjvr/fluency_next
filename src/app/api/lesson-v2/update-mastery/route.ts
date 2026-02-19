@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { computeWordStatus, MASTERY_CORRECT_STREAK } from "@/lib/lesson-v2";
 import { LearnerWord } from "@/types/lesson-v2";
+import { invalidateLearnerWordsCache } from "@/lib/learner-words-cache";
 
 export async function POST(request: NextRequest) {
   try {
@@ -90,15 +91,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    // Compute new mastery count
-    const { data: allWords } = await supabase
-      .from("learner_words_v2")
-      .select("status")
-      .eq("user_id", user.id);
+    // Invalidate cached learner words so next story gen picks up new mastery
+    await invalidateLearnerWordsCache(user.id);
 
-    const masteryCount = (allWords || []).filter(
-      (w: any) => w.status === "mastered",
-    ).length;
+    // Compute new mastery count via DB aggregate (index-only scan)
+    // instead of fetching all words and counting client-side
+    const { data: countResult } = await supabase.rpc("get_mastery_count", {
+      p_user_id: user.id,
+    });
+
+    const masteryCount = countResult ?? 0;
 
     return NextResponse.json({
       success: true,

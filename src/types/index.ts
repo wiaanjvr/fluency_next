@@ -285,3 +285,6 @@ export * from "./micro-stories";
 
 // Re-export progression gateway types
 export * from "./progression";
+
+// Re-export reward system types
+export * from "./rewards";

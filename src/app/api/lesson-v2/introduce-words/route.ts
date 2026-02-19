@@ -15,6 +15,7 @@ import {
   selectWordsForIntroduction,
   WORDS_PER_INTRODUCTION_SESSION,
 } from "@/lib/lesson-v2";
+import { invalidateLearnerWordsCache } from "@/lib/learner-words-cache";
 
 // GET: return next batch of words to introduce
 export async function GET() {
@@ -131,6 +132,9 @@ export async function POST(request: NextRequest) {
       console.error("Error upserting words:", upsertError);
       return NextResponse.json({ error: upsertError.message }, { status: 500 });
     }
+
+    // Invalidate cached learner words so next story gen picks up new introductions
+    await invalidateLearnerWordsCache(user.id);
 
     // Log the introduction session
     await supabase.from("lesson_sessions_v2").insert({

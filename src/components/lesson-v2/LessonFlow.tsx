@@ -88,6 +88,11 @@ export default function LessonFlow() {
   const [subPhase, setSubPhase] = useState<SubPhase>("loading-profile");
   const [error, setError] = useState<string | null>(null);
 
+  // Stable session ID — used to notify the server when the lesson ends
+  const [sessionId] = useState<string>(
+    () => `lesson_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+  );
+
   // Profile
   const [profile, setProfile] = useState<LearnerProfile | null>(null);
   const [stage, setStage] = useState<MasteryStageConfig | null>(null);
@@ -154,6 +159,20 @@ export default function LessonFlow() {
     if (!res.ok) throw new Error("Failed to update mastery");
     return (await res.json()) as MasteryUpdateResponse;
   }, []);
+
+  /** Notify the server the lesson is done — enqueues BullMQ pre-generation jobs */
+  const completeLessonOnServer = useCallback(async () => {
+    try {
+      await fetch("/api/lesson/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lessonId: sessionId, type: "story" }),
+      });
+    } catch (err) {
+      // Non-fatal — log and continue
+      console.warn("Failed to notify lesson completion:", err);
+    }
+  }, [sessionId]);
 
   // ─── Flow control ──────────────────────────────────────────────
 
@@ -262,13 +281,16 @@ export default function LessonFlow() {
           }
         }
 
+        // Notify server to enqueue background pre-generation jobs
+        await completeLessonOnServer();
+
         setSubPhase("complete");
       } catch (err: any) {
         setError(err.message || "Failed to update mastery");
         setSubPhase("error");
       }
     },
-    [story, updateMastery],
+    [story, updateMastery, completeLessonOnServer],
   );
 
   // ─── Render ────────────────────────────────────────────────────

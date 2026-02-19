@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MilestoneCelebration } from "@/components/progression";
+import { RewardModal } from "@/components/rewards";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { UsageLimitBanner } from "@/components/ui/UsageLimitBanner";
 import {
@@ -337,6 +338,9 @@ export default function DashboardPage() {
   const [previousWordCount, setPreviousWordCount] = useState<number>(0);
   const [dbError, setDbError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>("");
+  const [showRewardModal, setShowRewardModal] = useState(false);
+  const [rewardAmount, setRewardAmount] = useState(0);
+  const [rewardId, setRewardId] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -533,6 +537,30 @@ export default function DashboardPage() {
           avgComprehension,
           wordsEncountered: wordsCount,
         });
+
+        // Check if all monthly goals are complete and offer a reward
+        if (profile?.subscription_tier === "premium") {
+          try {
+            const rewardRes = await fetch("/api/rewards/check-goals", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+            });
+            if (rewardRes.ok) {
+              const rewardData = await rewardRes.json();
+              if (
+                rewardData.all_goals_complete &&
+                rewardData.reward_amount > 0
+              ) {
+                setRewardAmount(rewardData.reward_amount);
+                setRewardId(rewardData.reward_id);
+                setShowRewardModal(true);
+              }
+            }
+          } catch (rewardErr) {
+            // Non-critical — don't block dashboard loading
+            console.error("Reward check failed:", rewardErr);
+          }
+        }
       } catch (error) {
         console.error("Error fetching stats:", error);
         setAuthChecked(true);
@@ -627,6 +655,13 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
+      {/* Reward Modal — shown when all monthly goals are complete */}
+      <RewardModal
+        isOpen={showRewardModal}
+        onClose={() => setShowRewardModal(false)}
+        rewardAmount={rewardAmount}
+        rewardId={rewardId}
+      />
       <DiveTransitionProvider>
         <DashboardContent
           stats={stats}

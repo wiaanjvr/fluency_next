@@ -121,6 +121,31 @@ async function handleChargeSuccess(data: any) {
       console.log(`Premium subscription activated for user ${userId}`);
     }
   }
+
+  // Store authorization_code, email, and amount for future charge_authorization calls
+  // (used by the reward system's process-billing cron)
+  if (data.authorization?.authorization_code || data.customer?.email) {
+    const updateData: Record<string, any> = {};
+    if (data.authorization?.authorization_code) {
+      updateData.paystack_authorization_code =
+        data.authorization.authorization_code;
+    }
+    if (data.customer?.email) {
+      updateData.paystack_email = data.customer.email;
+    }
+    if (data.amount) {
+      updateData.subscription_amount = data.amount;
+    }
+    if (Object.keys(updateData).length > 0) {
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update(updateData)
+        .eq("id", userId);
+      if (updateError) {
+        console.error("Error storing Paystack auth info:", updateError);
+      }
+    }
+  }
 }
 
 async function handleSubscriptionCreate(data: any) {
