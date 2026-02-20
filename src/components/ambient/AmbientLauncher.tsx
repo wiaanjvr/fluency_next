@@ -14,7 +14,13 @@ import type {
   AmbientEpisode,
 } from "@/contexts/AmbientPlayerContext";
 import { cn } from "@/lib/utils";
-import { Radio, Podcast, ChevronRight, Loader2 } from "lucide-react";
+import {
+  Radio,
+  Podcast,
+  ChevronRight,
+  Loader2,
+  Headphones,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState, KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 
@@ -423,8 +429,14 @@ function PopoverPortalContainer({
 
 // ── Launcher trigger button ───────────────────────────────────────────────────
 
-export function AmbientLauncher({ className }: { className?: string }) {
-  const { mode, isPlaying, openAmbient } = useAmbientPlayer();
+export function AmbientLauncher({
+  className,
+  variant = "default",
+}: {
+  className?: string;
+  variant?: "default" | "nav";
+}) {
+  const { mode, isPlaying, openAmbient, ambientView } = useAmbientPlayer();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -443,59 +455,122 @@ export function AmbientLauncher({ className }: { className?: string }) {
     if (e.key === "Escape") setOpen(false);
   }, []);
 
-  const isActive = mode !== null;
+  const isActive = mode !== null && ambientView !== "soundbar";
+
+  const handleClick = () => {
+    if (!open) {
+      openAmbient(getPreferredTab());
+    }
+    setOpen((o) => !o);
+  };
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
-      <button
-        onClick={() => {
-          if (!open) {
-            // Opening: always call openAmbient so mode is set (bar appears)
-            // and data is fetched if not already cached.
-            openAmbient(getPreferredTab());
-          }
-          setOpen((o) => !o);
-        }}
-        onKeyDown={handleKeyDown}
-        aria-expanded={open}
-        aria-haspopup="true"
-        aria-label="Open ambient mode"
-        className={cn(
-          "flex items-center gap-2 px-3 py-1.5 rounded-lg",
-          "text-xs font-medium transition-all duration-200",
-          "hover:opacity-90 active:scale-95",
-        )}
-        style={{
-          fontFamily: "Outfit, sans-serif",
-          background: isActive
-            ? "rgba(61, 214, 181, 0.12)"
-            : "rgba(255, 255, 255, 0.05)",
-          color: isActive ? "var(--turquoise)" : "rgba(255,255,255,0.5)",
-          border: `1px solid ${isActive ? "rgba(61,214,181,0.25)" : "rgba(255,255,255,0.07)"}`,
-        }}
-      >
-        {/* Tiny animated dot when playing */}
-        <span
+      {variant === "nav" ? (
+        // ── Nav-tab style (matches Immerse / Settings appearance) ──────────
+        <button
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          aria-expanded={open}
+          aria-haspopup="true"
+          aria-label="Open ambient mode"
+          className="nav-tab relative group"
+        >
+          <div className="flex items-center gap-2">
+            <Headphones
+              className="w-4 h-4 transition-colors duration-200"
+              style={{
+                color: isActive ? "var(--turquoise)" : "var(--seafoam)",
+                opacity: isActive ? 1 : 0.6,
+              }}
+            />
+            <span
+              className="text-sm font-body font-medium transition-colors duration-200"
+              style={{
+                color: isActive ? "var(--turquoise)" : "var(--sand)",
+                opacity: isActive ? 1 : 0.7,
+              }}
+            >
+              Ambient
+            </span>
+            {/* Playing indicator dot */}
+            {isActive && isPlaying && (
+              <span
+                className="w-1.5 h-1.5 rounded-full shrink-0 ambient-pulse"
+                style={{
+                  background: "var(--turquoise)",
+                  boxShadow: "0 0 6px var(--turquoise)",
+                }}
+              />
+            )}
+          </div>
+          {/* Active indicator underline */}
+          <div
+            className={cn(
+              "mt-1 h-0.5 rounded-full transition-all duration-300",
+              isActive
+                ? "w-full opacity-100"
+                : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
+            )}
+            style={{
+              background: isActive ? "var(--turquoise)" : "var(--seafoam)",
+            }}
+          />
+          <style>{`
+            @keyframes ambientPulse {
+              0%, 100% { opacity: 1; transform: scale(1); }
+              50% { opacity: 0.4; transform: scale(0.75); }
+            }
+            .ambient-pulse { animation: ambientPulse 1.5s ease-in-out infinite; }
+          `}</style>
+        </button>
+      ) : (
+        // ── Default pill style ──────────────────────────────────────────────
+        <button
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          aria-expanded={open}
+          aria-haspopup="true"
+          aria-label="Open ambient mode"
           className={cn(
-            "w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300",
-            isActive && isPlaying ? "ambient-pulse" : "",
+            "flex items-center gap-2 px-3 py-1.5 rounded-lg",
+            "text-xs font-medium transition-all duration-200",
+            "hover:opacity-90 active:scale-95",
           )}
           style={{
-            background: isActive ? "var(--turquoise)" : "rgba(255,255,255,0.2)",
-            boxShadow:
-              isActive && isPlaying ? "0 0 6px var(--turquoise)" : "none",
+            fontFamily: "Outfit, sans-serif",
+            background: isActive
+              ? "rgba(61, 214, 181, 0.12)"
+              : "rgba(255, 255, 255, 0.05)",
+            color: isActive ? "var(--turquoise)" : "rgba(255,255,255,0.5)",
+            border: `1px solid ${
+              isActive ? "rgba(61,214,181,0.25)" : "rgba(255,255,255,0.07)"
+            }`,
           }}
-        />
-        <span>Ambient</span>
-        {/* Pulse animation */}
-        <style>{`
-          @keyframes ambientPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.75); }
-          }
-          .ambient-pulse { animation: ambientPulse 1.5s ease-in-out infinite; }
-        `}</style>
-      </button>
+        >
+          <span
+            className={cn(
+              "w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300",
+              isActive && isPlaying ? "ambient-pulse" : "",
+            )}
+            style={{
+              background: isActive
+                ? "var(--turquoise)"
+                : "rgba(255,255,255,0.2)",
+              boxShadow:
+                isActive && isPlaying ? "0 0 6px var(--turquoise)" : "none",
+            }}
+          />
+          <span>Ambient</span>
+          <style>{`
+            @keyframes ambientPulse {
+              0%, 100% { opacity: 1; transform: scale(1); }
+              50% { opacity: 0.4; transform: scale(0.75); }
+            }
+            .ambient-pulse { animation: ambientPulse 1.5s ease-in-out infinite; }
+          `}</style>
+        </button>
+      )}
 
       {/* Popover: render into body via portal so it won't be clipped by header */}
       {open && (

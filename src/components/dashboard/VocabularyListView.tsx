@@ -202,7 +202,7 @@ export function VocabularyListView({
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       {/* Header */}
       <div className="grid grid-cols-12 gap-4 p-4 bg-muted/50 border-b text-xs font-medium text-muted-foreground">
         <div className="col-span-3">

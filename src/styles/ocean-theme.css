@@ -790,6 +790,12 @@
   background: var(--surface-teal);
 }
 
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ocean-mid) var(--midnight);
+}
+
 /* ===== Focus States - Ocean Glow ===== */
 *:focus-visible {
   outline: 2px solid var(--turquoise);
@@ -1073,4 +1079,36 @@
   color: var(--sand);
   z-index: 100;
   animation: tideFadeIn 0.3s ease forwards;
+}
+
+/* ============================================================================
+   Ocean Scrollbar — always-visible turquoise scrollbar for vocabulary views
+   ============================================================================ */
+.ocean-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(61, 214, 181, 0.45) rgba(255, 255, 255, 0.05);
+}
+
+.ocean-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.ocean-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 3px;
+}
+
+.ocean-scroll::-webkit-scrollbar-thumb {
+  background: rgba(61, 214, 181, 0.45);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.ocean-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(61, 214, 181, 0.75);
+}
+
+.ocean-scroll::-webkit-scrollbar-corner {
+  background: transparent;
 }

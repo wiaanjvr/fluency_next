@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signup, signInWithOAuth, resendConfirmationEmail } from "../actions";
 import { CheckCircle2, Mail, RefreshCw } from "lucide-react";
+import { TurnstileCaptcha } from "@/components/auth/TurnstileCaptcha";
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();
@@ -25,10 +26,11 @@ export default function SignUpPage() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [showCaptcha, setShowCaptcha] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
     setMessage(null);
 
     const formData = new FormData(e.currentTarget);
@@ -36,16 +38,11 @@ export default function SignUpPage() {
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirm_password") as string;
 
-    // Add redirect parameter if present
-    if (redirect) {
-      formData.append("redirect", redirect);
-    }
-
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       setMessage({ type: "error", text: "Please enter a valid email address" });
-      setLoading(false);
+      setShowCaptcha(false);
       return;
     }
 
@@ -55,7 +52,7 @@ export default function SignUpPage() {
         type: "error",
         text: "Password must be at least 6 characters",
       });
-      setLoading(false);
+      setShowCaptcha(false);
       return;
     }
 
@@ -64,13 +61,13 @@ export default function SignUpPage() {
         type: "error",
         text: "Password must be less than 72 characters",
       });
-      setLoading(false);
+      setShowCaptcha(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setMessage({ type: "error", text: "Passwords do not match" });
-      setLoading(false);
+      setShowCaptcha(false);
       return;
     }
 
@@ -81,14 +78,30 @@ export default function SignUpPage() {
         type: "error",
         text: "Password is too weak. Please choose a stronger password.",
       });
-      setLoading(false);
+      setShowCaptcha(false);
       return;
     }
+
+    // If all validations pass and we don't have a captcha token yet, show the captcha
+    if (!captchaToken) {
+      setShowCaptcha(true);
+      return;
+    }
+
+    // Now that we have a captcha token, proceed with signup
+    setLoading(true);
+
+    // Add redirect and captcha token to formData for submission
+    if (redirect) {
+      formData.append("redirect", redirect);
+    }
+    formData.append("captcha_token", captchaToken);
 
     const result = await signup(formData);
 
     if (result?.error) {
       setMessage({ type: "error", text: result.error });
+      setCaptchaToken(null); // reset so user must re-verify
       setLoading(false);
     } else if (result?.success) {
       // Switch to the confirmation screen
@@ -245,7 +258,7 @@ export default function SignUpPage() {
 
         <div className="relative z-10">
           <p className="text-sm font-light text-background/60">
-            © 2026 Fluensea. Dive into fluency.
+            © 2026 Fluensea.
           </p>
         </div>
       </div>
@@ -422,6 +435,29 @@ export default function SignUpPage() {
                 />
               </div>
             </div>
+
+            {showCaptcha && (
+              <div className="space-y-3">
+                <p className="text-sm font-light text-muted-foreground">
+                  Please verify you're human
+                </p>
+                <TurnstileCaptcha
+                  onSuccess={(token) => {
+                    setCaptchaToken(token);
+                    setMessage(null);
+                  }}
+                  onExpire={() => setCaptchaToken(null)}
+                  onError={() => {
+                    setCaptchaToken(null);
+                    setMessage({
+                      type: "error",
+                      text: "CAPTCHA verification failed. Please try again.",
+                    });
+                  }}
+                  className="flex justify-center"
+                />
+              </div>
+            )}
 
             <Button
               type="submit"

@@ -74,7 +74,7 @@ export function LeftSidebar({
   return (
     <aside
       className={cn(
-        "w-64 bg-card border-r border-border/30 flex flex-col h-screen sticky top-0",
+        "w-64 bg-card border-r border-border/30 flex flex-col fixed top-0 left-0 bottom-0 z-40 overflow-y-auto",
         className,
       )}
     >
@@ -97,60 +97,31 @@ export function LeftSidebar({
         </Link>
       </div>
 
-      {/* Quick Stats */}
+      {/* Depth panel (compact) */}
       <div className="p-6 space-y-4 relative after:absolute after:bottom-0 after:left-4 after:right-4 after:h-px after:bg-gradient-to-r after:from-transparent after:via-border/50 after:to-transparent">
+        {/** Simple depth info only — no sessions/avg score */}
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Your Level</div>
+          <div className="text-xs text-muted-foreground mb-1">Depth</div>
           <div className="text-2xl font-semibold text-primary">
-            {stats.currentLevel}
+            {(() => {
+              const wc = stats.wordsEncountered || 0;
+              if (wc >= 500) return "The Deep";
+              if (wc >= 200) return "Twilight Zone";
+              if (wc >= 50) return "Sunlit Zone";
+              return "Shallows";
+            })()}
+          </div>
+          <div className="text-sm text-muted-foreground mt-1">
+            {stats.wordsEncountered} words encountered
           </div>
         </div>
 
-        {/* Streak with wave progress */}
-        <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <Flame className="w-4 h-4 text-orange-500" />
-              </div>
-              <div>
-                <div className="text-lg font-semibold">{stats.streak}</div>
-                <div className="text-[10px] text-muted-foreground">Streak</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Target className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <div className="text-lg font-semibold">
-                  {stats.wordsEncountered}
-                </div>
-                <div className="text-[10px] text-muted-foreground">Words</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Wave progress for streak */}
-          <WaveProgress
-            value={stats.streak}
-            max={30}
-            showLabel={false}
-            height="sm"
-            className="opacity-80"
-          />
-        </div>
-
-        <div className="pt-2">
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-            <span>Sessions</span>
-            <span>{stats.totalSessions}</span>
-          </div>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Avg. Score</span>
-            <span>{stats.avgComprehension}%</span>
-          </div>
+        <div>
+          <Link href="/lesson-v2">
+            <Button variant="secondary" className="w-full">
+              Dive In
+            </Button>
+          </Link>
         </div>
       </div>
 

@@ -71,6 +71,7 @@ export function AmbientPlayer() {
     currentStation,
     currentEpisode,
     streamError,
+    ambientView,
     togglePlay,
     closeAmbient,
     setVolume,
@@ -172,7 +173,10 @@ export function AmbientPlayer() {
         style={{
           background: "rgba(11, 28, 44, 0.82)",
           borderTop: "1px solid rgba(61, 214, 181, 0.18)",
-          transform: visible ? "translateY(0)" : "translateY(100%)",
+          transform:
+            visible && ambientView !== "container"
+              ? "translateY(0)"
+              : "translateY(100%)",
         }}
       >
         {/* LEFT — Wave icon */}

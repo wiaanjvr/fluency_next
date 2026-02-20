@@ -92,6 +92,7 @@ export async function signup(formData: FormData) {
   const password = formData.get("password") as string;
   const fullName = (formData.get("full_name") as string)?.trim() || "";
   const redirectTo = (formData.get("redirect") as string)?.trim() || null;
+  const captchaToken = (formData.get("captcha_token") as string) || undefined;
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -134,6 +135,7 @@ export async function signup(formData: FormData) {
         full_name: fullName,
       },
       emailRedirectTo: callbackUrl.toString(),
+      captchaToken,
     },
   });
 

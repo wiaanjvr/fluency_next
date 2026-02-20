@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Waves, BarChart3, Settings, User } from "lucide-react";
+import { Waves, Settings, User } from "lucide-react";
 import { AmbientLauncher } from "@/components/ambient";
+import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 
 // ============================================================================
 // Ocean Navigation - Simplified immersive nav
@@ -15,30 +16,34 @@ import { AmbientLauncher } from "@/components/ambient";
 
 interface OceanNavigationProps {
   streak?: number;
+  avgScore?: number;
   wordsEncountered?: number;
   totalMinutes?: number;
   avatarUrl?: string;
   currentPath?: string;
   className?: string;
   isAdmin?: boolean;
+  isProgressView?: boolean;
+  targetLanguage?: string;
 }
 
-const navItems = [
-  { href: "/dashboard", label: "Immerse", icon: Waves },
-  { href: "/dashboard?view=progress", label: "Progress", icon: BarChart3 },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+const navItems = [{ href: "/dashboard", label: "Immerse", icon: Waves }];
 
 export function OceanNavigation({
+  streak = 0,
+  avgScore = 0,
   wordsEncountered = 0,
   totalMinutes = 0,
   avatarUrl,
   currentPath = "/dashboard",
   className,
   isAdmin = false,
+  isProgressView = false,
+  targetLanguage,
 }: OceanNavigationProps) {
   const [scrolled, setScrolled] = useState(false);
   const [wordsCount, setWordsCount] = useState(0);
+  const { ambientView, setAmbientView } = useAmbientPlayer();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,7 +85,12 @@ export function OceanNavigation({
         className,
       )}
     >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <div
+        className={cn(
+          "max-w-7xl mx-auto px-6 flex items-center justify-between transition-all duration-300",
+          isProgressView ? "md:ml-[360px]" : "md:ml-[385px]",
+        )}
+      >
         {/* Left: Logo & Wordmark */}
         <Link href="/dashboard" className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-lg overflow-hidden transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
@@ -102,7 +112,7 @@ export function OceanNavigation({
         </Link>
 
         {/* Center: Three Destinations */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-4">
           {navItems.map((item) => {
             const isActive =
               item.href === "/dashboard"
@@ -120,9 +130,72 @@ export function OceanNavigation({
                 key={item.href}
                 href={item.href}
                 className="nav-tab relative group"
+                onClick={() => {
+                  if (ambientView === "container") {
+                    // SoundContainer → soundbar mode
+                    setAmbientView("soundbar");
+                  } else if (ambientView === "soundbar") {
+                    // soundbar mode → normal lesson hero (audio keeps playing)
+                    setAmbientView(null);
+                  }
+                  // null → navigate normally, no state change
+                }}
               >
                 <div className="flex items-center gap-2">
                   <Icon
+                    className="w-4 h-4 transition-colors duration-200"
+                    style={{
+                      color:
+                        isActive && ambientView === null
+                          ? "var(--turquoise)"
+                          : "var(--seafoam)",
+                      opacity: isActive && ambientView === null ? 1 : 0.45,
+                    }}
+                  />
+                  <span
+                    className={cn(
+                      "text-sm font-body font-medium transition-colors duration-200",
+                    )}
+                    style={{
+                      color:
+                        isActive && ambientView === null
+                          ? "var(--turquoise)"
+                          : "var(--sand)",
+                      opacity: isActive && ambientView === null ? 1 : 0.45,
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+                {/* Active indicator */}
+                <div
+                  className={cn(
+                    "mt-1 h-0.5 rounded-full transition-all duration-300",
+                    isActive && ambientView === null
+                      ? "w-full opacity-100"
+                      : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
+                  )}
+                  style={{
+                    background:
+                      isActive && ambientView === null
+                        ? "var(--turquoise)"
+                        : "var(--seafoam)",
+                  }}
+                />
+              </Link>
+            );
+          })}
+          {/* Ambient — between Immerse and Settings, nav-tab style */}
+          <AmbientLauncher variant="nav" />
+
+          {/* Settings nav item */}
+          {(() => {
+            const settingsHref = "/settings";
+            const isActive = currentPath.startsWith(settingsHref);
+            return (
+              <Link href={settingsHref} className="nav-tab relative group">
+                <div className="flex items-center gap-2">
+                  <Settings
                     className="w-4 h-4 transition-colors duration-200"
                     style={{
                       color: isActive ? "var(--turquoise)" : "var(--seafoam)",
@@ -138,10 +211,9 @@ export function OceanNavigation({
                       opacity: isActive ? 1 : 0.7,
                     }}
                   >
-                    {item.label}
+                    Settings
                   </span>
                 </div>
-                {/* Active indicator */}
                 <div
                   className={cn(
                     "mt-1 h-0.5 rounded-full transition-all duration-300",
@@ -157,8 +229,9 @@ export function OceanNavigation({
                 />
               </Link>
             );
-          })}
-          {/* Admin nav item (styled like others) */}
+          })()}
+
+          {/* Admin nav item */}
           {isAdmin &&
             (() => {
               const adminHref = "/admin/donations";
@@ -207,46 +280,38 @@ export function OceanNavigation({
             })()}
         </div>
 
-        {/* Right: Immersion Stats & Avatar */}
-        <div className="flex items-center gap-5">
-          {/* Words absorbed */}
-          <div className="flex items-center gap-2" title="Words absorbed">
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ background: "var(--turquoise)", opacity: 0.8 }}
-            />
-            <span
-              className="text-sm font-body font-semibold tabular-nums"
-              style={{ color: "var(--sand)" }}
-            >
-              {wordsCount}
-            </span>
-            <span
-              className="text-xs font-body hidden sm:inline"
-              style={{ color: "var(--seafoam)", opacity: 0.6 }}
-            >
-              words
-            </span>
-          </div>
-
-          {/* Time immersed */}
-          {totalMinutes > 0 && (
-            <div className="flex items-center gap-2" title="Time immersed">
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{ background: "var(--seafoam)", opacity: 0.6 }}
-              />
+        {/* Right: Stats & Avatar */}
+        <div className="flex items-center gap-3">
+          {/* Daily streak */}
+          {streak > 0 && (
+            <div className="flex items-center gap-1.5" title="Daily streak">
+              <span className="text-base leading-none">🔥</span>
               <span
-                className="text-sm font-body font-semibold"
+                className="text-sm font-body font-semibold tabular-nums"
                 style={{ color: "var(--sand)" }}
               >
-                {formatTime(totalMinutes)}
+                {streak}
               </span>
             </div>
           )}
 
-          {/* Ambient Mode launcher */}
-          <AmbientLauncher className="hidden sm:flex" />
+          {/* Language flag (image-based for cross-platform reliability) */}
+          {targetLanguage && (
+            <div
+              className="flex items-center justify-center shrink-0"
+              title={`Learning: ${targetLanguage.toUpperCase()}`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`https://flagcdn.com/24x18/${targetLanguage.toLowerCase()}.png`}
+                srcSet={`https://flagcdn.com/48x36/${targetLanguage.toLowerCase()}.png 2x`}
+                width={24}
+                height={18}
+                alt={targetLanguage.toUpperCase()}
+                style={{ borderRadius: 2, display: "block" }}
+              />
+            </div>
+          )}
 
           {/* Avatar */}
           <Link href="/settings">

@@ -50,6 +50,13 @@ interface AmbientPlayerState {
   isLoading: boolean;
   /** True when all available radio streams have been tried and failed */
   streamError: boolean;
+  /**
+   * Controls which ambient UI is on-screen:
+   * - "container" : SoundContainer fills the hero, soundbar hidden
+   * - "soundbar"  : lesson hero shown, soundbar visible, Immerse + Ambient dimmed
+   * - null        : lesson hero + soundbar visible (normal / Immerse coloured)
+   */
+  ambientView: "container" | "soundbar" | null;
 }
 
 interface AmbientPlayerActions {
@@ -63,6 +70,8 @@ interface AmbientPlayerActions {
   retryStream: () => void;
   /** Retry from scratch after all podcast episodes failed */
   retryEpisode: () => void;
+  /** Set which ambient view is active */
+  setAmbientView: (v: "container" | "soundbar" | null) => void;
 }
 
 type AmbientPlayerContextValue = AmbientPlayerState & AmbientPlayerActions;
@@ -93,6 +102,9 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
   const [episodes, setEpisodes] = useState<AmbientEpisode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [streamError, setStreamError] = useState(false);
+  const [ambientView, setAmbientViewState] = useState<
+    "container" | "soundbar" | null
+  >(null);
 
   // Tracks which IDs/URLs have been tried so we stop cycling once all fail.
   const triedStationIdsRef = useRef<Set<string>>(new Set());
@@ -256,6 +268,7 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
           }
           setCurrentStation(first);
           setIsPlaying(true);
+          setAmbientViewState("container");
         }
       } else {
         let list = episodes;
@@ -279,6 +292,7 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
           }
           setCurrentEpisode(first);
           setIsPlaying(true);
+          setAmbientViewState("container");
         }
       }
     },
@@ -303,6 +317,7 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     setCurrentStation(null);
     setCurrentEpisode(null);
     setStreamError(false);
+    setAmbientViewState(null);
     triedStationIdsRef.current.clear();
     triedEpisodeUrlsRef.current.clear();
   }, []);
@@ -319,6 +334,7 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     setCurrentEpisode(null);
     setIsPlaying(true);
     setMode("radio");
+    setAmbientViewState("container");
   }, []);
 
   const playEpisode = useCallback((episode: AmbientEpisode) => {
@@ -333,6 +349,7 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     setCurrentStation(null);
     setIsPlaying(true);
     setMode("podcast");
+    setAmbientViewState("container");
   }, []);
 
   const togglePlay = useCallback(() => {
@@ -402,6 +419,7 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     episodes,
     isLoading,
     streamError,
+    ambientView,
     openAmbient,
     closeAmbient,
     playStation,
@@ -410,6 +428,7 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     setVolume,
     retryStream,
     retryEpisode,
+    setAmbientView: setAmbientViewState,
   };
 
   return (

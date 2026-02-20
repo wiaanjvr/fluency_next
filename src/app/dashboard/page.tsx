@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -13,17 +13,18 @@ import {
   OceanBackground,
   OceanNavigation,
   NextLessonHero,
-  DepthChart,
   DiveTransitionProvider,
   useDiveTransition,
+  DepthSidebar,
 } from "@/components/ocean";
 import { VocabularyViewer } from "@/components/dashboard";
+import { SoundContainer } from "@/components/ambient";
+import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 import { Check, Crown, ArrowRight } from "lucide-react";
 import { ProficiencyLevel, WordStatus, ProgressMilestone } from "@/types";
 import { checkProficiencyUpdate } from "@/lib/srs/proficiency-calculator";
 import { checkMilestoneAchievement } from "@/lib/progression";
 import { cn } from "@/lib/utils";
-import { getLanguageConfig } from "@/lib/languages";
 
 import "@/styles/ocean-theme.css";
 
@@ -88,8 +89,8 @@ function DashboardContent({
   isAdmin?: boolean;
 }) {
   const { triggerDive } = useDiveTransition();
+  const { ambientView } = useAmbientPlayer();
   const contentRef = useRef<HTMLDivElement>(null);
-  const depthChartRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   const depthInfo = getDepthInfo(stats.wordsEncountered);
@@ -115,33 +116,34 @@ function DashboardContent({
     triggerDive(depthInfo.path);
   };
 
-  // Scroll to depth chart when progress view is active
-  useEffect(() => {
-    if (isProgressView && depthChartRef.current) {
-      setTimeout(() => {
-        depthChartRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 100);
-    }
-  }, [isProgressView]);
-
   return (
     <OceanBackground>
-      {/* Navigation — Simplified: Immerse, Progress, Settings */}
+      {/* Depth sidebar — always visible on desktop */}
+      <DepthSidebar
+        wordCount={stats.wordsEncountered}
+        totalMinutes={stats.totalTime}
+      />
+
+      {/* Navigation — Immerse, Settings */}
       <OceanNavigation
         wordsEncountered={stats.wordsEncountered}
         totalMinutes={stats.totalTime}
+        streak={stats.streak}
+        avgScore={stats.avgComprehension}
         avatarUrl={avatarUrl}
         currentPath="/dashboard"
         isAdmin={isAdmin}
+        isProgressView={isProgressView}
+        targetLanguage={targetLanguage}
       />
 
-      {/* Main Content */}
+      {/* Main Content — offset right for depth sidebar */}
       <div
         ref={contentRef}
-        className="relative z-10 min-h-screen pt-24 pb-16 px-6"
+        className={cn(
+          "relative z-10 min-h-screen pt-24 pb-16 px-6",
+          isProgressView ? "md:pl-[570px]" : "md:pl-[350px]",
+        )}
       >
         {/* Payment Success Notification */}
         {showPaymentSuccess && (
@@ -223,39 +225,24 @@ function DashboardContent({
               transition: "transform 0.3s ease-out",
             }}
           >
-            <NextLessonHero
-              depthName={depthInfo.name}
-              wordsAbsorbed={stats.wordsEncountered}
-              sessionPath={depthInfo.path}
-              onDiveClick={handleDiveClick}
-            />
-          </section>
-
-          {/* ========== DEPTH CHART — The tide rising ========== */}
-          <section
-            ref={depthChartRef}
-            className="ocean-card-animate"
-            style={{ animationDelay: "0.4s" }}
-          >
-            <DepthChart
-              wordCount={stats.wordsEncountered}
-              totalMinutes={stats.totalTime}
-              shadowingSessions={stats.totalSessions}
-            />
+            {ambientView === "container" ? (
+              <SoundContainer />
+            ) : (
+              <NextLessonHero
+                depthName={depthInfo.name}
+                wordsAbsorbed={stats.wordsEncountered}
+                sessionPath={depthInfo.path}
+                onDiveClick={handleDiveClick}
+              />
+            )}
           </section>
 
           {/* ========== VOCABULARY VIEWER ========== */}
-          {userId && stats.wordsEncountered > 0 && (
+          {userId && (
             <section
               className="ocean-card p-6 ocean-card-animate"
               style={{ animationDelay: "0.5s" }}
             >
-              <h3
-                className="font-display text-2xl font-semibold mb-6"
-                style={{ color: "var(--sand)" }}
-              >
-                Words You Know
-              </h3>
               <VocabularyViewer userId={userId} language={targetLanguage} />
             </section>
           )}
@@ -663,11 +650,6 @@ export default function DashboardPage() {
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [supabase, authChecked]);
-
-  const languageConfig = useMemo(
-    () => getLanguageConfig(targetLanguage),
-    [targetLanguage],
-  );
 
   if (!authChecked || loading) {
     return <LoadingScreen />;

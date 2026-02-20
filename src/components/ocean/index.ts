@@ -6,6 +6,7 @@ export { OceanNavigation } from "./OceanNavigation";
 export { NextLessonHero } from "./NextLessonHero";
 export { WordProgressSection, WordProgressCard } from "./WordProgressSection";
 export { DepthChart } from "./DepthChart";
+export { DepthSidebar } from "./DepthSidebar";
 export {
   DiveTransitionProvider,
   useDiveTransition,

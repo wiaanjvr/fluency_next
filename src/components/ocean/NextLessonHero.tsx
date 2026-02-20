@@ -82,7 +82,7 @@ export function NextLessonHero({
   return (
     <div
       className={cn(
-        "ocean-card caustic-bg relative overflow-hidden w-full max-w-3xl mx-auto",
+        "ocean-card caustic-bg relative overflow-hidden w-full",
         "ocean-card-animate",
         className,
       )}
