@@ -11,8 +11,9 @@ import type {
 
    POST /api/rewards/save-choice
 
-   Accepts the user's reward choice (full discount or discount+charity split)
-   and updates the pending user_rewards row accordingly.
+   Accepts the user's reward choice and updates the pending user_rewards row.
+   GlobalGiving integration has been removed — charity amounts now go to the
+   community pooled Ocean Cleanup donation via credit redemption.
 ============================================================================= */
 
 const getServiceSupabase = () =>
@@ -39,14 +40,6 @@ export async function POST(request: NextRequest) {
 
     const body: SaveRewardChoiceRequest = await request.json();
 
-    // Validate required fields
-    if (!body.option || !["discount", "split"].includes(body.option)) {
-      return NextResponse.json(
-        { error: 'option must be "discount" or "split"' },
-        { status: 400 },
-      );
-    }
-
     if (
       typeof body.discount_amount !== "number" ||
       typeof body.charity_amount !== "number"
@@ -55,19 +48,6 @@ export async function POST(request: NextRequest) {
         { error: "discount_amount and charity_amount are required integers" },
         { status: 400 },
       );
-    }
-
-    // If split option, require GlobalGiving project info
-    if (body.option === "split" && body.charity_amount > 0) {
-      if (!body.globalgiving_project_id || !body.globalgiving_project_name) {
-        return NextResponse.json(
-          {
-            error:
-              "globalgiving_project_id and globalgiving_project_name are required when charity_amount > 0",
-          },
-          { status: 400 },
-        );
-      }
     }
 
     const serviceSupabase = getServiceSupabase();
@@ -117,10 +97,6 @@ export async function POST(request: NextRequest) {
     const updateData: Record<string, any> = {
       discount_amount: body.discount_amount,
       charity_amount: body.charity_amount,
-      globalgiving_project_id:
-        body.charity_amount > 0 ? body.globalgiving_project_id : null,
-      globalgiving_project_name:
-        body.charity_amount > 0 ? body.globalgiving_project_name : null,
     };
 
     const { data: updatedReward, error: updateError } = await serviceSupabase

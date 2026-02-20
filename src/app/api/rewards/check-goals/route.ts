@@ -89,11 +89,16 @@ export async function POST(request: NextRequest) {
 
     if (existingReward) {
       // Reward already created — just return info
+      // Credits = charity_amount in cents / 100 = credits in Rand
+      const credits = existingReward.charity_amount
+        ? Math.max(1, Math.round(existingReward.charity_amount / 100))
+        : Math.max(1, Math.round(existingReward.standard_amount / 2 / 100));
       return NextResponse.json<CheckGoalsResponse>({
         all_goals_complete: true,
         reward_created: false,
         reward_amount: existingReward.standard_amount / 2,
         reward_id: existingReward.id,
+        credits_awarded: credits,
       });
     }
 
@@ -156,6 +161,7 @@ export async function POST(request: NextRequest) {
       reward_created: true,
       reward_amount: rewardAmount,
       reward_id: reward.id,
+      credits_awarded: Math.max(1, Math.round(rewardAmount / 100)),
     });
   } catch (error) {
     console.error("Check goals error:", error);

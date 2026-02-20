@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Waves, BarChart3, Settings, User } from "lucide-react";
+import { AmbientLauncher } from "@/components/ambient";
 
 // ============================================================================
 // Ocean Navigation - Simplified immersive nav
@@ -19,6 +20,7 @@ interface OceanNavigationProps {
   avatarUrl?: string;
   currentPath?: string;
   className?: string;
+  isAdmin?: boolean;
 }
 
 const navItems = [
@@ -33,6 +35,7 @@ export function OceanNavigation({
   avatarUrl,
   currentPath = "/dashboard",
   className,
+  isAdmin = false,
 }: OceanNavigationProps) {
   const [scrolled, setScrolled] = useState(false);
   const [wordsCount, setWordsCount] = useState(0);
@@ -155,6 +158,53 @@ export function OceanNavigation({
               </Link>
             );
           })}
+          {/* Admin nav item (styled like others) */}
+          {isAdmin &&
+            (() => {
+              const adminHref = "/admin/donations";
+              const isActive = currentPath.startsWith(adminHref);
+              return (
+                <Link
+                  key={adminHref}
+                  href={adminHref}
+                  className="nav-tab relative group"
+                >
+                  <div className="flex items-center gap-2">
+                    <Settings
+                      className="w-4 h-4 transition-colors duration-200"
+                      style={{
+                        color: isActive ? "var(--turquoise)" : "var(--seafoam)",
+                        opacity: isActive ? 1 : 0.6,
+                      }}
+                    />
+                    <span
+                      className={cn(
+                        "text-sm font-body font-medium transition-colors duration-200",
+                      )}
+                      style={{
+                        color: isActive ? "var(--turquoise)" : "var(--sand)",
+                        opacity: isActive ? 1 : 0.7,
+                      }}
+                    >
+                      Donations
+                    </span>
+                  </div>
+                  <div
+                    className={cn(
+                      "mt-1 h-0.5 rounded-full transition-all duration-300",
+                      isActive
+                        ? "w-full opacity-100"
+                        : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
+                    )}
+                    style={{
+                      background: isActive
+                        ? "var(--turquoise)"
+                        : "var(--seafoam)",
+                    }}
+                  />
+                </Link>
+              );
+            })()}
         </div>
 
         {/* Right: Immersion Stats & Avatar */}
@@ -194,6 +244,9 @@ export function OceanNavigation({
               </span>
             </div>
           )}
+
+          {/* Ambient Mode launcher */}
+          <AmbientLauncher className="hidden sm:flex" />
 
           {/* Avatar */}
           <Link href="/settings">

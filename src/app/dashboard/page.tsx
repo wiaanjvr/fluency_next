@@ -65,6 +65,7 @@ function DashboardContent({
   setCelebratingMilestone,
   avatarUrl,
   isProgressView,
+  isAdmin,
 }: {
   stats: {
     totalSessions: number;
@@ -84,6 +85,7 @@ function DashboardContent({
   setCelebratingMilestone: (milestone: ProgressMilestone | null) => void;
   avatarUrl?: string;
   isProgressView?: boolean;
+  isAdmin?: boolean;
 }) {
   const { triggerDive } = useDiveTransition();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -133,6 +135,7 @@ function DashboardContent({
         totalMinutes={stats.totalTime}
         avatarUrl={avatarUrl}
         currentPath="/dashboard"
+        isAdmin={isAdmin}
       />
 
       {/* Main Content */}
@@ -316,6 +319,7 @@ export default function DashboardPage() {
   const [subscriptionTier, setSubscriptionTier] = useState<string>("free");
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   const [stats, setStats] = useState({
     totalSessions: 0,
@@ -339,7 +343,7 @@ export default function DashboardPage() {
   const [dbError, setDbError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>("");
   const [showRewardModal, setShowRewardModal] = useState(false);
-  const [rewardAmount, setRewardAmount] = useState(0);
+  const [creditsAwarded, setCreditsAwarded] = useState(0);
   const [rewardId, setRewardId] = useState("");
 
   useEffect(() => {
@@ -549,9 +553,9 @@ export default function DashboardPage() {
               const rewardData = await rewardRes.json();
               if (
                 rewardData.all_goals_complete &&
-                rewardData.reward_amount > 0
+                rewardData.credits_awarded > 0
               ) {
-                setRewardAmount(rewardData.reward_amount);
+                setCreditsAwarded(rewardData.credits_awarded);
                 setRewardId(rewardData.reward_id);
                 setShowRewardModal(true);
               }
@@ -571,6 +575,22 @@ export default function DashboardPage() {
 
     fetchUserStats();
   }, [supabase, router, previousWordCount]);
+
+  // Fetch admin status for the current session user (server-side check)
+  useEffect(() => {
+    if (!authChecked) return;
+    const checkAdmin = async () => {
+      try {
+        const res = await fetch("/api/admin/is-admin");
+        if (!res.ok) return;
+        const j = await res.json();
+        setIsAdmin(Boolean(j.is_admin));
+      } catch (err) {
+        console.error("Failed to check admin status:", err);
+      }
+    };
+    checkAdmin();
+  }, [authChecked]);
 
   // Re-fetch stats when user returns to the tab (e.g. after completing a lesson)
   useEffect(() => {
@@ -659,7 +679,7 @@ export default function DashboardPage() {
       <RewardModal
         isOpen={showRewardModal}
         onClose={() => setShowRewardModal(false)}
-        rewardAmount={rewardAmount}
+        creditsAwarded={creditsAwarded}
         rewardId={rewardId}
       />
       <DiveTransitionProvider>
@@ -675,6 +695,7 @@ export default function DashboardPage() {
           setCelebratingMilestone={setCelebratingMilestone}
           avatarUrl={avatarUrl}
           isProgressView={isProgressView}
+          isAdmin={isAdmin}
         />
       </DiveTransitionProvider>
     </ProtectedRoute>

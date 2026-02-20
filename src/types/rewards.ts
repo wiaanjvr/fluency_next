@@ -1,13 +1,16 @@
 /* =============================================================================
    REWARD SYSTEM TYPES
    
-   TypeScript interfaces for the goal completion reward system
+   TypeScript interfaces for the goal completion reward system.
+   
+   NOTE: GlobalGiving integration has been removed and replaced with The Ocean
+   Cleanup community pooled donation model. See src/types/ocean-impact.ts
+   for donation/impact types.
 ============================================================================= */
 
 // ── Database row types ──────────────────────────────────────────────────────
 
 export type RewardStatus = "pending" | "applied" | "failed";
-export type RewardOption = "discount" | "split";
 
 export interface UserReward {
   id: string;
@@ -16,8 +19,6 @@ export interface UserReward {
   standard_amount: number; // cents
   discount_amount: number; // cents
   charity_amount: number; // cents
-  globalgiving_project_id: string | null;
-  globalgiving_project_name: string | null;
   status: RewardStatus;
   created_at: string;
   applied_at: string | null;
@@ -48,15 +49,13 @@ export interface CheckGoalsResponse {
   reward_created: boolean;
   reward_amount: number; // 50% of subscription in cents
   reward_id?: string;
+  credits_awarded?: number;
 }
 
 export interface SaveRewardChoiceRequest {
   user_id: string;
-  option: RewardOption;
   discount_amount: number; // cents
   charity_amount: number; // cents
-  globalgiving_project_id?: string;
-  globalgiving_project_name?: string;
 }
 
 export interface SaveRewardChoiceResponse {
@@ -68,49 +67,6 @@ export interface ProcessBillingResult {
   user_id: string;
   status: "applied" | "failed";
   charge_amount: number;
-  charity_donated: number;
+  credits_awarded: number;
   error?: string;
-}
-
-// ── GlobalGiving types ──────────────────────────────────────────────────────
-
-export interface GlobalGivingProject {
-  id: number;
-  title: string;
-  summary: string;
-  themeName: string;
-  imageLink: string;
-  country: string;
-  region: string;
-  funding: number;
-  goal: number;
-  numberOfDonations: number;
-  projectLink: string;
-}
-
-export interface GlobalGivingProjectsResponse {
-  projects: {
-    hasNext: boolean;
-    nextProjectId?: number;
-    numberFound: number;
-    project: GlobalGivingProject[];
-  };
-}
-
-export interface GlobalGivingDonationRequest {
-  donation: {
-    amount: number; // in dollars (GlobalGiving uses USD)
-    project: { id: number };
-    donor: {
-      email: string;
-      firstName?: string;
-      lastName?: string;
-    };
-  };
-}
-
-export interface GlobalGivingTokenResponse {
-  accessToken: string;
-  tokenType: string;
-  expiresIn: number;
 }

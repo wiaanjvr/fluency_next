@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { PAYSTACK_API_URL } from "@/lib/paystack/config";
-import { submitDonation } from "@/lib/globalgiving/client";
-import type { UserReward, ProcessBillingResult } from "@/types/rewards";
+import type { ProcessBillingResult } from "@/types/rewards";
 
 /* =============================================================================
    PROCESS BILLING API ROUTE (CRON)
@@ -14,8 +13,12 @@ import type { UserReward, ProcessBillingResult } from "@/types/rewards";
 
    For each user with a pending reward whose billing date is today:
    1. Charges (standard_amount - discount_amount) via Paystack charge_authorization
-   2. If charity_amount > 0: donates to GlobalGiving
+   2. Awards reward_credits to the user's profile (charity_amount converted to credits)
    3. Marks reward as 'applied' or 'failed'
+   
+   NOTE: GlobalGiving integration has been removed. Charity amounts are now
+   converted to reward_credits that users can redeem toward the community
+   pooled Ocean Cleanup donation.
 ============================================================================= */
 
 const getServiceSupabase = () =>
@@ -103,8 +106,7 @@ export async function POST(request: Request) {
       .select(
         `
         id, user_id, reward_month, standard_amount,
-        discount_amount, charity_amount,
-        globalgiving_project_id, globalgiving_project_name, status
+        discount_amount, charity_amount, status
       `,
       )
       .eq("status", "pending");
@@ -153,7 +155,7 @@ export async function POST(request: Request) {
           user_id: reward.user_id,
           status: "failed",
           charge_amount: 0,
-          charity_donated: 0,
+          credits_awarded: 0,
           error: "Profile not found",
         });
         continue;
@@ -174,7 +176,7 @@ export async function POST(request: Request) {
           user_id: reward.user_id,
           status: "failed",
           charge_amount: 0,
-          charity_donated: 0,
+          credits_awarded: 0,
           error: "Missing Paystack authorization_code or email",
         });
 
@@ -204,7 +206,7 @@ export async function POST(request: Request) {
           user_id: reward.user_id,
           status: "failed",
           charge_amount: chargeAmount,
-          charity_donated: 0,
+          credits_awarded: 0,
           error: chargeResult.error,
         });
 
@@ -216,41 +218,40 @@ export async function POST(request: Request) {
         continue;
       }
 
-      // ── Step 2: Donate to GlobalGiving if charity_amount > 0 ───────────
-      let charityDonated = 0;
+      // ── Step 2: Award reward credits if charity_amount > 0 ──────────
+      let creditsAwarded = 0;
 
-      if (reward.charity_amount > 0 && reward.globalgiving_project_id) {
-        const globalgivingKey = process.env.GLOBALGIVING_API_KEY;
-        if (!globalgivingKey) {
-          console.error("GLOBALGIVING_API_KEY not configured");
-        } else {
-          // Convert ZAR cents to USD dollars for GlobalGiving
-          // (Use approximate exchange rate — in production, fetch live rate)
-          const zarToUsd = 0.055; // ~R18 = $1 approximate
-          const amountUSD = Math.max(
-            1,
-            Math.round((reward.charity_amount / 100) * zarToUsd * 100) / 100,
-          );
+      if (reward.charity_amount > 0) {
+        // Convert charity cents to credits (1 credit per 100 cents / R1)
+        creditsAwarded = Math.max(1, Math.round(reward.charity_amount / 100));
 
-          const donationResult = await submitDonation({
-            apiKey: globalgivingKey,
-            projectId: parseInt(reward.globalgiving_project_id, 10),
-            amountUSD,
-            donorEmail: profile.paystack_email || profile.email,
-          });
+        // Fetch current credits and increment
+        const { data: currentProfile } = await serviceSupabase
+          .from("profiles")
+          .select("reward_credits")
+          .eq("id", reward.user_id)
+          .single();
 
-          if (donationResult.success) {
-            charityDonated = reward.charity_amount;
-            console.log(
-              `Donated $${amountUSD} to project ${reward.globalgiving_project_id} for user ${reward.user_id}`,
-            );
-          } else {
+        if (currentProfile) {
+          const { error: creditError } = await serviceSupabase
+            .from("profiles")
+            .update({
+              reward_credits:
+                (currentProfile.reward_credits || 0) + creditsAwarded,
+            })
+            .eq("id", reward.user_id);
+
+          if (creditError) {
             console.error(
-              `GlobalGiving donation failed for user ${reward.user_id}:`,
-              donationResult.error,
+              `Failed to award credits for user ${reward.user_id}:`,
+              creditError,
             );
-            // We don't fail the whole reward for a charity error —
-            // the user still gets their discount.
+            // Don't fail the whole reward — the discount was already applied
+            creditsAwarded = 0;
+          } else {
+            console.log(
+              `Awarded ${creditsAwarded} credit(s) to user ${reward.user_id}`,
+            );
           }
         }
       }
@@ -268,11 +269,11 @@ export async function POST(request: Request) {
         user_id: reward.user_id,
         status: "applied",
         charge_amount: chargeAmount,
-        charity_donated: charityDonated,
+        credits_awarded: creditsAwarded,
       });
 
       console.log(
-        `Reward applied for user ${reward.user_id}: charged ${chargeAmount} cents, donated ${charityDonated} cents`,
+        `Reward applied for user ${reward.user_id}: charged ${chargeAmount} cents, awarded ${creditsAwarded} credit(s)`,
       );
     }
 

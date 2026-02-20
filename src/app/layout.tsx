@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 // import { Inter } from "next/font/google"; // Not used, font loaded via globals.css
 import "@/styles/globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AmbientPlayerProvider } from "@/contexts/AmbientPlayerContext";
+import { AmbientPlayer } from "@/components/ambient";
 
 // Font is loaded via globals.css
 
@@ -32,7 +34,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <AmbientPlayerProvider>
+            {children}
+            <AmbientPlayer />
+          </AmbientPlayerProvider>
+        </AuthProvider>
       </body>
     </html>
   );
