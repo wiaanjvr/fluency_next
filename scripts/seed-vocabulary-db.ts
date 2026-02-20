@@ -1,10 +1,14 @@
 /**
  * Seed Vocabulary Database
  *
- * This script migrates vocabulary data from JSON files to Supabase database.
- * Run this script once to populate the vocabulary and vocabulary_level_allocation tables.
+ * Populates the `vocab` master word list from JSON frequency files.
+ * Safe to re-run — uses upsert on (word, language, form) so re-runs are idempotent.
+ *
+ * Source word counts: FR=1000, DE=500, IT=500
+ * To reach 1000 words per language for DE/IT, expand the source JSON files.
  *
  * Usage:
+ *   $env:NODE_OPTIONS="--dns-result-order=ipv4first"
  *   npx tsx scripts/seed-vocabulary-db.ts
  */
 
@@ -14,12 +18,10 @@ import * as path from "path";
 dotenv.config({ path: path.join(process.cwd(), ".env.local") });
 
 // Disable SSL certificate verification for development (Windows fix)
-if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0") {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-}
+// Must be set BEFORE the Supabase client is created.
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 import { createClient } from "@supabase/supabase-js";
-import * as fs from "fs";
 
 // Import vocabulary JSON files
 import frenchWords from "../src/data/common-french-words.json";
@@ -40,29 +42,35 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+interface WordEntry {
+  word: string;
+  rank: number;
+  pos: string;
+  lemma: string;
+}
+
 interface VocabularyData {
   description: string;
   levelAllocation: Record<string, number>;
-  words: Array<{
-    word: string;
-    rank: number;
-    pos: string;
-    lemma: string;
-  }>;
+  words: WordEntry[];
 }
 
-interface VocabularyRow {
+/**
+ * Use the part-of-speech tag directly as the form value.
+ * This ensures (word="de", pos="preposition") and (word="de", pos="article")
+ * are stored as two distinct rows rather than being collapsed.
+ */
+function deriveForm(pos: string): string {
+  return pos.toLowerCase();
+}
+
+interface VocabRow {
   word: string;
-  lemma: string;
   language: string;
-  part_of_speech: string;
+  type: string; // vocab.type  — maps from pos
+  form: string; // vocab.form  — derived from pos
+  translation: string; // empty string; fill via enrichment script later
   frequency_rank: number;
-}
-
-interface LevelAllocationRow {
-  language: string;
-  level: string;
-  max_rank: number;
 }
 
 const languageData: Array<{ code: string; data: VocabularyData }> = [
@@ -72,104 +80,80 @@ const languageData: Array<{ code: string; data: VocabularyData }> = [
 ];
 
 async function seedVocabulary() {
-  console.log("🌱 Starting vocabulary database seeding...\n");
+  console.log("🌱 Starting vocab table seeding...\n");
 
   try {
-    // Step 1: Clear existing data
-    console.log("🗑️  Clearing existing vocabulary data...");
-    const { error: deleteVocabError } = await supabase
-      .from("vocabulary")
-      .delete()
-      .neq("id", "00000000-0000-0000-0000-000000000000"); // Delete all
+    let totalInserted = 0;
 
-    const { error: deleteAllocError } = await supabase
-      .from("vocabulary_level_allocation")
-      .delete()
-      .neq("id", "00000000-0000-0000-0000-000000000000"); // Delete all
-
-    if (deleteVocabError) {
-      console.error("Error clearing vocabulary:", deleteVocabError);
-    }
-    if (deleteAllocError) {
-      console.error("Error clearing level allocations:", deleteAllocError);
-    }
-
-    // Step 2: Insert vocabulary words for each language
-    let totalWords = 0;
+    // ── Insert words for each language ─────────────────────────────────────
     for (const { code, data } of languageData) {
-      console.log(`\n📚 Processing ${code.toUpperCase()} vocabulary...`);
+      console.log(
+        `\n📚 Processing ${code.toUpperCase()} (${data.words.length} words)...`,
+      );
 
-      const vocabularyRows: VocabularyRow[] = data.words.map((word) => ({
-        word: word.word,
-        lemma: word.lemma,
+      const rows: VocabRow[] = data.words.map((w) => ({
+        word: w.word,
         language: code,
-        part_of_speech: word.pos,
-        frequency_rank: word.rank,
+        type: w.pos,
+        form: deriveForm(w.pos),
+        translation: "",
+        frequency_rank: w.rank,
       }));
 
-      // Insert in batches of 100 to avoid timeout
+      // Upsert in batches of 100
       const batchSize = 100;
-      for (let i = 0; i < vocabularyRows.length; i += batchSize) {
-        const batch = vocabularyRows.slice(i, i + batchSize);
-        const { error } = await supabase.from("vocabulary").insert(batch);
+      let languageInserted = 0;
+
+      for (let i = 0; i < rows.length; i += batchSize) {
+        const batch = rows.slice(i, i + batchSize);
+
+        const { error, data: upserted } = await supabase
+          .from("vocab")
+          .upsert(batch, {
+            onConflict: "word,language,form",
+            ignoreDuplicates: true, // ON CONFLICT DO NOTHING — skips same-word/form pairs in source data silently
+          })
+          .select("id");
 
         if (error) {
-          console.error(`Error inserting batch ${i / batchSize + 1}:`, error);
+          console.error(
+            `  ✗ Error on batch ${Math.floor(i / batchSize) + 1}:`,
+            error.message,
+            error.details ?? "",
+            error.hint ?? "",
+          );
         } else {
+          const count = upserted?.length ?? 0;
+          languageInserted += count;
           console.log(
-            `  ✓ Inserted ${i + batch.length}/${vocabularyRows.length} words`,
+            `  ✓ Batch ${Math.floor(i / batchSize) + 1}: ${count} upserted`,
           );
         }
       }
 
-      totalWords += vocabularyRows.length;
+      totalInserted += languageInserted;
       console.log(
-        `  ✅ Completed ${code.toUpperCase()}: ${vocabularyRows.length} words`,
+        `  ✅ ${code.toUpperCase()} done — ${languageInserted} new rows`,
       );
     }
 
-    // Step 3: Insert level allocations
-    console.log("\n📊 Inserting level allocations...");
-    const allocationRows: LevelAllocationRow[] = [];
+    // ── Verify ──────────────────────────────────────────────────────────────
+    console.log("\n🔍 Verifying...");
+    const { count } = await supabase
+      .from("vocab")
+      .select("id", { count: "exact", head: true });
 
-    for (const { code, data } of languageData) {
-      for (const [level, maxRank] of Object.entries(data.levelAllocation)) {
-        allocationRows.push({
-          language: code,
-          level,
-          max_rank: maxRank,
-        });
-      }
-    }
+    console.log(`  ✓ vocab table total rows: ${count}`);
 
-    const { error: allocError } = await supabase
-      .from("vocabulary_level_allocation")
-      .insert(allocationRows);
-
-    if (allocError) {
-      console.error("Error inserting level allocations:", allocError);
-    } else {
-      console.log(`  ✅ Inserted ${allocationRows.length} level allocations`);
-    }
-
-    // Step 4: Verify data
-    console.log("\n🔍 Verifying data...");
-    const { count: vocabCount } = await supabase
-      .from("vocabulary")
-      .select("*", { count: "exact", head: true });
-
-    const { count: allocCount } = await supabase
-      .from("vocabulary_level_allocation")
-      .select("*", { count: "exact", head: true });
-
-    console.log(`  ✓ Vocabulary words: ${vocabCount}`);
-    console.log(`  ✓ Level allocations: ${allocCount}`);
-
-    console.log("\n✨ Vocabulary seeding completed successfully!");
-    console.log(`\n📈 Summary:`);
-    console.log(`   - Total words inserted: ${totalWords}`);
-    console.log(`   - Languages: FR, DE, IT`);
-    console.log(`   - Level allocations: ${allocationRows.length}`);
+    console.log("\n✨ Seeding completed!");
+    console.log(`   - Upserted this run : ${totalInserted}`);
+    console.log(
+      `   - Languages         : FR (1000 source), DE (500 source), IT (500 source)`,
+    );
+    console.log("\n⚠️  DE and IT source files only have 500 words each.");
+    console.log(
+      "   To reach 1000 per language, expand src/data/common-{de,it}-words.json.",
+    );
   } catch (error) {
     console.error("❌ Error during seeding:", error);
     process.exit(1);

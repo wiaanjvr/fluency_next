@@ -43,6 +43,7 @@ const LLM_ROUTES = [
   "/api/lesson-v2/generate-story",
   "/api/stories/generate",
   "/api/transcribe",
+  "/api/generate",
 ];
 
 export async function middleware(request: NextRequest) {
