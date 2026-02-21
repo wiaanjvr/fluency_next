@@ -455,7 +455,10 @@ export function AmbientLauncher({
     if (e.key === "Escape") setOpen(false);
   }, []);
 
-  const isActive = mode !== null && ambientView !== "soundbar";
+  // Consider the Immerse nav-tab active only when the full container view is open.
+  // This prevents the nav tab from being highlighted simply because the bottom
+  // soundbar is playing audio.
+  const isActive = ambientView === "container";
 
   const handleClick = () => {
     if (!open) {

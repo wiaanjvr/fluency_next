@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Waves, Settings, User, Compass } from "lucide-react";
+import { Waves, Settings, User, Compass, ChevronDown } from "lucide-react";
 import { AmbientLauncher } from "@/components/ambient";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 
@@ -25,6 +25,8 @@ interface OceanNavigationProps {
   isAdmin?: boolean;
   isProgressView?: boolean;
   targetLanguage?: string;
+  /** When provided, outbound link clicks call this instead of native navigation */
+  onBeforeNavigate?: (href: string) => void;
 }
 
 const navItems = [
@@ -43,10 +45,40 @@ export function OceanNavigation({
   isAdmin = false,
   isProgressView = false,
   targetLanguage,
+  onBeforeNavigate,
 }: OceanNavigationProps) {
   const [scrolled, setScrolled] = useState(false);
   const [wordsCount, setWordsCount] = useState(0);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const { ambientView, setAmbientView } = useAmbientPlayer();
+
+  // Close account menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        accountMenuRef.current &&
+        !accountMenuRef.current.contains(e.target as Node)
+      ) {
+        setAccountMenuOpen(false);
+      }
+    };
+    if (accountMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [accountMenuOpen]);
+
+  // Intercept link clicks for transition loading screens
+  const handleLinkClick = useCallback(
+    (e: React.MouseEvent, href: string) => {
+      if (onBeforeNavigate && !currentPath.startsWith(href)) {
+        e.preventDefault();
+        onBeforeNavigate(href);
+      }
+    },
+    [onBeforeNavigate, currentPath],
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,7 +127,11 @@ export function OceanNavigation({
         )}
       >
         {/* Left: Logo & Wordmark */}
-        <Link href="/dashboard" className="flex items-center gap-3 group">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-3 group"
+          onClick={(e) => handleLinkClick(e, "/dashboard")}
+        >
           <div className="w-10 h-10 rounded-lg overflow-hidden transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
             <Image
               src="/logo.png"
@@ -133,72 +169,17 @@ export function OceanNavigation({
                 key={item.href}
                 href={item.href}
                 className="nav-tab relative group"
-                onClick={() => {
+                onClick={(e) => {
                   if (ambientView === "container") {
-                    // SoundContainer → soundbar mode
                     setAmbientView("soundbar");
                   } else if (ambientView === "soundbar") {
-                    // soundbar mode → normal lesson hero (audio keeps playing)
                     setAmbientView(null);
                   }
-                  // null → navigate normally, no state change
+                  handleLinkClick(e, item.href);
                 }}
               >
                 <div className="flex items-center gap-2">
                   <Icon
-                    className="w-4 h-4 transition-colors duration-200"
-                    style={{
-                      color:
-                        isActive && ambientView === null
-                          ? "var(--turquoise)"
-                          : "var(--seafoam)",
-                      opacity: isActive && ambientView === null ? 1 : 0.6,
-                    }}
-                  />
-                  <span
-                    className={cn(
-                      "text-sm font-body font-medium transition-colors duration-200",
-                    )}
-                    style={{
-                      color:
-                        isActive && ambientView === null
-                          ? "var(--turquoise)"
-                          : "var(--sand)",
-                      opacity: isActive && ambientView === null ? 1 : 0.7,
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-                {/* Active indicator */}
-                <div
-                  className={cn(
-                    "mt-1 h-0.5 rounded-full transition-all duration-300",
-                    isActive && ambientView === null
-                      ? "w-full opacity-100"
-                      : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
-                  )}
-                  style={{
-                    background:
-                      isActive && ambientView === null
-                        ? "var(--turquoise)"
-                        : "var(--seafoam)",
-                  }}
-                />
-              </Link>
-            );
-          })}
-          {/* Immerse — between Course and Settings, nav-tab style */}
-          <AmbientLauncher variant="nav" />
-
-          {/* Settings nav item */}
-          {(() => {
-            const settingsHref = "/settings";
-            const isActive = currentPath.startsWith(settingsHref);
-            return (
-              <Link href={settingsHref} className="nav-tab relative group">
-                <div className="flex items-center gap-2">
-                  <Settings
                     className="w-4 h-4 transition-colors duration-200"
                     style={{
                       color: isActive ? "var(--turquoise)" : "var(--seafoam)",
@@ -214,9 +195,10 @@ export function OceanNavigation({
                       opacity: isActive ? 1 : 0.7,
                     }}
                   >
-                    Settings
+                    {item.label}
                   </span>
                 </div>
+                {/* Active indicator */}
                 <div
                   className={cn(
                     "mt-1 h-0.5 rounded-full transition-all duration-300",
@@ -232,7 +214,9 @@ export function OceanNavigation({
                 />
               </Link>
             );
-          })()}
+          })}
+          {/* Immerse — between Course and admin, nav-tab style */}
+          <AmbientLauncher variant="nav" />
 
           {/* Admin nav item */}
           {isAdmin &&
@@ -316,33 +300,90 @@ export function OceanNavigation({
             </div>
           )}
 
-          {/* Avatar */}
-          <Link href="/settings">
-            <div
-              className="w-9 h-9 rounded-full overflow-hidden border-2 transition-all duration-300 hover:scale-105"
-              style={{
-                borderColor: "rgba(255, 255, 255, 0.1)",
-                background: "var(--ocean-mid)",
-              }}
+          {/* Avatar — account dropdown trigger */}
+          <div ref={accountMenuRef} className="relative">
+            <button
+              onClick={() => setAccountMenuOpen((prev) => !prev)}
+              className="flex items-center gap-1.5 group focus:outline-none"
+              aria-expanded={accountMenuOpen}
+              aria-haspopup="true"
             >
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt="Avatar"
-                  width={36}
-                  height={36}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <User
-                    className="w-5 h-5"
-                    style={{ color: "var(--seafoam)" }}
+              <div
+                className="w-9 h-9 rounded-full overflow-hidden border-2 transition-all duration-300 group-hover:scale-105"
+                style={{
+                  borderColor: accountMenuOpen
+                    ? "rgba(61, 214, 181, 0.5)"
+                    : "rgba(255, 255, 255, 0.1)",
+                  background: "var(--ocean-mid)",
+                }}
+              >
+                {avatarUrl ? (
+                  <Image
+                    src={avatarUrl}
+                    alt="Avatar"
+                    width={36}
+                    height={36}
+                    className="w-full h-full object-cover"
                   />
-                </div>
-              )}
-            </div>
-          </Link>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User
+                      className="w-5 h-5"
+                      style={{ color: "var(--seafoam)" }}
+                    />
+                  </div>
+                )}
+              </div>
+              <ChevronDown
+                className={cn(
+                  "w-3 h-3 transition-transform duration-200",
+                  accountMenuOpen ? "rotate-180" : "",
+                )}
+                style={{ color: "var(--seafoam)", opacity: 0.7 }}
+              />
+            </button>
+
+            {/* Dropdown */}
+            {accountMenuOpen && (
+              <div
+                className="absolute right-0 top-full mt-3 min-w-max rounded-2xl border overflow-hidden z-50"
+                style={{
+                  background: "var(--ocean-deep, #0a1628)",
+                  borderColor: "rgba(61, 214, 181, 0.2)",
+                  boxShadow:
+                    "0 12px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(61,214,181,0.12)",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                {(
+                  [
+                    { label: "Profile", href: "/settings#profile" },
+                    { label: "Language", href: "/settings#language" },
+                    { label: "Settings", href: "/settings#settings" },
+                  ] as const
+                ).map(({ label, href }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="flex items-center px-5 py-4 text-base font-body font-medium transition-all duration-150 border-b border-white/5 last:border-b-0 hover:bg-white/5 whitespace-nowrap"
+                    style={{ color: "var(--sand)" }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "var(--turquoise)";
+                      e.currentTarget.style.backgroundColor =
+                        "rgba(61, 214, 181, 0.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "var(--sand)";
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                    onClick={() => setAccountMenuOpen(false)}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

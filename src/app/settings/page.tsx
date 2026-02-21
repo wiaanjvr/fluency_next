@@ -85,6 +85,20 @@ export default function SettingsPage() {
     checkRefundEligibility();
   }, []);
 
+  // Scroll to anchor when navigated via hash (e.g. /settings#language)
+  useEffect(() => {
+    if (loading) return;
+    const hash = window.location.hash.replace("#", "");
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (el) {
+      setTimeout(
+        () => el.scrollIntoView({ behavior: "smooth", block: "start" }),
+        150,
+      );
+    }
+  }, [loading]);
+
   const loadProfile = async () => {
     try {
       const supabase = createClient();
@@ -280,7 +294,7 @@ export default function SettingsPage() {
           )}
 
           {/* Profile Photo & Basic Info */}
-          <div className="card-luxury p-8">
+          <div id="profile" className="card-luxury p-8">
             <div className="mb-8">
               <h2 className="text-2xl font-light mb-2">Profile</h2>
               <p className="text-sm text-muted-foreground font-light">
@@ -354,7 +368,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Language Settings */}
-              <div className="grid grid-cols-2 gap-4">
+              <div id="language" className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-light">Target Language</label>
                   <Select
@@ -454,7 +468,7 @@ export default function SettingsPage() {
             )}
 
           {/* Subscription */}
-          <div className="card-luxury p-8">
+          <div id="settings" className="card-luxury p-8">
             <div className="mb-8">
               <h2 className="text-2xl font-light mb-2">Subscription</h2>
               <p className="text-sm text-muted-foreground font-light">

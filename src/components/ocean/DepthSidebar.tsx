@@ -14,6 +14,7 @@ interface DepthSidebarProps {
   totalMinutes?: number;
   shadowingSessions?: number;
   className?: string;
+  scrollable?: boolean;
 }
 
 export function DepthSidebar({
@@ -21,12 +22,14 @@ export function DepthSidebar({
   totalMinutes = 0,
   shadowingSessions = 0,
   className,
+  scrollable = true,
 }: DepthSidebarProps) {
   return (
     <aside
       className={cn(
         "hidden md:flex fixed top-0 left-0 z-40 h-screen w-auto flex-col",
-        "pt-20 pb-6 overflow-y-auto",
+        "pt-20 pb-6",
+        scrollable ? "overflow-y-auto" : "overflow-hidden",
         className,
       )}
       style={{

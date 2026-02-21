@@ -288,3 +288,6 @@ export * from "./progression";
 
 // Re-export reward system types
 export * from "./rewards";
+
+// Re-export cloze exercise types
+export * from "./cloze";

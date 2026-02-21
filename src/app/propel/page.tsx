@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { OceanBackground, OceanNavigation } from "@/components/ocean";
+import {
+  OceanBackground,
+  OceanNavigation,
+  DepthSidebar,
+} from "@/components/ocean";
+import LoadingScreen from "@/components/ui/LoadingScreen";
+import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 import {
   BookOpen,
   PenLine,
@@ -172,23 +178,64 @@ function PropelContent({
   avatarUrl,
   targetLanguage,
   isAdmin,
+  wordsEncountered,
 }: {
   streak: number;
   avatarUrl?: string;
   targetLanguage: string;
   isAdmin: boolean;
+  wordsEncountered: number;
 }) {
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
+  const { ambientView, setAmbientView } = useAmbientPlayer();
+
+  // Ensure soundbar is visible when arriving on Propel while ambient is active
+  // (SoundContainer only exists on the dashboard, so switch to soundbar view)
+  useEffect(() => {
+    if (ambientView === "container") {
+      setAmbientView("soundbar");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Disable page scroll while on Propel to prevent scrollbar flicker
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev || "";
+    };
+  }, []);
+
+  const handleNavigation = useCallback(
+    (href: string) => {
+      setIsNavigating(true);
+      router.push(href);
+    },
+    [router],
+  );
+
+  if (isNavigating) {
+    return <LoadingScreen />;
+  }
+
   return (
     <OceanBackground>
+      {/* Depth sidebar — mirrors dashboard (non-scrollable on Propel) */}
+      <DepthSidebar wordCount={wordsEncountered} scrollable={false} />
+
       <OceanNavigation
         streak={streak}
         avatarUrl={avatarUrl}
         currentPath="/propel"
         isAdmin={isAdmin}
         targetLanguage={targetLanguage}
+        wordsEncountered={wordsEncountered}
+        onBeforeNavigate={handleNavigation}
       />
 
-      <div className="relative z-10 min-h-screen pt-28 pb-20 px-6">
+      <div className="relative z-10 min-h-screen pt-28 pb-24 px-6 md:pl-[370px]">
         <div className="max-w-5xl mx-auto">
           {/* Page header */}
           <div className="mb-12 space-y-3">
@@ -238,6 +285,7 @@ export default function PropelPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
   const [targetLanguage, setTargetLanguage] = useState("fr");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [wordsEncountered, setWordsEncountered] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -266,6 +314,13 @@ export default function PropelPage() {
         setTargetLanguage(profile.target_language ?? "fr");
       }
 
+      const { data: allWords } = await supabase
+        .from("learner_words_v2")
+        .select("id")
+        .eq("user_id", user.id);
+
+      setWordsEncountered(allWords?.length ?? 0);
+
       const { data: adminRow } = await supabase
         .from("admin_users")
         .select("id")
@@ -280,16 +335,7 @@ export default function PropelPage() {
   }, [supabase, router]);
 
   if (loading) {
-    return (
-      <OceanBackground>
-        <div className="flex items-center justify-center min-h-screen">
-          <div
-            className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
-            style={{ borderColor: "var(--turquoise)" }}
-          />
-        </div>
-      </OceanBackground>
-    );
+    return <LoadingScreen />;
   }
 
   return (
@@ -299,6 +345,7 @@ export default function PropelPage() {
         avatarUrl={avatarUrl}
         targetLanguage={targetLanguage}
         isAdmin={isAdmin}
+        wordsEncountered={wordsEncountered}
       />
     </ProtectedRoute>
   );
