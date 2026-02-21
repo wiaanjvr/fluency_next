@@ -4,35 +4,62 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Loader2, Sparkles, Crown, Shield } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  Crown,
+  Shield,
+  Anchor,
+  Ship,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import type { TierSlug } from "@/lib/tiers";
 
 interface CheckoutClientProps {
   userEmail: string;
-  billing: "monthly" | "yearly";
+  tierSlug: TierSlug;
+  tierDisplayName: string;
+  priceZAR: number;
+  priceKobo: number;
+  planCode?: string;
+  isAnnual?: boolean;
+  featureList: string[];
   currency: string;
+  /** Resolved payment provider: 'paystack' for SA users, 'lemonsqueezy' for international */
+  paymentProvider: "paystack" | "lemonsqueezy";
 }
+
+const tierIcon: Record<string, React.ElementType> = {
+  diver: Anchor,
+  submariner: Ship,
+};
 
 export default function CheckoutClient({
   userEmail,
-  billing,
+  tierSlug,
+  tierDisplayName,
+  priceZAR,
+  priceKobo,
+  planCode,
+  isAnnual = false,
+  featureList,
   currency,
+  paymentProvider,
 }: CheckoutClientProps) {
   const router = useRouter();
+  const isSA = paymentProvider === "paystack";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Approximate conversion of ZAR amount into the user’s display currency (reference only)
   const [convertedDisplay, setConvertedDisplay] = useState<string | null>(null);
   const [converting, setConverting] = useState(false);
 
-  // Show selected currency and converted price using real-time API
-  const zarAmount = billing === "yearly" ? 125000 : 12500; // In cents for payment provider
-  const zarBase = billing === "yearly" ? 1250 : 125; // Human-readable ZAR amount
   const symbol =
     {
       USD: "$",
-      EUR: "€",
-      GBP: "£",
+      EUR: "\u20ac",
+      GBP: "\u00a3",
       ZAR: "R",
     }[currency] || currency;
 
@@ -44,9 +71,7 @@ export default function CheckoutClient({
       setConvertedDisplay(null);
       try {
         const res = await fetch(
-          `/api/currency/convert?amount=${encodeURIComponent(zarBase)}&from=ZAR&to=${encodeURIComponent(
-            currency,
-          )}`,
+          `/api/currency/convert?amount=${encodeURIComponent(priceZAR)}&from=ZAR&to=${encodeURIComponent(currency)}`,
         );
         if (!res.ok) throw new Error("Failed to fetch conversion");
         const data = await res.json();
@@ -63,7 +88,6 @@ export default function CheckoutClient({
         if (mounted) setConverting(false);
       }
     }
-    // Only fetch when currency differs from ZAR
     if (currency && currency !== "ZAR") {
       fetchConversion();
     } else {
@@ -72,42 +96,42 @@ export default function CheckoutClient({
     return () => {
       mounted = false;
     };
-  }, [billing, currency, zarBase, symbol]);
+  }, [currency, priceZAR, symbol]);
 
-  const displayAmount =
-    currency === "ZAR" ? `R${zarBase}` : convertedDisplay || "...";
-  const planCode =
-    billing === "yearly"
-      ? process.env.NEXT_PUBLIC_PAYSTACK_PLAN_YEARLY
-      : process.env.NEXT_PUBLIC_PAYSTACK_PLAN_MONTHLY;
+  // SA/Paystack users are always charged in ZAR — show ZAR as the primary amount.
+  // If they selected a different display currency on the pricing page, show the
+  // converted equivalent as a secondary reference beneath the ZAR figure.
+  const zarPrimary = `R${priceZAR}`;
+  // For international edge-case (should not normally reach here): show their currency
+  const displayAmount = isSA ? zarPrimary : convertedDisplay || "...";
 
   const handleCheckout = async (retryCount = 0) => {
     setLoading(true);
     setError(null);
 
     try {
-      console.log("🔄 Initializing payment from checkout page:", {
+      console.log("Initializing payment from checkout page:", {
         email: userEmail,
-        amount: zarAmount,
-        billing,
+        tier: tierSlug,
+        amount: priceKobo,
         attempt: retryCount + 1,
       });
 
       const response = await fetch("/api/paystack/initialize", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: userEmail,
-          amount: zarAmount,
-          planCode,
+          amount: priceKobo,
+          tier: tierSlug,
+          planCode: planCode || undefined,
           currency: "ZAR",
           metadata: {
+            tier: tierSlug,
+            billing: isAnnual ? "annual" : "monthly",
             originalCurrency: currency,
-            originalAmount: zarAmount / 100,
+            originalAmount: priceZAR,
             exchangeRate: 1,
-            billingPeriod: billing,
           },
         }),
       });
@@ -118,7 +142,7 @@ export default function CheckoutClient({
         // If 404 (profile not found) and we haven't retried too many times, retry
         if (response.status === 404 && retryCount < 3) {
           console.log(
-            `⏳ Profile not ready, retrying in ${(retryCount + 1) * 1000}ms...`,
+            `Profile not ready, retrying in ${(retryCount + 1) * 1000}ms...`,
           );
           await new Promise((resolve) =>
             setTimeout(resolve, (retryCount + 1) * 1000),
@@ -127,7 +151,7 @@ export default function CheckoutClient({
         }
 
         console.error(
-          "❌ Payment initialization failed:",
+          "Payment initialization failed:",
           response.status,
           errorData,
         );
@@ -135,25 +159,24 @@ export default function CheckoutClient({
       }
 
       const data = await response.json();
-      console.log(
-        "✅ Payment initialized successfully, redirecting to Paystack...",
-      );
+      console.log("Payment initialized, redirecting to Paystack...");
 
-      // Redirect to Paystack checkout
       if (data.authorization_url) {
         window.location.href = data.authorization_url;
       } else {
-        console.error("❌ No authorization URL in response:", data);
+        console.error("No authorization URL in response:", data);
         throw new Error("No authorization URL received");
       }
     } catch (err) {
-      console.error("❌ Checkout error:", err);
+      console.error("Checkout error:", err);
       const errorMessage =
         err instanceof Error ? err.message : "Failed to initialize payment";
       setError(errorMessage);
       setLoading(false);
     }
   };
+
+  const TierIcon = tierIcon[tierSlug] || Crown;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
@@ -179,11 +202,11 @@ export default function CheckoutClient({
           <CardHeader className="text-center pb-4">
             <div className="flex justify-center mb-4">
               <div className="w-16 h-16 bg-ocean-turquoise/20 rounded-full flex items-center justify-center">
-                <Crown className="w-8 h-8 text-ocean-turquoise" />
+                <TierIcon className="w-8 h-8 text-ocean-turquoise" />
               </div>
             </div>
             <CardTitle className="text-2xl font-light">
-              Subscribe to Pro
+              Subscribe to {tierDisplayName}
             </CardTitle>
             <p className="text-muted-foreground font-light text-sm mt-2">
               {userEmail}
@@ -198,14 +221,42 @@ export default function CheckoutClient({
                   Plan
                 </span>
                 <span className="font-medium">
-                  {billing === "yearly" ? "Pro Yearly" : "Pro Monthly"}
+                  {tierDisplayName} {isAnnual ? "Annual" : "Monthly"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-light text-muted-foreground">
                   Amount
                 </span>
-                <span className="text-2xl font-light">{displayAmount}</span>
+                <div className="text-right">
+                  {/* Primary price — ZAR for SA/Paystack users */}
+                  <span className="text-2xl font-light">{displayAmount}</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {isSA
+                      ? isAnnual
+                        ? `R${priceZAR} billed annually in ZAR`
+                        : `R${priceZAR}/month billed in ZAR`
+                      : isAnnual
+                        ? `Billed annually`
+                        : `Billed monthly`}
+                  </p>
+                  {/* Reference conversion — SA user picked a non-ZAR display currency */}
+                  {isSA && currency !== "ZAR" && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {converting
+                        ? "Converting..."
+                        : convertedDisplay
+                          ? `≈ ${convertedDisplay}${isAnnual ? "/year" : "/month"}`
+                          : null}
+                    </p>
+                  )}
+                  {/* Annual saving callout */}
+                  {isAnnual && (
+                    <p className="text-xs text-ocean-turquoise font-medium mt-0.5">
+                      2 months free vs monthly billing
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -214,15 +265,9 @@ export default function CheckoutClient({
               <p className="text-sm font-light text-muted-foreground mb-3">
                 What you get:
               </p>
-              {[
-                "Unlimited lessons",
-                "Full course library",
-                "Advanced SRS algorithm",
-                "Offline mode",
-                "Priority support",
-              ].map((benefit, i) => (
+              {featureList.slice(0, 6).map((benefit, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-ocean-turquoise" />
+                  <CheckCircle2 className="w-4 h-4 text-ocean-turquoise shrink-0" />
                   <span className="text-sm font-light">{benefit}</span>
                 </div>
               ))}
@@ -259,7 +304,9 @@ export default function CheckoutClient({
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <Shield className="w-3.5 h-3.5" />
               <span className="font-light">
-                Secure payment powered by Paystack
+                {isSA
+                  ? "Secure payment powered by Paystack"
+                  : "Secure payment powered by Lemon Squeezy"}
               </span>
             </div>
 
@@ -281,7 +328,7 @@ export default function CheckoutClient({
             href="/pricing"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors font-light"
           >
-            ← Back to pricing
+            &larr; Back to pricing
           </Link>
         </div>
       </div>

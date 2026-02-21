@@ -25,6 +25,7 @@ import { ProficiencyLevel, WordStatus, ProgressMilestone } from "@/types";
 import { checkProficiencyUpdate } from "@/lib/srs/proficiency-calculator";
 import { checkMilestoneAchievement } from "@/lib/progression";
 import { cn } from "@/lib/utils";
+import { getTierConfig, hasAccess, type TierSlug } from "@/lib/tiers";
 
 import "@/styles/ocean-theme.css";
 
@@ -167,13 +168,13 @@ function DashboardContent({
                     className="font-display font-semibold mb-1"
                     style={{ color: "var(--turquoise)" }}
                   >
-                    Welcome to Pro
+                    Welcome aboard!
                   </h3>
                   <p
                     className="text-sm font-body"
                     style={{ color: "var(--seafoam)" }}
                   >
-                    Unlimited immersion unlocked. Go deeper.
+                    Your {getTierConfig(subscriptionTier as TierSlug)?.displayName || "subscription"} plan is active. Go deeper.
                   </p>
                 </div>
                 <button
@@ -200,8 +201,8 @@ function DashboardContent({
           {/* Usage Limit Banner */}
           <UsageLimitBanner className="mb-4" />
 
-          {/* Pro Badge */}
-          {subscriptionTier === "premium" && (
+          {/* Tier Badge */}
+          {hasAccess(subscriptionTier as TierSlug, "diver") && (
             <div className="flex justify-center">
               <div
                 className="flex items-center gap-2 px-4 py-2 rounded-full ocean-card"
@@ -212,7 +213,7 @@ function DashboardContent({
                   className="text-sm font-body font-medium"
                   style={{ color: "#ffb300" }}
                 >
-                  Pro
+                  {getTierConfig(subscriptionTier as TierSlug)?.displayName || "Pro"}
                 </span>
               </div>
             </div>
@@ -247,8 +248,8 @@ function DashboardContent({
             </section>
           )}
 
-          {/* ========== PREMIUM CTA (for free users after depth 2) ========== */}
-          {stats.wordsEncountered >= 50 && subscriptionTier === "free" && (
+          {/* ========== UPGRADE CTA (for Snorkeler users after depth 2) ========== */}
+          {stats.wordsEncountered >= 50 && !hasAccess(subscriptionTier as TierSlug, "diver") && (
             <section
               className="ocean-card ocean-card-animate p-6"
               style={{
@@ -280,7 +281,7 @@ function DashboardContent({
                       background: "linear-gradient(135deg, #ffb300, #ff8c00)",
                     }}
                   >
-                    Unlock Pro
+                    Start Diving
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </Link>
@@ -303,7 +304,7 @@ export default function DashboardPage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
-  const [subscriptionTier, setSubscriptionTier] = useState<string>("free");
+  const [subscriptionTier, setSubscriptionTier] = useState<string>("snorkeler");
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -530,7 +531,7 @@ export default function DashboardPage() {
         });
 
         // Check if all monthly goals are complete and offer a reward
-        if (profile?.subscription_tier === "premium") {
+        if (hasAccess(profile?.subscription_tier as TierSlug, "diver")) {
           try {
             const rewardRes = await fetch("/api/rewards/check-goals", {
               method: "POST",

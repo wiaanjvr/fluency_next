@@ -95,8 +95,8 @@ export default function LoginPage() {
           <div className="space-y-2">
             <h2 className="text-3xl font-light tracking-tight">Sign in</h2>
             <p className="text-muted-foreground font-light">
-              {plan === "premium"
-                ? "Sign in to continue with your Pro subscription"
+              {plan === "diver" || plan === "submariner"
+                ? "Sign in to continue with your subscription"
                 : "Enter your credentials to continue"}
             </p>
           </div>

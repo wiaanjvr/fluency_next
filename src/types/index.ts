@@ -1,5 +1,6 @@
 // User types
-export type SubscriptionTier = "free" | "premium";
+import type { TierSlug } from "@/lib/tiers";
+export type SubscriptionTier = TierSlug;
 
 export type ProficiencyLevel = "A0" | "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 

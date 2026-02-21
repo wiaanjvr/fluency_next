@@ -20,14 +20,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Atomic claim: prevents free users from bypassing daily limits.
+    // Atomic claim: prevents Snorkeler-tier users from bypassing daily limits.
     const usageStatus = await claimSession(user.id, "main");
     if (!usageStatus.allowed) {
       return NextResponse.json(
         {
           error: "Daily limit reached",
           message:
-            "You've reached your daily exercise limit. Upgrade to Premium for unlimited access.",
+            "You've reached your daily exercise limit. Upgrade to Diver for unlimited access.",
           limitReached: true,
           limit: usageStatus.limit,
           currentCount: usageStatus.currentCount,
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Absolute daily generation budget (applies to ALL tiers, including premium)
+    // Absolute daily generation budget (applies to ALL tiers, including paid)
     const budgetResult = await consumeDailyBudget(user.id);
     if (!budgetResult.allowed) {
       return NextResponse.json(

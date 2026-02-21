@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initializeTransaction, generateReference } from "@/lib/paystack/utils";
 import { createClient } from "@/lib/supabase/server";
+import { type TierSlug, TIERS, getPlanCode } from "@/lib/tiers";
 
 /* =============================================================================
    PAYSTACK INITIALIZE PAYMENT API ROUTE
@@ -13,7 +14,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, amount, planCode, currency = "ZAR", metadata = {} } = body;
+    const { email, amount, planCode, currency = "ZAR", metadata = {}, tier } = body;
 
     // Validate required fields
     if (!email || !amount) {
@@ -22,6 +23,9 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    // Resolve tier slug (default to 'diver' for backward compatibility)
+    const resolvedTier: TierSlug = (tier as TierSlug) || "diver";
 
     // Get the authenticated user
     const supabase = await createClient();
@@ -57,7 +61,8 @@ export async function POST(request: NextRequest) {
       ...metadata,
       userId: user.id,
       userEmail: user.email,
-      planCode: planCode || "premium",
+      tier: resolvedTier,
+      planCode: planCode || getPlanCode(resolvedTier),
     };
 
     // Generate unique reference

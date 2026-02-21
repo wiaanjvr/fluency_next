@@ -63,9 +63,9 @@ export async function login(formData: FormData) {
           redirectTo,
           process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
         );
-        const billing = url.searchParams.get("billing") || "monthly";
-        const currency = url.searchParams.get("currency") || "USD";
-        redirect(`/checkout?billing=${billing}&currency=${currency}`);
+        const tier = url.searchParams.get("tier") || "diver";
+        const currency = url.searchParams.get("currency") || "ZAR";
+        redirect(`/checkout?tier=${tier}&currency=${currency}`);
       }
       redirect(redirectTo);
     }
@@ -162,9 +162,9 @@ export async function signup(formData: FormData) {
           redirectTo,
           process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
         );
-        const billing = url.searchParams.get("billing") || "monthly";
-        const currency = url.searchParams.get("currency") || "USD";
-        redirect(`/checkout?billing=${billing}&currency=${currency}`);
+        const tier = url.searchParams.get("tier") || "diver";
+        const currency = url.searchParams.get("currency") || "ZAR";
+        redirect(`/checkout?tier=${tier}&currency=${currency}`);
       }
       redirect(redirectTo);
     }

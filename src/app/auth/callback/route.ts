@@ -58,9 +58,9 @@ export async function GET(request: Request) {
         // If redirecting to pricing page, redirect to checkout instead for proper session handling
         if (next.startsWith("/pricing")) {
           const url = new URL(next, origin);
-          const billing = url.searchParams.get("billing") || "monthly";
-          const currency = url.searchParams.get("currency") || "USD";
-          redirectPath = `/checkout?billing=${billing}&currency=${currency}`;
+          const tier = url.searchParams.get("tier") || "diver";
+          const currency = url.searchParams.get("currency") || "ZAR";
+          redirectPath = `/checkout?tier=${tier}&currency=${currency}`;
         } else {
           redirectPath = next;
         }

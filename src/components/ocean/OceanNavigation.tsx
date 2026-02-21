@@ -4,7 +4,14 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Waves, Settings, User, Compass, ChevronDown } from "lucide-react";
+import {
+  Waves,
+  Settings,
+  User,
+  Compass,
+  ChevronDown,
+  BarChart,
+} from "lucide-react";
 import { AmbientLauncher } from "@/components/ambient";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 
@@ -219,52 +226,107 @@ export function OceanNavigation({
           <AmbientLauncher variant="nav" />
 
           {/* Admin nav item */}
-          {isAdmin &&
-            (() => {
-              const adminHref = "/admin/donations";
-              const isActive = currentPath.startsWith(adminHref);
-              return (
-                <Link
-                  key={adminHref}
-                  href={adminHref}
-                  className="nav-tab relative group"
-                >
-                  <div className="flex items-center gap-2">
-                    <Settings
-                      className="w-4 h-4 transition-colors duration-200"
-                      style={{
-                        color: isActive ? "var(--turquoise)" : "var(--seafoam)",
-                        opacity: isActive ? 1 : 0.6,
-                      }}
-                    />
-                    <span
+          {isAdmin && (
+            <>
+              {/* Donations */}
+              {(() => {
+                const adminHref = "/admin/donations";
+                const isActive = currentPath.startsWith(adminHref);
+                return (
+                  <Link
+                    key={adminHref}
+                    href={adminHref}
+                    className="nav-tab relative group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Settings
+                        className="w-4 h-4 transition-colors duration-200"
+                        style={{
+                          color: isActive
+                            ? "var(--turquoise)"
+                            : "var(--seafoam)",
+                          opacity: isActive ? 1 : 0.6,
+                        }}
+                      />
+                      <span
+                        className={cn(
+                          "text-sm font-body font-medium transition-colors duration-200",
+                        )}
+                        style={{
+                          color: isActive ? "var(--turquoise)" : "var(--sand)",
+                          opacity: isActive ? 1 : 0.7,
+                        }}
+                      >
+                        Donations
+                      </span>
+                    </div>
+                    <div
                       className={cn(
-                        "text-sm font-body font-medium transition-colors duration-200",
+                        "mt-1 h-0.5 rounded-full transition-all duration-300",
+                        isActive
+                          ? "w-full opacity-100"
+                          : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
                       )}
                       style={{
-                        color: isActive ? "var(--turquoise)" : "var(--sand)",
-                        opacity: isActive ? 1 : 0.7,
+                        background: isActive
+                          ? "var(--turquoise)"
+                          : "var(--seafoam)",
                       }}
-                    >
-                      Donations
-                    </span>
-                  </div>
-                  <div
-                    className={cn(
-                      "mt-1 h-0.5 rounded-full transition-all duration-300",
-                      isActive
-                        ? "w-full opacity-100"
-                        : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
-                    )}
-                    style={{
-                      background: isActive
-                        ? "var(--turquoise)"
-                        : "var(--seafoam)",
-                    }}
-                  />
-                </Link>
-              );
-            })()}
+                    />
+                  </Link>
+                );
+              })()}
+
+              {/* Costs */}
+              {(() => {
+                const costsHref = "/admin/costs";
+                const isActive = currentPath.startsWith(costsHref);
+                return (
+                  <Link
+                    key={costsHref}
+                    href={costsHref}
+                    className="nav-tab relative group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <BarChart
+                        className="w-4 h-4 transition-colors duration-200"
+                        style={{
+                          color: isActive
+                            ? "var(--turquoise)"
+                            : "var(--seafoam)",
+                          opacity: isActive ? 1 : 0.6,
+                        }}
+                      />
+                      <span
+                        className={cn(
+                          "text-sm font-body font-medium transition-colors duration-200",
+                        )}
+                        style={{
+                          color: isActive ? "var(--turquoise)" : "var(--sand)",
+                          opacity: isActive ? 1 : 0.7,
+                        }}
+                      >
+                        Costs
+                      </span>
+                    </div>
+                    <div
+                      className={cn(
+                        "mt-1 h-0.5 rounded-full transition-all duration-300",
+                        isActive
+                          ? "w-full opacity-100"
+                          : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
+                      )}
+                      style={{
+                        background: isActive
+                          ? "var(--turquoise)"
+                          : "var(--seafoam)",
+                      }}
+                    />
+                  </Link>
+                );
+              })()}
+            </>
+          )}
         </div>
 
         {/* Right: Stats & Avatar */}

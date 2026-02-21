@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTransaction } from "@/lib/paystack/utils";
 import { createClient } from "@/lib/supabase/server";
+import { getTierByPlanCode, type TierSlug } from "@/lib/tiers";
 
 /* =============================================================================
    PAYSTACK VERIFY TRANSACTION API ROUTE
@@ -128,16 +129,24 @@ export async function POST(request: NextRequest) {
       interval,
     });
 
-    // Update the user's profile - set to "premium" tier
+    // Resolve plan code → tier slug
+    const resolvedTier: TierSlug =
+      getTierByPlanCode(transactionData.plan_object?.plan_code || "") ||
+      (transactionData.metadata?.tier as TierSlug) ||
+      "diver";
+
+    // Update the user's profile with the resolved tier
     const { error, data: updatedProfile } = await supabase
       .from("profiles")
       .update({
-        subscription_tier: "premium",
+        subscription_tier: resolvedTier,
         subscription_expires_at: expiresAt.toISOString(),
         subscription_started_at: new Date().toISOString(),
         paystack_customer_code: transactionData.customer?.customer_code,
         paystack_subscription_code:
           transactionData.subscription?.subscription_code,
+        subscription_status: "active",
+        next_payment_date: expiresAt.toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", authUser.id)

@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Absolute daily generation budget (applies to ALL tiers, including premium)
+    // Absolute daily generation budget (applies to ALL tiers, including paid)
     const budgetResult = await consumeDailyBudget(user.id);
     if (!budgetResult.allowed) {
       return NextResponse.json(

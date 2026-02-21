@@ -92,6 +92,28 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       onClick?.(e);
     };
 
+    // When using asChild, don't wrap children or add effects
+    // Slot expects a single child to merge props into
+    if (asChild) {
+      return (
+        <Comp
+          ref={React.useMemo(() => {
+            return (node: HTMLButtonElement) => {
+              buttonRef.current = node;
+              if (typeof ref === "function") {
+                ref(node);
+              } else if (ref) {
+                ref.current = node;
+              }
+            };
+          }, [ref])}
+          className={cn(buttonVariants({ variant, size, className }))}
+          onClick={handleClick}
+          {...props}
+        />
+      );
+    }
+
     return (
       <Comp
         ref={React.useMemo(() => {

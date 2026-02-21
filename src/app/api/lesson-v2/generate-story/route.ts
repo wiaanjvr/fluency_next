@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
         {
           error: "Daily limit reached",
           message:
-            "You've reached your daily microstory limit. Upgrade to Premium for unlimited access.",
+            "You've reached your daily microstory limit. Upgrade to Diver for unlimited access.",
           limitReached: true,
           limit: usageStatus.limit,
           currentCount: usageStatus.currentCount,
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Absolute daily generation budget (applies to ALL tiers, including premium)
+    // Absolute daily generation budget (applies to ALL tiers, including paid)
     const budgetResult = await consumeDailyBudget(user.id);
     if (!budgetResult.allowed) {
       return NextResponse.json(

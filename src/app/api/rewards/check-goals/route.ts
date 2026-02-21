@@ -117,9 +117,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (profile.subscription_tier !== "premium") {
+    if (profile.subscription_tier === "snorkeler" || profile.subscription_tier === "free") {
       return NextResponse.json(
-        { error: "Reward system requires an active premium subscription" },
+        { error: "Reward system requires an active paid subscription" },
         { status: 400 },
       );
     }

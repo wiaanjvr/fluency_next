@@ -465,14 +465,14 @@ export function FoundationSessionPage({
             <p className="text-muted-foreground">
               You've completed all your foundation vocabulary sessions for
               today. Come back tomorrow to continue learning, or upgrade to
-              Premium for unlimited access.
+              Diver for unlimited access.
             </p>
             <div className="flex flex-col gap-2">
               <Button
-                onClick={() => router.push("/pricing")}
+                onClick={() => router.push("/checkout?tier=diver")}
                 className="w-full"
               >
-                Upgrade to Premium
+                Upgrade to Diver
               </Button>
               <Button
                 variant="outline"

@@ -19,8 +19,10 @@ CREATE TABLE profiles (
   interests TEXT[] DEFAULT '{}',
   
   -- Subscription
-  subscription_tier TEXT DEFAULT 'free' CHECK (subscription_tier IN ('free', 'premium')),
+  subscription_tier TEXT DEFAULT 'snorkeler' CHECK (subscription_tier IN ('snorkeler', 'diver', 'submariner')),
   subscription_expires_at TIMESTAMP WITH TIME ZONE,
+  subscription_status TEXT DEFAULT 'none' CHECK (subscription_status IN ('active', 'past_due', 'cancelled', 'none')),
+  next_payment_date TIMESTAMP WITH TIME ZONE,
   stripe_customer_id TEXT UNIQUE,
   
   -- Paystack integration

@@ -1,8 +1,8 @@
 /* =============================================================================
    USAGE LIMIT BANNER
    
-   Shows free tier users their remaining sessions for the day
-   Encourages upgrade to premium when limits are reached
+   Shows Snorkeler-tier users their remaining sessions for the day.
+   Encourages upgrade to Diver when limits are reached.
 ============================================================================= */
 
 "use client";
@@ -85,9 +85,10 @@ export function UsageLimitBanner({
   }, []);
 
   if (loading || !usageData) return null;
-  if (usageData.remaining.isPremium) return null; // Premium users don't see limits
+  // Paid tier users (Diver / Submariner) have unlimited access
+  if (usageData.remaining.isPremium) return null;
 
-  // Total daily free lessons across all lesson types
+  // Total daily Snorkeler lessons across all lesson types
   const TOTAL_DAILY_FREE = 5;
   const usedTotal =
     usageData.usage.foundation_sessions +
@@ -129,10 +130,10 @@ export function UsageLimitBanner({
                 <>
                   You've used all {limit} sessions today. Come back tomorrow or{" "}
                   <Link
-                    href={isSignedIn ? "/checkout" : "/auth/login"}
+                    href={isSignedIn ? "/checkout?tier=diver" : "/auth/login"}
                     className="text-ocean-turquoise hover:underline"
                   >
-                    upgrade to Premium
+                    upgrade to Diver
                   </Link>{" "}
                   for unlimited access.
                 </>
@@ -140,10 +141,10 @@ export function UsageLimitBanner({
             </p>
           </div>
           {remaining === 0 && (
-            <Link href={isSignedIn ? "/checkout" : "/auth/login"}>
+            <Link href={isSignedIn ? "/checkout?tier=diver" : "/auth/login"}>
               <Button size="sm" className="gap-2">
                 <Crown className="w-4 h-4" />
-                Go Premium
+                Start Diving
               </Button>
             </Link>
           )}
@@ -169,13 +170,13 @@ export function UsageLimitBanner({
               You've reached your daily limit
             </h3>
             <p className="text-sm text-muted-foreground font-light mb-4">
-              Come back tomorrow to continue learning, or upgrade to Premium for
+              Come back tomorrow to continue learning, or upgrade to Diver for
               unlimited access to all lesson types.
             </p>
-            <Link href={isSignedIn ? "/checkout" : "/auth/login"}>
+            <Link href={isSignedIn ? "/checkout?tier=diver" : "/auth/login"}>
               <Button className="gap-2">
                 <Crown className="w-4 h-4" />
-                Upgrade to Premium
+                Upgrade to Diver
               </Button>
             </Link>
           </div>
@@ -209,10 +210,10 @@ export function UsageLimitBanner({
             </span>
           </div>
         </div>
-        <Link href={isSignedIn ? "/checkout" : "/auth/login"}>
+        <Link href={isSignedIn ? "/checkout?tier=diver" : "/auth/login"}>
           <Button variant="ghost" size="sm" className="gap-2">
             <Crown className="w-4 h-4" />
-            Go Premium
+            Start Diving
           </Button>
         </Link>
       </div>

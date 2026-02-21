@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { type TierSlug, getTierConfig } from "@/lib/tiers";
 
 /* =============================================================================
    SUBSCRIPTION MANAGEMENT FUNCTIONS
@@ -15,10 +16,12 @@ const getServiceClient = () => {
 };
 
 export interface SubscriptionData {
-  tier: "free" | "premium";
+  tier: TierSlug;
   expiresAt: string | null;
   paystackCustomerCode?: string;
   paystackSubscriptionCode?: string;
+  subscriptionStatus?: "active" | "past_due" | "cancelled" | "none";
+  nextPaymentDate?: string | null;
 }
 
 /**
@@ -38,6 +41,8 @@ export async function updateUserSubscription(
         subscription_expires_at: subscriptionData.expiresAt,
         paystack_customer_code: subscriptionData.paystackCustomerCode,
         paystack_subscription_code: subscriptionData.paystackSubscriptionCode,
+        subscription_status: subscriptionData.subscriptionStatus || (subscriptionData.tier === "snorkeler" ? "none" : "active"),
+        next_payment_date: subscriptionData.nextPaymentDate || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", userId);
@@ -63,9 +68,11 @@ export async function updateUserSubscription(
 export async function getUserSubscription(userId: string): Promise<{
   success: boolean;
   data?: {
-    tier: string;
+    tier: TierSlug;
     expiresAt: string | null;
     isActive: boolean;
+    subscriptionStatus: string;
+    nextPaymentDate: string | null;
   };
   error?: string;
 }> {
@@ -74,7 +81,7 @@ export async function getUserSubscription(userId: string): Promise<{
 
     const { data, error } = await supabase
       .from("profiles")
-      .select("subscription_tier, subscription_expires_at")
+      .select("subscription_tier, subscription_expires_at, subscription_status, next_payment_date")
       .eq("id", userId)
       .single();
 
@@ -83,20 +90,24 @@ export async function getUserSubscription(userId: string): Promise<{
       return { success: false, error: error.message };
     }
 
+    const rawTier = data.subscription_tier || "snorkeler";
+    const tier = getTierConfig(rawTier).slug;
     const now = new Date();
     const expiresAt = data.subscription_expires_at
       ? new Date(data.subscription_expires_at)
       : null;
 
     const isActive =
-      data.subscription_tier === "premium" && expiresAt && expiresAt > now;
+      tier !== "snorkeler" && expiresAt && expiresAt > now;
 
     return {
       success: true,
       data: {
-        tier: data.subscription_tier,
+        tier,
         expiresAt: data.subscription_expires_at,
         isActive: !!isActive,
+        subscriptionStatus: data.subscription_status || "none",
+        nextPaymentDate: data.next_payment_date || null,
       },
     };
   } catch (error) {
@@ -120,9 +131,11 @@ export async function cancelUserSubscription(
     const { error } = await supabase
       .from("profiles")
       .update({
-        subscription_tier: "free",
+        subscription_tier: "snorkeler",
         subscription_expires_at: null,
         paystack_subscription_code: null,
+        subscription_status: "cancelled",
+        next_payment_date: null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", userId);
@@ -151,13 +164,14 @@ export async function hasActiveSubscription(userId: string): Promise<boolean> {
 }
 
 /**
- * Activate premium subscription (immediate payment, no trial)
+ * Activate a paid subscription (immediate payment, no trial)
  */
 export async function activatePremiumSubscription(
   userId: string,
   expiresAt: Date,
   paystackCustomerCode?: string,
   paystackSubscriptionCode?: string,
+  tier: TierSlug = "diver",
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = getServiceClient();
@@ -171,15 +185,18 @@ export async function activatePremiumSubscription(
 
     const now = new Date();
     const updateData: any = {
-      subscription_tier: "premium",
+      subscription_tier: tier,
       subscription_expires_at: expiresAt.toISOString(),
+      subscription_status: "active",
+      next_payment_date: expiresAt.toISOString(),
       updated_at: now.toISOString(),
     };
 
-    // Only set subscription_started_at if this is a new subscription or upgrade from free
+    // Only set subscription_started_at if this is a new subscription or upgrade from snorkeler
+    const currentTier = currentProfile?.subscription_tier || "snorkeler";
     if (
       !currentProfile ||
-      currentProfile.subscription_tier === "free" ||
+      currentTier === "snorkeler" ||
       !currentProfile.subscription_started_at
     ) {
       updateData.subscription_started_at = now.toISOString();
@@ -233,8 +250,8 @@ export async function isEligibleForRefund(
       return { eligible: false, error: error.message };
     }
 
-    // Must be premium subscriber
-    if (data.subscription_tier !== "premium") {
+    // Must be on a paid tier (diver or submariner)
+    if (data.subscription_tier === "snorkeler" || data.subscription_tier === "free") {
       return { eligible: false };
     }
 
@@ -282,14 +299,16 @@ export async function processRefundRequest(
       };
     }
 
-    // Downgrade to free tier
+    // Downgrade to snorkeler (free) tier
     const { error } = await supabase
       .from("profiles")
       .update({
-        subscription_tier: "free",
+        subscription_tier: "snorkeler",
         subscription_expires_at: null,
         subscription_started_at: null,
         paystack_subscription_code: null,
+        subscription_status: "cancelled",
+        next_payment_date: null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", userId);
@@ -330,8 +349,9 @@ export async function activateTrialSubscription(
     const { error } = await supabase
       .from("profiles")
       .update({
-        subscription_tier: "premium",
+        subscription_tier: "diver",
         subscription_expires_at: expiresAt.toISOString(),
+        subscription_status: "active",
         updated_at: new Date().toISOString(),
       })
       .eq("id", userId);

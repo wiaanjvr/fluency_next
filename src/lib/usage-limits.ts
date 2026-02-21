@@ -1,17 +1,18 @@
 /* =============================================================================
    USAGE LIMITS
    
-   Utilities for enforcing daily usage limits on free tier users:
+   Utilities for enforcing daily usage limits on free-tier (snorkeler) users:
    - 5 foundation vocabulary sessions per day
    - 3 sentence sessions per day
    - 1 microstory session per day
    - 1 main/acquisition mode lesson per day
    
-   Premium users have unlimited access to all session types.
+   Paid tiers (diver, submariner) have unlimited access to all session types.
 ============================================================================= */
 
 import { createClient } from "@/lib/supabase/server";
 import { redis } from "@/lib/redis";
+import { type TierSlug, getTierConfig, isUnlimitedTier, getTierLimits } from "@/lib/tiers";
 
 export type SessionType = "foundation" | "sentence" | "microstory" | "main";
 
@@ -39,7 +40,7 @@ export interface DailyUsage {
   main_lessons: number;
 }
 
-// Daily limits for free tier users
+// Daily limits for snorkeler (free) tier users
 export const FREE_TIER_LIMITS: UsageLimits = {
   foundation: 5,
   sentence: 3,
@@ -216,12 +217,12 @@ export async function invalidateUsageCache(userId: string): Promise<void> {
  */
 export async function getUserSubscriptionTier(
   userId: string,
-): Promise<"free" | "premium" | null> {
+): Promise<TierSlug | null> {
   // Check Redis cache first
   const cacheKey = `user:${userId}:tier`;
   try {
     const cached = await redis.get<string>(cacheKey);
-    if (cached) return cached as "free" | "premium";
+    if (cached) return cached as TierSlug;
   } catch {
     // Redis miss or error — fall through to DB
   }
@@ -240,7 +241,9 @@ export async function getUserSubscriptionTier(
       return null;
     }
 
-    const tier = (data?.subscription_tier as "free" | "premium") || "free";
+    const rawTier = data?.subscription_tier || "snorkeler";
+    // Map legacy values
+    const tier: TierSlug = getTierConfig(rawTier).slug;
 
     // Cache for 5 minutes
     try {
@@ -276,44 +279,49 @@ export async function getRemainingSessionsByType(userId: string): Promise<{
   microstory: number;
   main: number;
   isPremium: boolean;
+  tier: TierSlug;
 }> {
-  const tier = await getUserSubscriptionTier(userId);
-  const isPremium = tier === "premium";
+  const tier = (await getUserSubscriptionTier(userId)) || "snorkeler";
+  const unlimited = isUnlimitedTier(tier);
 
-  if (isPremium) {
+  if (unlimited) {
     return {
       foundation: -1, // -1 indicates unlimited
       sentence: -1,
       microstory: -1,
       main: -1,
       isPremium: true,
+      tier,
     };
   }
 
+  const limits = getTierLimits(tier);
   const usage = await getTodayUsage(userId);
 
   if (!usage) {
     return {
-      foundation: FREE_TIER_LIMITS.foundation,
-      sentence: FREE_TIER_LIMITS.sentence,
-      microstory: FREE_TIER_LIMITS.microstory,
-      main: FREE_TIER_LIMITS.main,
+      foundation: limits.foundation,
+      sentence: limits.sentence,
+      microstory: limits.microstory,
+      main: limits.main,
       isPremium: false,
+      tier,
     };
   }
 
   return {
     foundation: Math.max(
       0,
-      FREE_TIER_LIMITS.foundation - usage.foundation_sessions,
+      limits.foundation - usage.foundation_sessions,
     ),
-    sentence: Math.max(0, FREE_TIER_LIMITS.sentence - usage.sentence_sessions),
+    sentence: Math.max(0, limits.sentence - usage.sentence_sessions),
     microstory: Math.max(
       0,
-      FREE_TIER_LIMITS.microstory - usage.microstory_sessions,
+      limits.microstory - usage.microstory_sessions,
     ),
-    main: Math.max(0, FREE_TIER_LIMITS.main - usage.main_lessons),
+    main: Math.max(0, limits.main - usage.main_lessons),
     isPremium: false,
+    tier,
   };
 }
 

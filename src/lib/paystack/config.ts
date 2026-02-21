@@ -1,28 +1,37 @@
 /* =============================================================================
    PAYSTACK CONFIGURATION
    
-   Constants and configuration for Paystack integration
+   Constants and configuration for Paystack integration.
+   Tier-specific plan codes and pricing live in lib/tiers.ts — this file
+   only contains Paystack infrastructure constants.
 ============================================================================= */
+
+import { TIERS, getPlanCode, getTierByPlanCode, type TierSlug } from "@/lib/tiers";
 
 // Paystack API endpoints
 export const PAYSTACK_API_URL = "https://api.paystack.co";
 
-// Subscription plans
-// Note: These plan codes should match your Paystack dashboard plans
+// Re-export tier helpers so existing imports from "@/lib/paystack" keep working
+export { getPlanCode, getTierByPlanCode };
+
+// Subscription plans — derived from the central TIERS config
+// Kept for backward-compat with code that imports PAYSTACK_PLANS
 export const PAYSTACK_PLANS = {
-  PREMIUM_MONTHLY: {
-    code: process.env.NEXT_PUBLIC_PAYSTACK_PLAN_MONTHLY || "",
-    name: "Premium Monthly",
-    amount: 1200, // $12.00 in cents
+  DIVER_MONTHLY: {
+    code: getPlanCode("diver"),
+    name: TIERS.diver.displayName,
+    amount: TIERS.diver.priceKobo,
     interval: "monthly" as const,
-    currency: "USD",
+    currency: "ZAR",
+    tier: "diver" as TierSlug,
   },
-  PREMIUM_YEARLY: {
-    code: process.env.NEXT_PUBLIC_PAYSTACK_PLAN_YEARLY || "",
-    name: "Premium Yearly",
-    amount: 9600, // $96.00 in cents
-    interval: "yearly" as const,
-    currency: "USD",
+  SUBMARINER_MONTHLY: {
+    code: getPlanCode("submariner"),
+    name: TIERS.submariner.displayName,
+    amount: TIERS.submariner.priceKobo,
+    interval: "monthly" as const,
+    currency: "ZAR",
+    tier: "submariner" as TierSlug,
   },
 } as const;
 
@@ -32,8 +41,8 @@ export function getPlanByCode(code: string) {
   return plan || null;
 }
 
-// Get plan amount in dollars
-export function getPlanAmountInDollars(planCode: string): number {
+// Get plan amount in rands
+export function getPlanAmountInRands(planCode: string): number {
   const plan = getPlanByCode(planCode);
   return plan ? plan.amount / 100 : 0;
 }
@@ -47,4 +56,5 @@ export const PAYSTACK_WEBHOOK_EVENTS = {
   INVOICE_CREATE: "invoice.create",
   INVOICE_UPDATE: "invoice.update",
   INVOICE_PAYMENT_FAILED: "invoice.payment_failed",
+  CUSTOMER_IDENTIFICATION_SUCCESS: "customeridentification.success",
 } as const;

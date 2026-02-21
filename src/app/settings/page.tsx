@@ -23,6 +23,7 @@ import {
   RefreshCcw,
   X,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import {
   Card,
@@ -41,6 +42,12 @@ import {
   uploadAvatar,
   signout,
 } from "@/app/auth/actions";
+import {
+  getTierConfig,
+  getTiersAbove,
+  TIERS,
+  type TierSlug,
+} from "@/lib/tiers";
 
 interface Profile {
   id: string;
@@ -438,7 +445,8 @@ export default function SettingsPage() {
 
           {/* Refund Eligibility Notice */}
           {refundEligibility?.eligible &&
-            profile?.subscription_tier === "premium" && (
+            profile?.subscription_tier !== "snorkeler" &&
+            profile?.subscription_tier !== "free" && (
               <div className="p-4 bg-ocean-turquoise/10 border border-ocean-turquoise/30 rounded-xl">
                 <div className="flex items-start gap-3">
                   <div className="flex-1">
@@ -448,7 +456,11 @@ export default function SettingsPage() {
                     <p className="text-sm text-muted-foreground font-light mb-3">
                       You have {refundEligibility.daysRemaining} day
                       {refundEligibility.daysRemaining !== 1 ? "s" : ""}{" "}
-                      remaining to request a full refund and cancel your Pro
+                      remaining to request a full refund and cancel your{" "}
+                      {
+                        getTierConfig(profile?.subscription_tier as TierSlug)
+                          ?.displayName
+                      }{" "}
                       subscription.
                     </p>
                     <Button
@@ -476,32 +488,83 @@ export default function SettingsPage() {
               </p>
             </div>
             <div className="space-y-4">
+              {/* Current plan */}
               <div className="flex items-center justify-between p-6 bg-foreground/5 rounded-xl border border-border/50">
                 <div>
-                  <p className="font-light text-lg capitalize">
-                    {profile?.subscription_tier} Plan
+                  <p className="font-light text-lg">
+                    {getTierConfig(profile?.subscription_tier as TierSlug)
+                      ?.displayName || profile?.subscription_tier}{" "}
+                    Plan
                   </p>
                   <p className="text-sm text-muted-foreground font-light mt-1">
-                    {profile?.subscription_tier === "free"
-                      ? "5 lessons per day"
-                      : "Unlimited lessons"}
+                    {getTierConfig(profile?.subscription_tier as TierSlug)
+                      ?.description || ""}
                   </p>
                 </div>
-                {profile?.subscription_tier === "free" && (
-                  <Link href={profile ? "/checkout" : "/auth/login"}>
-                    <Button className="gap-2">
-                      <Crown className="h-4 w-4" />
-                      Upgrade to Premium
-                    </Button>
-                  </Link>
-                )}
+                {(() => {
+                  const tiersAbove = getTiersAbove(
+                    profile?.subscription_tier as TierSlug,
+                  );
+                  if (tiersAbove.length === 0) return null;
+                  return (
+                    <Link href="/upgrade">
+                      <Button className="gap-2">
+                        <Crown className="h-4 w-4" />
+                        Change Plan
+                      </Button>
+                    </Link>
+                  );
+                })()}
               </div>
-              {profile?.subscription_tier === "free" && (
-                <p className="text-sm text-muted-foreground font-light">
-                  Premium: Unlimited lessons, multiple languages, and AI
-                  conversation feedback
-                </p>
-              )}
+
+              {/* Available upgrade tiers summary */}
+              {(() => {
+                const tiersAbove = getTiersAbove(
+                  profile?.subscription_tier as TierSlug,
+                );
+                if (tiersAbove.length === 0) {
+                  return (
+                    <p className="text-sm text-muted-foreground font-light">
+                      You&apos;re on our highest plan. Enjoy all features!
+                    </p>
+                  );
+                }
+                return (
+                  <div className="space-y-2">
+                    {tiersAbove.map((slug) => {
+                      const t = TIERS[slug];
+                      return (
+                        <div
+                          key={slug}
+                          className="flex items-center justify-between p-4 rounded-xl border border-border/30 hover:border-ocean-turquoise/30 transition-colors"
+                        >
+                          <div>
+                            <p className="text-sm font-medium">
+                              {t.displayName}
+                            </p>
+                            <p className="text-xs text-muted-foreground font-light">
+                              R{t.priceZAR}/mo or R{t.annualPriceZAR}/yr
+                            </p>
+                          </div>
+                          <Link href={`/upgrade`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1.5 text-xs"
+                            >
+                              <ChevronRight className="h-3.5 w-3.5" />
+                              View plan
+                            </Button>
+                          </Link>
+                        </div>
+                      );
+                    })}
+                    <p className="text-xs text-muted-foreground font-light pt-1">
+                      Annual plans include 2 months free.
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 

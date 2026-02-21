@@ -3,6 +3,7 @@ import { verifyWebhookSignature } from "@/lib/paystack/utils";
 import { activatePremiumSubscription } from "@/lib/paystack/subscription";
 import { createClient } from "@supabase/supabase-js";
 import { PAYSTACK_WEBHOOK_EVENTS } from "@/lib/paystack/config";
+import { getTierByPlanCode, type TierSlug } from "@/lib/tiers";
 
 /* =============================================================================
    PAYSTACK WEBHOOK API ROUTE
@@ -71,6 +72,10 @@ export async function POST(request: NextRequest) {
         await handlePaymentFailed(event.data);
         break;
 
+      case PAYSTACK_WEBHOOK_EVENTS.CUSTOMER_IDENTIFICATION_SUCCESS:
+        await handleCustomerIdentification(event.data);
+        break;
+
       default:
         console.log(`Unhandled webhook event: ${event.event}`);
     }
@@ -96,29 +101,44 @@ async function handleChargeSuccess(data: any) {
     return;
   }
 
-  // If this is a subscription payment, activate premium subscription immediately
+  // If this is a subscription payment, activate the correct tier
   if (data.plan) {
     const expiresAt = new Date();
 
-    // Add subscription period
+    // Add subscription period based on interval
     if (data.plan.interval === "monthly") {
       expiresAt.setMonth(expiresAt.getMonth() + 1);
-    } else if (data.plan.interval === "yearly") {
+    } else if (
+      data.plan.interval === "yearly" ||
+      data.plan.interval === "annually"
+    ) {
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    } else if (data.metadata?.billing === "annual") {
+      // Fallback: check metadata if Paystack doesn't send an interval
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    } else {
+      // Default to monthly
+      expiresAt.setMonth(expiresAt.getMonth() + 1);
     }
 
-    // Use the new activatePremiumSubscription function
+    // Resolve plan code → tier slug
+    const resolvedTier: TierSlug =
+      getTierByPlanCode(data.plan.plan_code) ||
+      (data.metadata?.tier as TierSlug) ||
+      "diver";
+
     const result = await activatePremiumSubscription(
       userId,
       expiresAt,
       data.customer?.customer_code,
       data.plan?.subscription_code,
+      resolvedTier,
     );
 
     if (result.error) {
       console.error("Error activating subscription:", result.error);
     } else {
-      console.log(`Premium subscription activated for user ${userId}`);
+      console.log(`${resolvedTier} subscription activated for user ${userId}`);
     }
   }
 
@@ -178,18 +198,26 @@ async function handleSubscriptionCreate(data: any) {
     return;
   }
 
-  // Use the new activatePremiumSubscription function
+  // Resolve plan code → tier slug
+  const resolvedTier: TierSlug =
+    getTierByPlanCode(data.plan?.plan_code) ||
+    (data.metadata?.tier as TierSlug) ||
+    "diver";
+
   const result = await activatePremiumSubscription(
     targetUserId,
     expiresAt,
     data.customer?.customer_code,
     data.subscription?.subscription_code,
+    resolvedTier,
   );
 
   if (result.error) {
     console.error("Error creating subscription:", result.error);
   } else {
-    console.log(`Subscription created for user ${targetUserId}`);
+    console.log(
+      `${resolvedTier} subscription created for user ${targetUserId}`,
+    );
   }
 }
 
@@ -203,12 +231,14 @@ async function handleSubscriptionDisable(data: any) {
     return;
   }
 
-  // Update user profile to free tier
+  // Downgrade user to snorkeler (free) tier
   const { error } = await supabase
     .from("profiles")
     .update({
-      subscription_tier: "free",
+      subscription_tier: "snorkeler",
       subscription_expires_at: null,
+      subscription_status: "cancelled",
+      next_payment_date: null,
       updated_at: new Date().toISOString(),
     })
     .eq("paystack_subscription_code", subscriptionCode);
@@ -223,12 +253,57 @@ async function handleSubscriptionDisable(data: any) {
 async function handlePaymentFailed(data: any) {
   console.log("Processing payment failure:", data.reference);
 
-  // You might want to send an email notification to the user
-  // or log this for manual follow-up
-
   const userId = data.metadata?.userId;
-  if (userId) {
-    console.warn(`Payment failed for user ${userId}`);
-    // TODO: Send notification email
+  const customerEmail = data.customer?.email;
+
+  // Find the user
+  let targetUserId = userId;
+  if (!targetUserId && customerEmail) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", customerEmail)
+      .single();
+    targetUserId = profile?.id;
+  }
+
+  if (targetUserId) {
+    // Flag subscription as past_due — do NOT immediately downgrade
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        subscription_status: "past_due",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", targetUserId);
+
+    if (error) {
+      console.error("Error flagging subscription as past_due:", error);
+    } else {
+      console.warn(
+        `Payment failed for user ${targetUserId} — marked as past_due`,
+      );
+    }
+
+    // TODO: Send notification email to user about failed payment
+  }
+}
+
+async function handleCustomerIdentification(data: any) {
+  console.log("Processing customer identification:", data.customer_code);
+
+  // Optional: store verified customer details
+  if (data.customer_code) {
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        paystack_customer_code: data.customer_code,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("paystack_customer_code", data.customer_code);
+
+    if (error) {
+      console.error("Error updating customer identification:", error);
+    }
   }
 }
