@@ -467,7 +467,7 @@ export function AmbientLauncher({
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       {variant === "nav" ? (
-        // ── Nav-tab style (matches Immerse / Settings appearance) ──────────
+        // ── Nav-tab style (matches Course / Settings appearance) ──────────
         <button
           onClick={handleClick}
           onKeyDown={handleKeyDown}
@@ -491,7 +491,7 @@ export function AmbientLauncher({
                 opacity: isActive ? 1 : 0.7,
               }}
             >
-              Ambient
+              Immerse
             </span>
             {/* Playing indicator dot */}
             {isActive && isPlaying && (

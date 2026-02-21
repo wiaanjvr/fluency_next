@@ -37,7 +37,19 @@ export interface AmbientEpisode {
   difficulty: string;
 }
 
-type AmbientMode = "radio" | "podcast" | null;
+export interface AmbientVideo {
+  id: string;
+  title: string;
+  description: string | null;
+  embed_url: string;
+  source: string;
+  category: string;
+  thumbnail_url: string | null;
+  duration_hint: string | null;
+  is_live: boolean;
+}
+
+type AmbientMode = "radio" | "podcast" | "video" | null;
 
 interface AmbientPlayerState {
   mode: AmbientMode;
@@ -45,11 +57,15 @@ interface AmbientPlayerState {
   volume: number;
   currentStation: AmbientStation | null;
   currentEpisode: AmbientEpisode | null;
+  currentVideo: AmbientVideo | null;
   stations: AmbientStation[];
   episodes: AmbientEpisode[];
+  videos: AmbientVideo[];
   isLoading: boolean;
   /** True when all available radio streams have been tried and failed */
   streamError: boolean;
+  /** True when no videos could be loaded for the current language */
+  videoError: boolean;
   /**
    * Controls which ambient UI is on-screen:
    * - "container" : SoundContainer fills the hero, soundbar hidden
@@ -60,16 +76,19 @@ interface AmbientPlayerState {
 }
 
 interface AmbientPlayerActions {
-  openAmbient: (mode: "radio" | "podcast") => void;
+  openAmbient: (mode: "radio" | "podcast" | "video") => void;
   closeAmbient: () => void;
   playStation: (station: AmbientStation) => void;
   playEpisode: (episode: AmbientEpisode) => void;
+  playVideo: (video: AmbientVideo) => void;
   togglePlay: () => void;
   setVolume: (v: number) => void;
   /** Retry from scratch after all radio streams failed */
   retryStream: () => void;
   /** Retry from scratch after all podcast episodes failed */
   retryEpisode: () => void;
+  /** Reload video list after a fetch failure */
+  retryVideo: () => void;
   /** Set which ambient view is active */
   setAmbientView: (v: "container" | "soundbar" | null) => void;
 }
@@ -100,8 +119,11 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
   );
   const [stations, setStations] = useState<AmbientStation[]>([]);
   const [episodes, setEpisodes] = useState<AmbientEpisode[]>([]);
+  const [videos, setVideos] = useState<AmbientVideo[]>([]);
+  const [currentVideo, setCurrentVideo] = useState<AmbientVideo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [streamError, setStreamError] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const [ambientView, setAmbientViewState] = useState<
     "container" | "soundbar" | null
   >(null);
@@ -136,10 +158,14 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
   const currentStationRef = useRef<AmbientStation | null>(null);
   const episodesRef = useRef<AmbientEpisode[]>([]);
   const currentEpisodeRef = useRef<AmbientEpisode | null>(null);
+  const videosRef = useRef<AmbientVideo[]>([]);
+  const currentVideoRef = useRef<AmbientVideo | null>(null);
   stationsRef.current = stations;
   currentStationRef.current = currentStation;
   episodesRef.current = episodes;
   currentEpisodeRef.current = currentEpisode;
+  videosRef.current = videos;
+  currentVideoRef.current = currentVideo;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -244,15 +270,54 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     return [];
   }, []);
 
+  const fetchVideos = useCallback(async () => {
+    setIsLoading(true);
+    setVideoError(false);
+    try {
+      const res = await fetch("/api/ambient/video");
+      if (res.ok) {
+        const json = await res.json();
+        const fetched = (json.videos ?? []) as AmbientVideo[];
+        setVideos(fetched);
+        if (fetched.length === 0) setVideoError(true);
+        return fetched;
+      }
+    } catch (e) {
+      console.error("[Ambient] Failed to fetch videos:", e);
+      setVideoError(true);
+    } finally {
+      setIsLoading(false);
+    }
+    return [];
+  }, []);
+
   // ── Actions ────────────────────────────────────────────────────────────────
 
   const openAmbient = useCallback(
-    async (nextMode: "radio" | "podcast") => {
+    async (nextMode: "radio" | "podcast" | "video") => {
       setMode(nextMode);
       setStreamError(false);
       triedStationIdsRef.current.clear();
       if (typeof window !== "undefined") {
         localStorage.setItem(LS_MODE_KEY, nextMode);
+      }
+
+      // Video mode — pause any audio and load the video list
+      if (nextMode === "video") {
+        const audio = audioRef.current;
+        if (audio) {
+          audio.pause();
+          audio.src = "";
+        }
+        setIsPlaying(false);
+        setCurrentStation(null);
+        setCurrentEpisode(null);
+        setAmbientViewState("container");
+        let list = videosRef.current;
+        if (list.length === 0) list = await fetchVideos();
+        if (list.length > 0 && !currentVideoRef.current)
+          setCurrentVideo(list[0]);
+        return;
       }
 
       if (nextMode === "radio") {
@@ -303,6 +368,7 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
       currentEpisode,
       fetchStations,
       fetchEpisodes,
+      fetchVideos,
     ],
   );
 
@@ -316,7 +382,9 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     setIsPlaying(false);
     setCurrentStation(null);
     setCurrentEpisode(null);
+    setCurrentVideo(null);
     setStreamError(false);
+    setVideoError(false);
     setAmbientViewState(null);
     triedStationIdsRef.current.clear();
     triedEpisodeUrlsRef.current.clear();
@@ -401,6 +469,30 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     setIsPlaying(true);
   }, []);
 
+  /** Select a specific video to play (pauses audio) */
+  const playVideo = useCallback((video: AmbientVideo) => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.src = "";
+    }
+    setIsPlaying(false);
+    setCurrentStation(null);
+    setCurrentEpisode(null);
+    setStreamError(false);
+    setVideoError(false);
+    setCurrentVideo(video);
+    setMode("video");
+    setAmbientViewState("container");
+  }, []);
+
+  /** Reload the video list after a failure */
+  const retryVideo = useCallback(async () => {
+    setVideoError(false);
+    const list = await fetchVideos();
+    if (list.length > 0 && !currentVideoRef.current) setCurrentVideo(list[0]);
+  }, [fetchVideos]);
+
   // ── Restore last mode from localStorage on mount ──────────────────────────
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -415,19 +507,24 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     volume,
     currentStation,
     currentEpisode,
+    currentVideo,
     stations,
     episodes,
+    videos,
     isLoading,
     streamError,
+    videoError,
     ambientView,
     openAmbient,
     closeAmbient,
     playStation,
     playEpisode,
+    playVideo,
     togglePlay,
     setVolume,
     retryStream,
     retryEpisode,
+    retryVideo,
     setAmbientView: setAmbientViewState,
   };
 

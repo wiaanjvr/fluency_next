@@ -454,8 +454,8 @@ export function AmbientDashboardCard({ className }: { className?: string }) {
             className="text-xs font-body"
             style={{ color: "var(--seafoam)", opacity: 0.35 }}
           >
-            Click <strong style={{ opacity: 0.7 }}>Immerse</strong> in the nav
-            to return to your lessons — audio keeps playing
+            Click <strong style={{ opacity: 0.7 }}>Course</strong> in the nav to
+            return to your lessons — audio keeps playing
           </span>
         </div>
       </div>

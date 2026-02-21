@@ -4,13 +4,13 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Waves, Settings, User } from "lucide-react";
+import { Waves, Settings, User, Compass } from "lucide-react";
 import { AmbientLauncher } from "@/components/ambient";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 
 // ============================================================================
 // Ocean Navigation - Simplified immersive nav
-// Three destinations: Immerse, Progress, Settings
+// Three destinations: Course, Immerse, Settings
 // No modes. No levels. Just depth.
 // ============================================================================
 
@@ -27,7 +27,10 @@ interface OceanNavigationProps {
   targetLanguage?: string;
 }
 
-const navItems = [{ href: "/dashboard", label: "Immerse", icon: Waves }];
+const navItems = [
+  { href: "/dashboard", label: "Course", icon: Compass },
+  { href: "/propel", label: "Propel", icon: Waves },
+];
 
 export function OceanNavigation({
   streak = 0,
@@ -149,7 +152,7 @@ export function OceanNavigation({
                         isActive && ambientView === null
                           ? "var(--turquoise)"
                           : "var(--seafoam)",
-                      opacity: isActive && ambientView === null ? 1 : 0.45,
+                      opacity: isActive && ambientView === null ? 1 : 0.6,
                     }}
                   />
                   <span
@@ -161,7 +164,7 @@ export function OceanNavigation({
                         isActive && ambientView === null
                           ? "var(--turquoise)"
                           : "var(--sand)",
-                      opacity: isActive && ambientView === null ? 1 : 0.45,
+                      opacity: isActive && ambientView === null ? 1 : 0.7,
                     }}
                   >
                     {item.label}
@@ -185,7 +188,7 @@ export function OceanNavigation({
               </Link>
             );
           })}
-          {/* Ambient — between Immerse and Settings, nav-tab style */}
+          {/* Immerse — between Course and Settings, nav-tab style */}
           <AmbientLauncher variant="nav" />
 
           {/* Settings nav item */}
