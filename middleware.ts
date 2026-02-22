@@ -57,7 +57,9 @@ export async function middleware(request: NextRequest) {
     // windows at rotation. Extract the user ID from the Supabase session
     // instead.
     let identifier: string =
-      request.headers.get("x-forwarded-for") || request.ip || "anonymous";
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "anonymous";
 
     try {
       const supabase = createServerClient(

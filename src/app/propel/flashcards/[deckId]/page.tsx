@@ -16,6 +16,7 @@ import {
   AddCardModal,
   CSVImportModal,
   AnkiImportModal,
+  EditDeckModal,
 } from "@/components/flashcards";
 import {
   ArrowLeft,
@@ -31,6 +32,7 @@ import { cn } from "@/lib/utils";
 import type {
   Deck,
   Flashcard,
+  FlashcardLanguage,
   CardSchedule,
   CardState,
 } from "@/types/flashcards";
@@ -112,6 +114,7 @@ function DeckDetailContent({
   const [showCSV, setShowCSV] = useState(false);
   const [showAnki, setShowAnki] = useState(false);
   const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
+  const [showEditDeck, setShowEditDeck] = useState(false);
 
   useEffect(() => {
     if (ambientView === "container") {
@@ -172,7 +175,7 @@ function DeckDetailContent({
     fetchDeckData();
   }, [fetchDeckData]);
 
-  // Add single card
+  // Add or edit single card
   const handleAddCard = async (data: {
     front: string;
     back: string;
@@ -182,32 +185,89 @@ function DeckDetailContent({
     grammar_notes?: string;
     tags?: string[];
   }) => {
-    const { data: card } = await supabase
-      .from("flashcards")
-      .insert({
-        deck_id: deckId,
-        user_id: userId,
-        front: data.front,
-        back: data.back,
-        example_sentence: data.example_sentence || null,
-        example_translation: data.example_translation || null,
-        word_class: data.word_class || null,
-        grammar_notes: data.grammar_notes || null,
-        tags: data.tags || null,
-        source: "manual",
-      })
-      .select("id")
-      .single();
+    if (editingCard) {
+      // Update existing card
+      await supabase
+        .from("flashcards")
+        .update({
+          front: data.front,
+          back: data.back,
+          example_sentence: data.example_sentence || null,
+          example_translation: data.example_translation || null,
+          word_class: data.word_class || null,
+          grammar_notes: data.grammar_notes || null,
+          tags: data.tags || null,
+        })
+        .eq("id", editingCard.id)
+        .eq("user_id", userId);
+      setEditingCard(null);
+    } else {
+      // Insert new card
+      const { data: card } = await supabase
+        .from("flashcards")
+        .insert({
+          deck_id: deckId,
+          user_id: userId,
+          front: data.front,
+          back: data.back,
+          example_sentence: data.example_sentence || null,
+          example_translation: data.example_translation || null,
+          word_class: data.word_class || null,
+          grammar_notes: data.grammar_notes || null,
+          tags: data.tags || null,
+          source: "manual",
+        })
+        .select("id")
+        .single();
 
-    if (card) {
-      await supabase.from("card_schedules").insert({
-        user_id: userId,
-        card_id: card.id,
-        state: "new",
-        due: new Date().toISOString(),
-      });
+      if (card) {
+        await supabase.from("card_schedules").insert({
+          user_id: userId,
+          card_id: card.id,
+          state: "new",
+          due: new Date().toISOString(),
+        });
+      }
     }
     await fetchDeckData();
+  };
+
+  // Edit/Delete deck
+  const handleEditDeck = async (data: {
+    name: string;
+    language: FlashcardLanguage;
+    description: string;
+    new_per_day: number;
+    review_per_day: number;
+  }) => {
+    await supabase
+      .from("decks")
+      .update({
+        name: data.name,
+        language: data.language,
+        description: data.description || null,
+        new_per_day: data.new_per_day,
+        review_per_day: data.review_per_day,
+      })
+      .eq("id", deckId)
+      .eq("user_id", userId);
+    setShowEditDeck(false);
+    await fetchDeckData();
+  };
+
+  const handleDeleteDeck = async () => {
+    const { data: deckCards } = await supabase
+      .from("flashcards")
+      .select("id")
+      .eq("deck_id", deckId);
+    if (deckCards?.length) {
+      const cardIds = deckCards.map((c) => c.id);
+      await supabase.from("card_schedules").delete().in("card_id", cardIds);
+      await supabase.from("review_log").delete().eq("deck_id", deckId);
+    }
+    await supabase.from("flashcards").delete().eq("deck_id", deckId);
+    await supabase.from("decks").delete().eq("id", deckId);
+    router.replace("/propel/flashcards");
   };
 
   // CSV import
@@ -392,17 +452,30 @@ function DeckDetailContent({
                       {deck.language.toUpperCase()}
                     </p>
                   </div>
-                  <Link
-                    href={`/propel/flashcards/${deckId}/study`}
-                    className={cn(
-                      "flex items-center gap-2 rounded-xl py-2.5 px-5",
-                      "bg-teal-500 hover:bg-teal-400 text-[#0a1628] font-medium text-sm",
-                      "transition shadow-lg shadow-teal-500/20 flex-shrink-0",
-                    )}
-                  >
-                    <Play className="h-4 w-4" />
-                    Study Now
-                  </Link>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => setShowEditDeck(true)}
+                      className={cn(
+                        "flex items-center gap-2 rounded-xl py-2.5 px-4",
+                        "border border-white/10 text-white/60 hover:text-white hover:border-white/20",
+                        "text-sm font-medium transition",
+                      )}
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Edit
+                    </button>
+                    <Link
+                      href={`/propel/flashcards/${deckId}/study`}
+                      className={cn(
+                        "flex items-center gap-2 rounded-xl py-2.5 px-5",
+                        "bg-teal-500 hover:bg-teal-400 text-[#0a1628] font-medium text-sm",
+                        "transition shadow-lg shadow-teal-500/20",
+                      )}
+                    >
+                      <Play className="h-4 w-4" />
+                      Study Now
+                    </Link>
+                  </div>
                 </div>
               </div>
 
@@ -542,6 +615,16 @@ function DeckDetailContent({
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-end gap-1">
                               <button
+                                onClick={() => {
+                                  setEditingCard(card);
+                                  setShowAddCard(true);
+                                }}
+                                className="p-1.5 rounded-lg text-white/30 hover:text-teal-400 hover:bg-teal-500/10 transition"
+                                title="Edit card"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
                                 onClick={() => handleDeleteCard(card.id)}
                                 className="p-1.5 rounded-lg text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition"
                                 title="Delete card"
@@ -564,8 +647,12 @@ function DeckDetailContent({
       {/* Modals */}
       <AddCardModal
         open={showAddCard}
-        onClose={() => setShowAddCard(false)}
+        onClose={() => {
+          setShowAddCard(false);
+          setEditingCard(null);
+        }}
         onSubmit={handleAddCard}
+        editCard={editingCard}
       />
       <CSVImportModal
         open={showCSV}
@@ -576,6 +663,13 @@ function DeckDetailContent({
         open={showAnki}
         onClose={() => setShowAnki(false)}
         onImport={handleAnkiImport}
+      />
+      <EditDeckModal
+        open={showEditDeck}
+        deck={deck}
+        onClose={() => setShowEditDeck(false)}
+        onSave={handleEditDeck}
+        onDelete={handleDeleteDeck}
       />
     </OceanBackground>
   );

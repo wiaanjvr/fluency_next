@@ -69,7 +69,7 @@ export default async function CheckoutPage({
           full_name: user.user_metadata?.full_name || null,
           avatar_url: user.user_metadata?.avatar_url || null,
         })
-        .select("id, email")
+        .select("id, email, payment_provider, country_code, currency_code")
         .single();
 
       if (newProfile) {
@@ -107,6 +107,8 @@ export default async function CheckoutPage({
       ? "lemonsqueezy"
       : "paystack");
 
+  const isAnnual = params.billing === "annual";
+
   // Route international users (Lemon Squeezy) away from this Paystack flow
   if (inferredProvider === "lemonsqueezy") {
     const lsUrls: Record<string, string | undefined> = {
@@ -125,7 +127,6 @@ export default async function CheckoutPage({
     // No LS URL configured — fall through to Paystack as a last resort
   }
 
-  const isAnnual = params.billing === "annual";
   const tierConfig = TIERS[tierSlug];
   // SA users always pay in ZAR; the currency param is only a display preference
   const currency = params.currency || profile?.currency_code || "ZAR";

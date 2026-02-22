@@ -292,3 +292,25 @@ export * from "./rewards";
 
 // Re-export cloze exercise types
 export * from "./cloze";
+
+// Re-export knowledge graph types
+export * from "./knowledge-graph";
+
+// Re-export ML event pipeline types (InputMode excluded — already re-exported from ./cloze)
+export {
+  TIME_OF_DAY_VALUES,
+  type TimeOfDay,
+  INPUT_MODE_VALUES,
+  // InputMode intentionally omitted to avoid conflict with ./cloze
+  type InteractionEventRow,
+  type InteractionEventInput,
+  type SessionSummaryRow,
+  type UserBaselineRow,
+  type ActiveSession,
+  type LogEventRequest,
+  type LogEventBatchRequest,
+  type StartSessionRequest,
+  type StartSessionResponse,
+  type EndSessionRequest,
+  type EndSessionResponse,
+} from "./ml-events";

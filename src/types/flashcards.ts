@@ -100,6 +100,10 @@ export type StudyState = {
   };
   cardStartTime: number;
   sessionComplete: boolean;
+  /** Learning queue: cards rated Again re-appear within the same session */
+  learningQueue: ScheduledCard[];
+  /** Index tracking how many total cards have been shown (for progress) */
+  totalReviewed: number;
 };
 
 export type StudyAction =
@@ -110,7 +114,8 @@ export type StudyAction =
   | { type: "SELECT_CHOICE"; choice: string }
   | { type: "NEXT_CARD"; updatedSchedule?: Partial<CardSchedule> }
   | { type: "SET_MODE"; mode: ReviewMode }
-  | { type: "SET_CARDS"; cards: ScheduledCard[] };
+  | { type: "SET_CARDS"; cards: ScheduledCard[] }
+  | { type: "ENQUEUE_LEARNING"; card: ScheduledCard };
 
 // Deck stats for dashboard
 export interface DeckStats {
@@ -130,4 +135,24 @@ export interface CapturePayload {
   source: CardSource;
   deckId: string;
   userId: string;
+}
+
+// Rating tooltips — plain-language explanations
+export const RATING_TOOLTIPS: Record<Rating, string> = {
+  1: "Completely forgot — show again soon",
+  2: "Remembered, but it was difficult",
+  3: "Remembered with moderate effort",
+  4: "Instantly recalled — felt effortless",
+};
+
+// Session results for knowledge graph sync
+export interface FlashcardSessionResult {
+  cardId: string;
+  front: string;
+  back: string;
+  rating: Rating;
+  responseTimeMs: number;
+  correct: boolean;
+  /** Optional user_words ID for knowledge graph sync */
+  wordId?: string;
 }

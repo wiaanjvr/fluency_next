@@ -11,7 +11,13 @@ import {
 } from "@/components/ocean";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
-import { NewDeckModal, DeckCard } from "@/components/flashcards";
+import {
+  NewDeckModal,
+  EditDeckModal,
+  DeckCard,
+  FlashcardOnboarding,
+  useFlashcardOnboarding,
+} from "@/components/flashcards";
 import { Plus, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Deck, DeckStats, FlashcardLanguage } from "@/types/flashcards";
@@ -39,10 +45,12 @@ function FlashcardsContent({
   const supabase = createClient();
   const [isNavigating, setIsNavigating] = useState(false);
   const [showNewDeck, setShowNewDeck] = useState(false);
+  const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [deckStats, setDeckStats] = useState<Record<string, DeckStats>>({});
   const [loading, setLoading] = useState(true);
   const { ambientView, setAmbientView } = useAmbientPlayer();
+  const showOnboarding = useFlashcardOnboarding();
 
   useEffect(() => {
     if (ambientView === "container") {
@@ -115,6 +123,47 @@ function FlashcardsContent({
       new_per_day: data.new_per_day,
       review_per_day: data.review_per_day,
     });
+    await fetchDecks();
+  };
+
+  const handleEditDeck = async (data: {
+    name: string;
+    language: FlashcardLanguage;
+    description: string;
+    new_per_day: number;
+    review_per_day: number;
+  }) => {
+    if (!editingDeck) return;
+    await supabase
+      .from("decks")
+      .update({
+        name: data.name,
+        language: data.language,
+        description: data.description || null,
+        new_per_day: data.new_per_day,
+        review_per_day: data.review_per_day,
+      })
+      .eq("id", editingDeck.id)
+      .eq("user_id", userId);
+    setEditingDeck(null);
+    await fetchDecks();
+  };
+
+  const handleDeleteDeck = async () => {
+    if (!editingDeck) return;
+    // Delete schedules, cards, then deck (cascade handles most, but be explicit)
+    const { data: cards } = await supabase
+      .from("flashcards")
+      .select("id")
+      .eq("deck_id", editingDeck.id);
+    if (cards?.length) {
+      const cardIds = cards.map((c) => c.id);
+      await supabase.from("card_schedules").delete().in("card_id", cardIds);
+      await supabase.from("review_log").delete().eq("deck_id", editingDeck.id);
+    }
+    await supabase.from("flashcards").delete().eq("deck_id", editingDeck.id);
+    await supabase.from("decks").delete().eq("id", editingDeck.id);
+    setEditingDeck(null);
     await fetchDecks();
   };
 
@@ -225,6 +274,7 @@ function FlashcardsContent({
                       dueCount: 0,
                     }
                   }
+                  onEdit={(d) => setEditingDeck(d)}
                 />
               ))}
             </div>
@@ -237,6 +287,21 @@ function FlashcardsContent({
         onClose={() => setShowNewDeck(false)}
         onSubmit={handleCreateDeck}
       />
+
+      <EditDeckModal
+        open={!!editingDeck}
+        deck={editingDeck}
+        onClose={() => setEditingDeck(null)}
+        onSave={handleEditDeck}
+        onDelete={handleDeleteDeck}
+      />
+
+      {showOnboarding && decks.length === 0 && (
+        <FlashcardOnboarding
+          onDismiss={() => {}}
+          onCreateDeck={() => setShowNewDeck(true)}
+        />
+      )}
     </OceanBackground>
   );
 }

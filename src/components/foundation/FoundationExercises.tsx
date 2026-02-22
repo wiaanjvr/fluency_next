@@ -5,6 +5,7 @@ import { Volume2, Check, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { getTTSVoice } from "@/lib/languages/config";
 import {
   FoundationWord,
   FoundationExerciseType,

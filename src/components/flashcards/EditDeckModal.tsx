@@ -1,0 +1,258 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { X, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { Deck, FlashcardLanguage } from "@/types/flashcards";
+
+const LANGUAGES = [
+  { code: "de" as FlashcardLanguage, flag: "🇩🇪", name: "German" },
+  { code: "fr" as FlashcardLanguage, flag: "🇫🇷", name: "French" },
+  { code: "it" as FlashcardLanguage, flag: "🇮🇹", name: "Italian" },
+];
+
+interface EditDeckModalProps {
+  open: boolean;
+  deck: Deck | null;
+  onClose: () => void;
+  onSave: (data: {
+    name: string;
+    language: FlashcardLanguage;
+    description: string;
+    new_per_day: number;
+    review_per_day: number;
+  }) => Promise<void>;
+  onDelete: () => Promise<void>;
+}
+
+export function EditDeckModal({
+  open,
+  deck,
+  onClose,
+  onSave,
+  onDelete,
+}: EditDeckModalProps) {
+  const [name, setName] = useState("");
+  const [language, setLanguage] = useState<FlashcardLanguage>("fr");
+  const [description, setDescription] = useState("");
+  const [newPerDay, setNewPerDay] = useState(20);
+  const [reviewPerDay, setReviewPerDay] = useState(100);
+  const [submitting, setSubmitting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Sync form with deck data when opened
+  useEffect(() => {
+    if (deck && open) {
+      setName(deck.name);
+      setLanguage(deck.language);
+      setDescription(deck.description || "");
+      setNewPerDay(deck.new_per_day);
+      setReviewPerDay(deck.review_per_day);
+      setConfirmDelete(false);
+    }
+  }, [deck, open]);
+
+  if (!open || !deck) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setSubmitting(true);
+    try {
+      await onSave({
+        name: name.trim(),
+        language,
+        description: description.trim(),
+        new_per_day: newPerDay,
+        review_per_day: reviewPerDay,
+      });
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    setDeleting(true);
+    try {
+      await onDelete();
+      onClose();
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <form
+        onSubmit={handleSubmit}
+        className={cn(
+          "relative z-10 w-full max-w-md rounded-2xl border border-white/10",
+          "bg-[#0d2137] p-6 space-y-5 shadow-2xl",
+          "animate-in slide-in-from-bottom-4 fade-in duration-300",
+        )}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">Edit Deck</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-white/40 hover:text-white/80 hover:bg-white/5 transition"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Deck Name */}
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-white/70">Deck Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. French Basics"
+            required
+            className={cn(
+              "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5",
+              "text-white placeholder:text-white/30",
+              "focus:outline-none focus:border-teal-400/50 focus:ring-1 focus:ring-teal-400/30",
+              "transition",
+            )}
+          />
+        </div>
+
+        {/* Language */}
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-white/70">Language</label>
+          <div className="flex gap-2">
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => setLanguage(lang.code)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 rounded-xl border py-2.5 px-3",
+                  "text-sm font-medium transition",
+                  language === lang.code
+                    ? "border-teal-400/50 bg-teal-500/10 text-teal-300"
+                    : "border-white/10 bg-white/5 text-white/60 hover:border-white/20",
+                )}
+              >
+                <span>{lang.flag}</span>
+                <span>{lang.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-white/70">
+            Description <span className="text-white/30">(optional)</span>
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="What is this deck for?"
+            rows={2}
+            className={cn(
+              "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5",
+              "text-white placeholder:text-white/30 resize-none",
+              "focus:outline-none focus:border-teal-400/50 focus:ring-1 focus:ring-teal-400/30",
+              "transition",
+            )}
+          />
+        </div>
+
+        {/* Daily Limits */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-white/70">
+              New cards / day
+            </label>
+            <input
+              type="number"
+              value={newPerDay}
+              onChange={(e) => setNewPerDay(Number(e.target.value))}
+              min={1}
+              max={200}
+              className={cn(
+                "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5",
+                "text-white focus:outline-none focus:border-teal-400/50",
+                "focus:ring-1 focus:ring-teal-400/30 transition",
+              )}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-white/70">
+              Reviews / day
+            </label>
+            <input
+              type="number"
+              value={reviewPerDay}
+              onChange={(e) => setReviewPerDay(Number(e.target.value))}
+              min={1}
+              max={9999}
+              className={cn(
+                "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5",
+                "text-white focus:outline-none focus:border-teal-400/50",
+                "focus:ring-1 focus:ring-teal-400/30 transition",
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={submitting || !name.trim()}
+            className={cn(
+              "flex-1 rounded-xl py-3 font-medium text-[#0a1628] transition",
+              "bg-teal-400 hover:bg-teal-300 disabled:opacity-50 disabled:cursor-not-allowed",
+              "shadow-lg shadow-teal-500/25",
+            )}
+          >
+            {submitting ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+
+        {/* Delete zone */}
+        <div className="pt-3 border-t border-white/5">
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            className={cn(
+              "w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm transition",
+              confirmDelete
+                ? "bg-rose-500/20 border border-rose-400/40 text-rose-300 hover:bg-rose-500/30"
+                : "text-white/30 hover:text-rose-400 hover:bg-rose-500/5",
+              deleting && "opacity-50 cursor-wait",
+            )}
+          >
+            <Trash2 className="h-4 w-4" />
+            {deleting
+              ? "Deleting..."
+              : confirmDelete
+                ? "Confirm: Delete deck and all cards?"
+                : "Delete Deck"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

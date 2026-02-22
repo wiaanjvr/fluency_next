@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useReducer, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useReducer,
+  useRef,
+  useMemo,
+} from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -18,7 +25,9 @@ import {
   fsrsCardToDbFields,
   previewInterval,
   formatInterval,
+  buildStudyQueue,
 } from "@/lib/fsrs";
+import { createFlashcardAdapter } from "@/lib/knowledge-graph";
 import {
   ArrowLeft,
   RotateCcw,
@@ -29,7 +38,9 @@ import {
   Check,
   X,
   ChevronRight,
-  BarChart3,
+  Plus,
+  Flame,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
@@ -39,13 +50,13 @@ import type {
   StudyAction,
   Rating,
   ReviewMode,
-  CardSchedule,
 } from "@/types/flashcards";
+import { RATING_TOOLTIPS } from "@/types/flashcards";
 import type { FSRSCard } from "@/lib/fsrs";
 import "@/styles/ocean-theme.css";
 
 // ============================================================================
-// Study reducer
+// Study reducer — manages the full session state machine
 // ============================================================================
 function studyReducer(state: StudyState, action: StudyAction): StudyState {
   switch (action.type) {
@@ -61,6 +72,8 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
         choiceOptions: generateChoices(action.cards, 0),
         cardStartTime: Date.now(),
         sessionComplete: action.cards.length === 0,
+        learningQueue: [],
+        totalReviewed: 0,
       };
 
     case "SET_MODE":
@@ -78,10 +91,7 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
       };
 
     case "SHOW_ANSWER":
-      return {
-        ...state,
-        cardFace: "back",
-      };
+      return { ...state, cardFace: "back" };
 
     case "SET_USER_INPUT":
       return { ...state, userInput: action.value };
@@ -128,14 +138,40 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
           [ratingKey]: state.sessionStats[ratingKey] + 1,
           totalTimeMs: state.sessionStats.totalTimeMs + elapsed,
         },
+        totalReviewed: state.totalReviewed + 1,
       };
     }
 
+    case "ENQUEUE_LEARNING":
+      return {
+        ...state,
+        learningQueue: [...state.learningQueue, action.card],
+      };
+
     case "NEXT_CARD": {
       const nextIndex = state.currentIndex + 1;
+
+      // If we've gone through all main cards, check learning queue
       if (nextIndex >= state.cards.length) {
+        if (state.learningQueue.length > 0) {
+          // Move learning queue cards into the main queue
+          const newCards = [...state.learningQueue];
+          return {
+            ...state,
+            cards: newCards,
+            learningQueue: [],
+            currentIndex: 0,
+            cardFace: "front",
+            answerState: "idle",
+            userInput: "",
+            selectedChoice: null,
+            choiceOptions: generateChoices(newCards, 0),
+            cardStartTime: Date.now(),
+          };
+        }
         return { ...state, sessionComplete: true };
       }
+
       return {
         ...state,
         currentIndex: nextIndex,
@@ -159,14 +195,9 @@ function generateChoices(cards: ScheduledCard[], index: number): string[] {
   const allBacks = [...new Set(cards.map((c) => c.flashcards.back))].filter(
     (b) => b !== correct,
   );
-  // Shuffle and pick 3
   const shuffled = allBacks.sort(() => Math.random() - 0.5).slice(0, 3);
-  // Insert correct answer at random position
   const options = [...shuffled, correct].sort(() => Math.random() - 0.5);
-  // Ensure we always have 4 options
-  while (options.length < 4) {
-    options.push("—");
-  }
+  while (options.length < 4) options.push("—");
   return options;
 }
 
@@ -182,10 +213,12 @@ const initialStudyState: StudyState = {
   sessionStats: { again: 0, hard: 0, good: 0, easy: 0, totalTimeMs: 0 },
   cardStartTime: Date.now(),
   sessionComplete: false,
+  learningQueue: [],
+  totalReviewed: 0,
 };
 
 // ============================================================================
-// Rating Buttons
+// Rating Buttons — with tooltips
 // ============================================================================
 function RatingButtons({
   card,
@@ -196,6 +229,7 @@ function RatingButtons({
 }) {
   const fsrsCard = dbRowToFSRSCard(card);
   const now = new Date();
+  const [hoveredRating, setHoveredRating] = useState<Rating | null>(null);
 
   const ratings: {
     value: Rating;
@@ -230,26 +264,39 @@ function RatingButtons({
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-      {ratings.map((r) => {
-        const interval = previewInterval(fsrsCard, r.value, now);
-        return (
-          <button
-            key={r.value}
-            onClick={() => onRate(r.value)}
-            className={cn(
-              "flex flex-col items-center gap-1 rounded-xl border py-3 px-3 transition",
-              r.color,
-              r.hoverColor,
-            )}
-          >
-            <span className="font-medium text-sm">{r.label}</span>
-            <span className="text-[10px] opacity-60">
-              {formatInterval(interval)}
-            </span>
-          </button>
-        );
-      })}
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {ratings.map((r) => {
+          const interval = previewInterval(fsrsCard, r.value, now);
+          return (
+            <button
+              key={r.value}
+              onClick={() => onRate(r.value)}
+              onMouseEnter={() => setHoveredRating(r.value)}
+              onMouseLeave={() => setHoveredRating(null)}
+              className={cn(
+                "relative flex flex-col items-center gap-1 rounded-xl border py-3 px-3 transition",
+                r.color,
+                r.hoverColor,
+              )}
+            >
+              <span className="font-medium text-sm">{r.label}</span>
+              <span className="text-[10px] opacity-60">
+                {formatInterval(interval)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {/* Tooltip */}
+      <div className="flex items-center justify-center gap-1.5 min-h-[20px]">
+        {hoveredRating && (
+          <p className="text-[11px] text-white/40 animate-in fade-in duration-150 flex items-center gap-1">
+            <Info className="h-3 w-3" />
+            {RATING_TOOLTIPS[hoveredRating]}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -330,18 +377,20 @@ function ModePicker({
 }
 
 // ============================================================================
-// Session Complete
+// Session Complete — with streak + CTAs
 // ============================================================================
 function SessionComplete({
   stats,
   deckId,
-  userId,
+  deckName,
+  streak,
   hasAgainCards,
   onStudyAgain,
 }: {
   stats: StudyState["sessionStats"];
   deckId: string;
-  userId: string;
+  deckName: string;
+  streak: number;
   hasAgainCards: boolean;
   onStudyAgain: () => void;
 }) {
@@ -351,7 +400,6 @@ function SessionComplete({
   const avgMs = total > 0 ? Math.round(stats.totalTimeMs / total) : 0;
   const avgSec = (avgMs / 1000).toFixed(1);
 
-  // Forecast (simplified: just show stats, no additional DB query needed for now)
   const breakdownItems = [
     { label: "Again", count: stats.again, color: "bg-rose-400" },
     { label: "Hard", count: stats.hard, color: "bg-amber-400" },
@@ -378,7 +426,7 @@ function SessionComplete({
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-2xl border border-white/10 bg-[#0d2137] p-4">
           <p className="text-2xl font-bold text-white">{total}</p>
           <p className="text-xs text-white/40">Reviewed</p>
@@ -390,6 +438,13 @@ function SessionComplete({
         <div className="rounded-2xl border border-white/10 bg-[#0d2137] p-4">
           <p className="text-2xl font-bold text-white">{avgSec}s</p>
           <p className="text-xs text-white/40">Avg. time</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-[#0d2137] p-4">
+          <div className="flex items-center justify-center gap-1">
+            <Flame className="h-5 w-5 text-orange-400" />
+            <p className="text-2xl font-bold text-orange-300">{streak}</p>
+          </div>
+          <p className="text-xs text-white/40">Day streak</p>
         </div>
       </div>
 
@@ -410,9 +465,7 @@ function SessionComplete({
                 <div className="w-20 h-1.5 bg-white/5 rounded-full overflow-hidden">
                   <div
                     className={cn("h-full rounded-full", item.color)}
-                    style={{
-                      width: `${(item.count / total) * 100}%`,
-                    }}
+                    style={{ width: `${(item.count / total) * 100}%` }}
                   />
                 </div>
               )}
@@ -437,11 +490,22 @@ function SessionComplete({
           </button>
         )}
         <Link
-          href="/propel/flashcards"
+          href={`/propel/flashcards/${deckId}`}
           className={cn(
             "flex items-center justify-center gap-2 rounded-xl py-3 px-6",
             "border border-white/10 text-white/60 hover:text-white hover:border-white/20",
             "font-medium transition",
+          )}
+        >
+          <Plus className="h-4 w-4" />
+          Add More Cards
+        </Link>
+        <Link
+          href="/propel/flashcards"
+          className={cn(
+            "flex items-center justify-center gap-2 rounded-xl py-3 px-6",
+            "border border-white/10 text-white/40 hover:text-white/60 hover:border-white/20",
+            "font-medium transition text-sm",
           )}
         >
           Back to Decks
@@ -452,280 +516,47 @@ function SessionComplete({
 }
 
 // ============================================================================
-// StudyContent
+// Swipe Hook — detect left/right/up swipe on touch devices
 // ============================================================================
-function StudyContent({
-  streak,
-  avatarUrl,
-  targetLanguage,
-  isAdmin,
-  wordsEncountered,
-  userId,
-}: {
-  streak: number;
-  avatarUrl?: string;
-  targetLanguage: string;
-  isAdmin: boolean;
-  wordsEncountered: number;
-  userId: string;
-}) {
-  const params = useParams();
-  const router = useRouter();
-  const deckId = params.deckId as string;
-  const supabase = createClient();
-  const { ambientView, setAmbientView } = useAmbientPlayer();
+function useSwipe(
+  onSwipeLeft?: () => void,
+  onSwipeRight?: () => void,
+  onSwipeUp?: () => void,
+) {
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const touchEnd = useRef<{ x: number; y: number } | null>(null);
+  const minSwipeDistance = 50;
 
-  const [deck, setDeck] = useState<Deck | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [showModePicker, setShowModePicker] = useState(true);
-  const [state, dispatch] = useReducer(studyReducer, {
-    ...initialStudyState,
-    reviewMode:
-      (typeof window !== "undefined"
-        ? (localStorage.getItem("flashcard-review-mode") as ReviewMode)
-        : null) || "flip",
-  });
-
-  useEffect(() => {
-    if (ambientView === "container") {
-      setAmbientView("soundbar");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchEnd.current = null;
+    touchStart.current = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    };
   }, []);
 
-  // Fetch deck and cards
-  const fetchStudyCards = useCallback(async () => {
-    // Fetch deck
-    const { data: deckData } = await supabase
-      .from("decks")
-      .select("*")
-      .eq("id", deckId)
-      .eq("user_id", userId)
-      .single();
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    touchEnd.current = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    };
+  }, []);
 
-    if (!deckData) {
-      router.replace("/propel/flashcards");
-      return;
+  const onTouchEnd = useCallback(() => {
+    if (!touchStart.current || !touchEnd.current) return;
+    const distX = touchStart.current.x - touchEnd.current.x;
+    const distY = touchStart.current.y - touchEnd.current.y;
+    const isHorizontal = Math.abs(distX) > Math.abs(distY);
+
+    if (isHorizontal && Math.abs(distX) > minSwipeDistance) {
+      if (distX > 0) onSwipeLeft?.();
+      else onSwipeRight?.();
+    } else if (!isHorizontal && distY > minSwipeDistance) {
+      onSwipeUp?.();
     }
-    setDeck(deckData as Deck);
+  }, [onSwipeLeft, onSwipeRight, onSwipeUp, minSwipeDistance]);
 
-    // Get card IDs for this deck
-    const { data: deckCards } = await supabase
-      .from("flashcards")
-      .select("id")
-      .eq("deck_id", deckId)
-      .eq("user_id", userId);
-
-    const cardIds = (deckCards || []).map((c) => c.id);
-    if (!cardIds.length) {
-      dispatch({ type: "SET_CARDS", cards: [] });
-      setLoading(false);
-      return;
-    }
-
-    // Fetch due cards (all states)
-    const { data: schedules } = await supabase
-      .from("card_schedules")
-      .select("*, flashcards(*)")
-      .eq("user_id", userId)
-      .in("card_id", cardIds)
-      .lte("due", new Date().toISOString())
-      .order("due", { ascending: true })
-      .limit(50);
-
-    const scheduledCards = (schedules || []) as ScheduledCard[];
-
-    // Shuffle to mix new and due cards
-    const shuffled = scheduledCards.sort(() => Math.random() - 0.5);
-
-    dispatch({ type: "SET_CARDS", cards: shuffled });
-    setLoading(false);
-  }, [supabase, deckId, userId, router]);
-
-  useEffect(() => {
-    fetchStudyCards();
-  }, [fetchStudyCards]);
-
-  // Rate a card
-  const handleRate = async (rating: Rating) => {
-    const current = state.cards[state.currentIndex];
-    if (!current) return;
-
-    const fsrsCard = dbRowToFSRSCard(current);
-    const now = new Date();
-    const result = scheduleCard(fsrsCard, rating, now);
-    const dbFields = fsrsCardToDbFields(result.card);
-
-    // Update card_schedules
-    await supabase.from("card_schedules").update(dbFields).eq("id", current.id);
-
-    // Log review
-    const elapsed = Date.now() - state.cardStartTime;
-    await supabase.from("review_log").insert({
-      user_id: userId,
-      card_id: current.card_id,
-      deck_id: deckId,
-      rating,
-      review_time_ms: elapsed,
-    });
-
-    dispatch({ type: "RATE_CARD", rating });
-    dispatch({ type: "NEXT_CARD" });
-  };
-
-  const handleNavigation = useCallback(
-    (href: string) => {
-      setIsNavigating(true);
-      router.push(href);
-    },
-    [router],
-  );
-
-  const startSession = (mode: ReviewMode) => {
-    dispatch({ type: "SET_MODE", mode });
-    setShowModePicker(false);
-  };
-
-  if (isNavigating) return <LoadingScreen />;
-
-  const current = state.cards[state.currentIndex];
-  const totalCards = state.cards.length;
-  const progress =
-    totalCards > 0 ? ((state.currentIndex + 1) / totalCards) * 100 : 0;
-
-  return (
-    <OceanBackground>
-      <DepthSidebar wordCount={wordsEncountered} scrollable={false} />
-      <OceanNavigation
-        streak={streak}
-        avatarUrl={avatarUrl}
-        currentPath="/propel/flashcards"
-        isAdmin={isAdmin}
-        targetLanguage={targetLanguage}
-        wordsEncountered={wordsEncountered}
-        onBeforeNavigate={handleNavigation}
-      />
-
-      <div className="relative z-10 min-h-screen pt-28 pb-24 px-6 md:pl-[370px]">
-        <div className="max-w-2xl mx-auto">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="h-8 w-8 rounded-full border-2 border-teal-400 border-t-transparent animate-spin" />
-            </div>
-          ) : state.sessionComplete ? (
-            <SessionComplete
-              stats={state.sessionStats}
-              deckId={deckId}
-              userId={userId}
-              hasAgainCards={state.sessionStats.again > 0}
-              onStudyAgain={() => fetchStudyCards()}
-            />
-          ) : totalCards === 0 ? (
-            <div className="text-center py-20 space-y-4">
-              <Layers className="h-16 w-16 text-white/10 mx-auto" />
-              <p className="text-white/40 text-lg">No cards due</p>
-              <p className="text-white/25 text-sm">
-                All caught up! Check back later or add more cards.
-              </p>
-              <Link
-                href={`/propel/flashcards/${deckId}`}
-                className="inline-flex items-center gap-2 text-sm text-teal-400 hover:text-teal-300 transition"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to deck
-              </Link>
-            </div>
-          ) : showModePicker ? (
-            <div className="space-y-8">
-              <div className="text-center space-y-2">
-                <h1
-                  className="font-display text-3xl font-bold"
-                  style={{ color: "var(--sand)" }}
-                >
-                  {deck?.name || "Study"}
-                </h1>
-                <p className="text-white/50">
-                  {totalCards} card{totalCards !== 1 ? "s" : ""} to review
-                </p>
-              </div>
-
-              <ModePicker
-                mode={state.reviewMode}
-                onSelect={(m) => dispatch({ type: "SET_MODE", mode: m })}
-              />
-
-              <div className="flex justify-center">
-                <button
-                  onClick={() => startSession(state.reviewMode)}
-                  className={cn(
-                    "flex items-center gap-2 rounded-xl py-3 px-8",
-                    "bg-teal-500 hover:bg-teal-400 text-[#0a1628] font-medium",
-                    "transition shadow-lg shadow-teal-500/20",
-                  )}
-                >
-                  Start Session
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          ) : current ? (
-            <div className="space-y-6">
-              {/* Progress bar */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs text-white/40">
-                  <span>
-                    Card {state.currentIndex + 1} of {totalCards}
-                  </span>
-                  <span className="flex items-center gap-3">
-                    <span>
-                      🟢 {state.sessionStats.good + state.sessionStats.easy}{" "}
-                      correct
-                    </span>
-                    <span>🔴 {state.sessionStats.again} again</span>
-                  </span>
-                </div>
-                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-teal-400 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Card */}
-              {state.reviewMode === "flip" && (
-                <FlipCard
-                  card={current}
-                  face={state.cardFace}
-                  onShowAnswer={() => dispatch({ type: "SHOW_ANSWER" })}
-                  onRate={handleRate}
-                />
-              )}
-
-              {state.reviewMode === "type" && (
-                <TypeCard
-                  card={current}
-                  state={state}
-                  dispatch={dispatch}
-                  onRate={handleRate}
-                />
-              )}
-
-              {state.reviewMode === "choice" && (
-                <ChoiceCard
-                  card={current}
-                  state={state}
-                  dispatch={dispatch}
-                  onRate={handleRate}
-                />
-              )}
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </OceanBackground>
-  );
+  return { onTouchStart, onTouchMove, onTouchEnd };
 }
 
 // ============================================================================
@@ -742,13 +573,19 @@ function FlipCard({
   onShowAnswer: () => void;
   onRate: (rating: Rating) => void;
 }) {
+  const swipe = useSwipe(
+    undefined,
+    undefined,
+    face === "front" ? onShowAnswer : undefined,
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" {...swipe}>
       {/* Card with flip animation */}
       <div className="perspective-[1000px]">
         <div
           className={cn(
-            "relative w-full min-h-[260px] transition-transform duration-300",
+            "relative w-full min-h-[260px] transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
             "[transform-style:preserve-3d]",
             face === "back" && "[transform:rotateY(180deg)]",
           )}
@@ -923,7 +760,6 @@ function TypeCard({
               )}
             </div>
 
-            {/* Example if available */}
             {card.flashcards.example_sentence && (
               <div className="rounded-xl bg-white/5 p-3">
                 <p className="text-sm text-white/60 italic text-center">
@@ -932,7 +768,6 @@ function TypeCard({
               </div>
             )}
 
-            {/* Rating buttons to override auto-rating */}
             <RatingButtons card={card} onRate={onRate} />
           </div>
         )}
@@ -1046,6 +881,462 @@ function ChoiceCard({
         </div>
       )}
     </div>
+  );
+}
+
+// ============================================================================
+// StudyContent — the main study session logic
+// ============================================================================
+function StudyContent({
+  streak,
+  avatarUrl,
+  targetLanguage,
+  isAdmin,
+  wordsEncountered,
+  userId,
+}: {
+  streak: number;
+  avatarUrl?: string;
+  targetLanguage: string;
+  isAdmin: boolean;
+  wordsEncountered: number;
+  userId: string;
+}) {
+  const params = useParams();
+  const router = useRouter();
+  const deckId = params.deckId as string;
+  const supabase = createClient();
+  const { ambientView, setAmbientView } = useAmbientPlayer();
+
+  const [deck, setDeck] = useState<Deck | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [showModePicker, setShowModePicker] = useState(true);
+  const [currentStreak, setCurrentStreak] = useState(streak);
+  const [state, dispatch] = useReducer(studyReducer, {
+    ...initialStudyState,
+    reviewMode:
+      (typeof window !== "undefined"
+        ? (localStorage.getItem("flashcard-review-mode") as ReviewMode)
+        : null) || "flip",
+  });
+
+  // Track session results for knowledge graph sync
+  const sessionResultsRef = useRef<
+    Array<{
+      wordId?: string;
+      correct: boolean;
+      responseTimeMs: number;
+      rating: Rating;
+    }>
+  >([]);
+
+  useEffect(() => {
+    if (ambientView === "container") {
+      setAmbientView("soundbar");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch deck and build study queue with daily limits
+  const fetchStudyCards = useCallback(async () => {
+    // Fetch deck
+    const { data: deckData } = await supabase
+      .from("decks")
+      .select("*")
+      .eq("id", deckId)
+      .eq("user_id", userId)
+      .single();
+
+    if (!deckData) {
+      router.replace("/propel/flashcards");
+      return;
+    }
+    const deckObj = deckData as Deck;
+    setDeck(deckObj);
+
+    // Get card IDs for this deck
+    const { data: deckCards } = await supabase
+      .from("flashcards")
+      .select("id")
+      .eq("deck_id", deckId)
+      .eq("user_id", userId);
+
+    const cardIds = (deckCards || []).map((c) => c.id);
+    if (!cardIds.length) {
+      dispatch({ type: "SET_CARDS", cards: [] });
+      setLoading(false);
+      return;
+    }
+
+    // Fetch ALL schedules (not just due) so buildStudyQueue can filter
+    const { data: schedules } = await supabase
+      .from("card_schedules")
+      .select("*, flashcards(*)")
+      .eq("user_id", userId)
+      .in("card_id", cardIds)
+      .order("due", { ascending: true });
+
+    const allSchedules = (schedules || []) as ScheduledCard[];
+
+    // Count new cards studied today (for daily limit)
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const { data: todayReviews } = await supabase
+      .from("review_log")
+      .select("card_id")
+      .eq("user_id", userId)
+      .eq("deck_id", deckId)
+      .gte("reviewed_at", startOfDay.toISOString());
+
+    const todayReviewedIds = new Set(
+      (todayReviews || []).map((r) => r.card_id),
+    );
+    // Cards that were new and reviewed today
+    const newCardsStudiedToday = allSchedules.filter(
+      (s) =>
+        todayReviewedIds.has(s.card_id) && s.reps <= 1 && s.state !== "new",
+    ).length;
+
+    // Build queue with daily limits and backlog spread
+    const queue = buildStudyQueue(
+      allSchedules,
+      deckObj.new_per_day,
+      deckObj.review_per_day,
+      newCardsStudiedToday,
+    );
+
+    // Reset session results
+    sessionResultsRef.current = [];
+
+    dispatch({ type: "SET_CARDS", cards: queue });
+    setLoading(false);
+  }, [supabase, deckId, userId, router]);
+
+  useEffect(() => {
+    fetchStudyCards();
+  }, [fetchStudyCards]);
+
+  // Rate a card — schedule, log, sync knowledge graph
+  const handleRate = async (rating: Rating) => {
+    const current = state.cards[state.currentIndex];
+    if (!current) return;
+
+    const fsrsCard = dbRowToFSRSCard(current);
+    const now = new Date();
+    const result = scheduleCard(fsrsCard, rating, now);
+    const dbFields = fsrsCardToDbFields(result.card);
+
+    // Update card_schedules
+    await supabase.from("card_schedules").update(dbFields).eq("id", current.id);
+
+    // Log review
+    const elapsed = Date.now() - state.cardStartTime;
+    await supabase.from("review_log").insert({
+      user_id: userId,
+      card_id: current.card_id,
+      deck_id: deckId,
+      rating,
+      review_time_ms: elapsed,
+    });
+
+    // Track for KG sync
+    const isCorrect = rating >= 3;
+    sessionResultsRef.current.push({
+      correct: isCorrect,
+      responseTimeMs: elapsed,
+      rating,
+    });
+
+    // If FSRS says show card again in session (learning steps), enqueue it
+    if (result.showAgainInSession) {
+      // Clone the card with updated schedule fields for re-show
+      const updatedCard: ScheduledCard = {
+        ...current,
+        stability: result.card.stability,
+        difficulty: result.card.difficulty,
+        elapsed_days: result.card.elapsed_days,
+        scheduled_days: result.card.scheduled_days,
+        reps: result.card.reps,
+        lapses: result.card.lapses,
+        state: result.card.state,
+        due: result.card.due.toISOString(),
+        last_review: result.card.last_review?.toISOString() || null,
+      };
+      dispatch({ type: "ENQUEUE_LEARNING", card: updatedCard });
+    }
+
+    dispatch({ type: "RATE_CARD", rating });
+    dispatch({ type: "NEXT_CARD" });
+  };
+
+  // Sync session results with knowledge graph when session ends
+  useEffect(() => {
+    if (!state.sessionComplete || sessionResultsRef.current.length === 0)
+      return;
+
+    const syncKnowledgeGraph = async () => {
+      try {
+        // Try to find matching user_words entries for the flashcard words
+        // This links flashcard reviews to the unified knowledge graph
+        const adapter = createFlashcardAdapter(supabase, userId);
+
+        // Get the flashcard fronts/backs from this session
+        const uniqueWords = new Set<string>();
+        state.cards.forEach((c) => {
+          uniqueWords.add(c.flashcards.front.toLowerCase());
+        });
+
+        // Look up user_words that match these flashcard words
+        if (uniqueWords.size > 0) {
+          const { data: userWords } = await supabase
+            .from("user_words")
+            .select("id, word, lemma")
+            .eq("user_id", userId)
+            .in("word", Array.from(uniqueWords));
+
+          if (userWords && userWords.length > 0) {
+            const wordMap = new Map(
+              userWords.map((w) => [w.word.toLowerCase(), w.id]),
+            );
+            const lemmaMap = new Map(
+              userWords.map((w) => [w.lemma?.toLowerCase(), w.id]),
+            );
+
+            const kgResults = sessionResultsRef.current
+              .map((result, idx) => {
+                const card = state.cards[idx % state.cards.length];
+                if (!card) return null;
+                const front = card.flashcards.front.toLowerCase();
+                const wordId = wordMap.get(front) || lemmaMap.get(front);
+                if (!wordId) return null;
+                return {
+                  wordId,
+                  correct: result.correct,
+                  responseTimeMs: result.responseTimeMs,
+                  rating: result.rating as 0 | 1 | 2 | 3 | 4 | 5,
+                };
+              })
+              .filter(Boolean) as Array<{
+              wordId: string;
+              correct: boolean;
+              responseTimeMs: number;
+              rating: 0 | 1 | 2 | 3 | 4 | 5;
+            }>;
+
+            if (kgResults.length > 0) {
+              await adapter.onSessionComplete(kgResults);
+            }
+          }
+        }
+
+        // Update streak
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("streak, last_streak_date")
+          .eq("id", userId)
+          .single();
+
+        if (profile) {
+          const today = new Date().toISOString().split("T")[0];
+          const lastDate = profile.last_streak_date;
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+          let newStreak = profile.streak || 0;
+          if (lastDate !== today) {
+            if (lastDate === yesterdayStr) {
+              newStreak += 1;
+            } else if (!lastDate) {
+              newStreak = 1;
+            } else {
+              newStreak = 1; // streak broken
+            }
+            await supabase
+              .from("profiles")
+              .update({ streak: newStreak, last_streak_date: today })
+              .eq("id", userId);
+            setCurrentStreak(newStreak);
+          }
+        }
+      } catch (err) {
+        console.warn("[Flashcards] KG sync failed:", err);
+      }
+    };
+
+    syncKnowledgeGraph();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.sessionComplete]);
+
+  const handleNavigation = useCallback(
+    (href: string) => {
+      setIsNavigating(true);
+      router.push(href);
+    },
+    [router],
+  );
+
+  const startSession = (mode: ReviewMode) => {
+    dispatch({ type: "SET_MODE", mode });
+    setShowModePicker(false);
+  };
+
+  if (isNavigating) return <LoadingScreen />;
+
+  const current = state.cards[state.currentIndex];
+  const totalCards = state.cards.length;
+  const totalWithLearning = totalCards + state.learningQueue.length;
+  const progress =
+    totalCards > 0
+      ? (state.totalReviewed /
+          (state.totalReviewed +
+            totalCards -
+            state.currentIndex +
+            state.learningQueue.length || 1)) *
+        100
+      : 0;
+
+  return (
+    <OceanBackground>
+      <DepthSidebar wordCount={wordsEncountered} scrollable={false} />
+      <OceanNavigation
+        streak={currentStreak}
+        avatarUrl={avatarUrl}
+        currentPath="/propel/flashcards"
+        isAdmin={isAdmin}
+        targetLanguage={targetLanguage}
+        wordsEncountered={wordsEncountered}
+        onBeforeNavigate={handleNavigation}
+      />
+
+      <div className="relative z-10 min-h-screen pt-28 pb-24 px-6 md:pl-[370px]">
+        <div className="max-w-2xl mx-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="h-8 w-8 rounded-full border-2 border-teal-400 border-t-transparent animate-spin" />
+            </div>
+          ) : state.sessionComplete ? (
+            <SessionComplete
+              stats={state.sessionStats}
+              deckId={deckId}
+              deckName={deck?.name || "Deck"}
+              streak={currentStreak}
+              hasAgainCards={state.sessionStats.again > 0}
+              onStudyAgain={() => fetchStudyCards()}
+            />
+          ) : totalCards === 0 ? (
+            <div className="text-center py-20 space-y-4">
+              <Layers className="h-16 w-16 text-white/10 mx-auto" />
+              <p className="text-white/40 text-lg">No cards due</p>
+              <p className="text-white/25 text-sm">
+                All caught up! Check back later or add more cards.
+              </p>
+              <Link
+                href={`/propel/flashcards/${deckId}`}
+                className="inline-flex items-center gap-2 text-sm text-teal-400 hover:text-teal-300 transition"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to deck
+              </Link>
+            </div>
+          ) : showModePicker ? (
+            <div className="space-y-8">
+              <div className="text-center space-y-2">
+                <h1
+                  className="font-display text-3xl font-bold"
+                  style={{ color: "var(--sand)" }}
+                >
+                  {deck?.name || "Study"}
+                </h1>
+                <p className="text-white/50">
+                  {totalCards} card{totalCards !== 1 ? "s" : ""} to review
+                </p>
+              </div>
+
+              <ModePicker
+                mode={state.reviewMode}
+                onSelect={(m) => dispatch({ type: "SET_MODE", mode: m })}
+              />
+
+              <div className="flex justify-center">
+                <button
+                  onClick={() => startSession(state.reviewMode)}
+                  className={cn(
+                    "flex items-center gap-2 rounded-xl py-3 px-8",
+                    "bg-teal-500 hover:bg-teal-400 text-[#0a1628] font-medium",
+                    "transition shadow-lg shadow-teal-500/20",
+                  )}
+                >
+                  Start Session
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          ) : current ? (
+            <div className="space-y-6">
+              {/* Progress bar */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-white/40">
+                  <span>
+                    Card {state.currentIndex + 1} of {totalCards}
+                    {state.learningQueue.length > 0 && (
+                      <span className="text-amber-300/60 ml-2">
+                        +{state.learningQueue.length} learning
+                      </span>
+                    )}
+                  </span>
+                  <span className="flex items-center gap-3">
+                    <span className="flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-teal-400/70" />
+                      {state.sessionStats.good + state.sessionStats.easy}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-rose-400/70" />
+                      {state.sessionStats.again}
+                    </span>
+                  </span>
+                </div>
+                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-teal-400 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(progress, 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Card */}
+              {state.reviewMode === "flip" && (
+                <FlipCard
+                  card={current}
+                  face={state.cardFace}
+                  onShowAnswer={() => dispatch({ type: "SHOW_ANSWER" })}
+                  onRate={handleRate}
+                />
+              )}
+
+              {state.reviewMode === "type" && (
+                <TypeCard
+                  card={current}
+                  state={state}
+                  dispatch={dispatch}
+                  onRate={handleRate}
+                />
+              )}
+
+              {state.reviewMode === "choice" && (
+                <ChoiceCard
+                  card={current}
+                  state={state}
+                  dispatch={dispatch}
+                  onRate={handleRate}
+                />
+              )}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </OceanBackground>
   );
 }
 

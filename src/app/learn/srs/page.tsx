@@ -15,7 +15,14 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { GeneratedStory, ProficiencyLevel, WordRating } from "@/types";
-import { BookOpen, Brain, Home, BarChart3, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  Brain,
+  Home,
+  BarChart3,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
 
 export default function SRSLearnPage() {
   const [loading, setLoading] = useState(true);

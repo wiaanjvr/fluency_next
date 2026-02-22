@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { TIERS, TIER_SLUGS, type TierSlug } from "@/lib/tiers";
 import { useLocation } from "@/contexts/LocationContext";
 
@@ -74,7 +75,7 @@ const featureHighlights = [
   },
 ];
 
-export default function PricingPage() {
+function PricingPageContent() {
   const searchParams = useSearchParams();
   const currencyParam = searchParams.get("currency");
   const { currencyCode: detectedCurrency, paymentProvider } = useLocation();
@@ -720,5 +721,13 @@ function TierCTAButton({
         </span>
       </p>
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense>
+      <PricingPageContent />
+    </Suspense>
   );
 }

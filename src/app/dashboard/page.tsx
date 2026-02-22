@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -174,7 +174,10 @@ function DashboardContent({
                     className="text-sm font-body"
                     style={{ color: "var(--seafoam)" }}
                   >
-                    Your {getTierConfig(subscriptionTier as TierSlug)?.displayName || "subscription"} plan is active. Go deeper.
+                    Your{" "}
+                    {getTierConfig(subscriptionTier as TierSlug)?.displayName ||
+                      "subscription"}{" "}
+                    plan is active. Go deeper.
                   </p>
                 </div>
                 <button
@@ -213,7 +216,8 @@ function DashboardContent({
                   className="text-sm font-body font-medium"
                   style={{ color: "#ffb300" }}
                 >
-                  {getTierConfig(subscriptionTier as TierSlug)?.displayName || "Pro"}
+                  {getTierConfig(subscriptionTier as TierSlug)?.displayName ||
+                    "Pro"}
                 </span>
               </div>
             </div>
@@ -249,45 +253,46 @@ function DashboardContent({
           )}
 
           {/* ========== UPGRADE CTA (for Snorkeler users after depth 2) ========== */}
-          {stats.wordsEncountered >= 50 && !hasAccess(subscriptionTier as TierSlug, "diver") && (
-            <section
-              className="ocean-card ocean-card-animate p-6"
-              style={{
-                animationDelay: "0.6s",
-                background:
-                  "linear-gradient(135deg, rgba(255, 179, 0, 0.06) 0%, rgba(255, 140, 0, 0.03) 100%)",
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3
-                    className="font-display text-xl font-semibold mb-1"
-                    style={{ color: "var(--sand)" }}
-                  >
-                    Go deeper
-                  </h3>
-                  <p
-                    className="text-sm font-body"
-                    style={{ color: "var(--seafoam)" }}
-                  >
-                    Unlimited immersion time, longer stories, and advanced
-                    shadowing tools.
-                  </p>
+          {stats.wordsEncountered >= 50 &&
+            !hasAccess(subscriptionTier as TierSlug, "diver") && (
+              <section
+                className="ocean-card ocean-card-animate p-6"
+                style={{
+                  animationDelay: "0.6s",
+                  background:
+                    "linear-gradient(135deg, rgba(255, 179, 0, 0.06) 0%, rgba(255, 140, 0, 0.03) 100%)",
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3
+                      className="font-display text-xl font-semibold mb-1"
+                      style={{ color: "var(--sand)" }}
+                    >
+                      Go deeper
+                    </h3>
+                    <p
+                      className="text-sm font-body"
+                      style={{ color: "var(--seafoam)" }}
+                    >
+                      Unlimited immersion time, longer stories, and advanced
+                      shadowing tools.
+                    </p>
+                  </div>
+                  <Link href="/pricing">
+                    <button
+                      className="ocean-cta px-6 py-3 text-sm font-semibold flex items-center gap-2"
+                      style={{
+                        background: "linear-gradient(135deg, #ffb300, #ff8c00)",
+                      }}
+                    >
+                      Start Diving
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </Link>
                 </div>
-                <Link href="/pricing">
-                  <button
-                    className="ocean-cta px-6 py-3 text-sm font-semibold flex items-center gap-2"
-                    style={{
-                      background: "linear-gradient(135deg, #ffb300, #ff8c00)",
-                    }}
-                  >
-                    Start Diving
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </Link>
-              </div>
-            </section>
-          )}
+              </section>
+            )}
         </div>
       </div>
     </OceanBackground>
@@ -297,7 +302,7 @@ function DashboardContent({
 // ============================================================================
 // Dashboard Page — Main Export
 // ============================================================================
-export default function DashboardPage() {
+function DashboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isProgressView = searchParams.get("view") === "progress";
@@ -682,5 +687,13 @@ export default function DashboardPage() {
         />
       </DiveTransitionProvider>
     </ProtectedRoute>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense>
+      <DashboardPageContent />
+    </Suspense>
   );
 }

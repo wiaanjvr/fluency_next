@@ -13,6 +13,12 @@ import {
 } from "@/lib/srs/story-generator";
 import { getCachedProfile } from "@/lib/profile-cache";
 import { consumeDailyBudget } from "@/lib/daily-budget";
+import { getSessionCognitiveLoad } from "@/lib/ml-services/cognitive-load-client";
+import {
+  selectStoryWordsML,
+  updateTopicPreferences,
+} from "@/lib/ml-services/story-selector-client";
+import { COGNITIVE_LOAD_THRESHOLDS } from "@/types/cognitive-load";
 
 /** Cache TTL for user_words in seconds */
 const USER_WORDS_CACHE_TTL = 120; // 2 minutes
@@ -73,6 +79,7 @@ export async function POST(request: NextRequest) {
       word_count_target,
       new_word_percentage,
       prioritize_review = true,
+      session_id,
     } = body as {
       language?: string;
       level?: ProficiencyLevel;
@@ -81,6 +88,7 @@ export async function POST(request: NextRequest) {
       word_count_target?: number;
       new_word_percentage?: number;
       prioritize_review?: boolean;
+      session_id?: string;
     };
 
     // Get user's profile for defaults (Redis-cached, 5 min TTL)
@@ -90,11 +98,37 @@ export async function POST(request: NextRequest) {
       "proficiency_level, target_language",
     );
 
-    const userLevel = level || profile?.proficiency_level || "A1";
+    const userLevel = (level ||
+      profile?.proficiency_level ||
+      "A1") as ProficiencyLevel;
     const targetLanguage = language || profile?.target_language || "fr";
-    const wordCount = word_count_target || getRecommendedWordCount(userLevel);
-    const newWordPct =
+    let wordCount = word_count_target || getRecommendedWordCount(userLevel);
+    let newWordPct =
       new_word_percentage || getRecommendedNewWordPercentage(userLevel);
+
+    // ── Cognitive load–aware difficulty adjustment ───────────────────────
+    // If a session_id is provided, check the current cognitive load and
+    // reduce story complexity when the learner is struggling.
+    let cognitiveLoadAdjusted = false;
+    if (session_id) {
+      try {
+        const loadSnapshot = await getSessionCognitiveLoad(session_id);
+        if (loadSnapshot && loadSnapshot.eventCount >= 3) {
+          if (loadSnapshot.currentLoad > COGNITIVE_LOAD_THRESHOLDS.SIMPLIFY) {
+            // Reduce new words and shorten story when load is high
+            newWordPct = Math.max(0.05, newWordPct * 0.5);
+            wordCount = Math.max(30, Math.round(wordCount * 0.7));
+            cognitiveLoadAdjusted = true;
+            console.log(
+              `[story-generate] Cognitive load ${loadSnapshot.currentLoad.toFixed(2)} > ${COGNITIVE_LOAD_THRESHOLDS.SIMPLIFY} — ` +
+                `reducing complexity (words: ${wordCount}, newWordPct: ${(newWordPct * 100).toFixed(0)}%)`,
+            );
+          }
+        }
+      } catch {
+        // Cognitive load service unavailable — continue with defaults
+      }
+    }
 
     // Fetch user's known words (with Redis cache)
     const wordsCacheKey = `user_words:${user.id}:${targetLanguage}`;
@@ -136,16 +170,83 @@ export async function POST(request: NextRequest) {
     console.log("User level:", userLevel);
     console.log("Word count target:", wordCount);
 
-    // Select words for the story
-    const wordSelection = selectWordsForGeneration(userWords || [], {
-      user_id: user.id,
-      language: targetLanguage,
-      level: userLevel,
-      topic,
-      word_count_target: wordCount,
-      new_word_percentage: newWordPct,
-      prioritize_review,
-    });
+    // ── ML-informed word selection (with fallback) ──────────────────────
+    // Try the Python Story Word Selector service first; if unavailable,
+    // fall back to the existing TypeScript selector.
+    let wordSelection;
+    let mlSelectorUsed = false;
+
+    try {
+      const mlResult = await selectStoryWordsML({
+        userId: user.id,
+        targetWordCount: wordCount,
+        storyComplexityLevel: Math.min(
+          5,
+          Math.max(
+            1,
+            Math.round(
+              (
+                { A0: 1, A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 5 } as Record<
+                  string,
+                  number
+                >
+              )[userLevel] || 1,
+            ),
+          ),
+        ),
+        language: targetLanguage,
+      });
+
+      if (
+        mlResult &&
+        mlResult.dueWords.length + mlResult.knownFillWords.length > 0
+      ) {
+        // Convert ML response into the WordSelection format expected downstream
+        // We need to extract the actual word lemmas from the word IDs
+        const allWordIds = [...mlResult.dueWords, ...mlResult.knownFillWords];
+        const wordMap = new Map((userWords || []).map((w: any) => [w.id, w]));
+
+        const knownWordLemmas = mlResult.knownFillWords
+          .map((id) => wordMap.get(id)?.lemma || wordMap.get(id)?.word)
+          .filter(Boolean) as string[];
+        const dueWordLemmas = mlResult.dueWords
+          .map((id) => wordMap.get(id)?.lemma || wordMap.get(id)?.word)
+          .filter(Boolean) as string[];
+
+        wordSelection = {
+          knownWords: knownWordLemmas,
+          reviewWords: dueWordLemmas,
+          newWords: [] as string[], // ML selector handles new words via dueWords
+          allWords: [...knownWordLemmas, ...dueWordLemmas],
+        };
+        mlSelectorUsed = true;
+
+        console.log("[story-generate] Using ML word selector:", {
+          dueWords: mlResult.dueWords.length,
+          knownFillWords: mlResult.knownFillWords.length,
+          thematicBias: mlResult.thematicBias,
+          knownPercentage: mlResult.debug?.knownPercentage,
+        });
+      }
+    } catch (err) {
+      console.warn(
+        "[story-generate] ML selector unavailable, using TS fallback:",
+        err,
+      );
+    }
+
+    // Fallback to existing TypeScript selector
+    if (!wordSelection) {
+      wordSelection = selectWordsForGeneration(userWords || [], {
+        user_id: user.id,
+        language: targetLanguage,
+        level: userLevel,
+        topic,
+        word_count_target: wordCount,
+        new_word_percentage: newWordPct,
+        prioritize_review,
+      });
+    }
 
     console.log("Word selection:", {
       knownWords: wordSelection.knownWords.length,
@@ -256,7 +357,23 @@ export async function POST(request: NextRequest) {
       // Don't fail the request - just log the error
     }
 
-    return NextResponse.json({ story });
+    // ── Update thematic preferences (fire-and-forget) ───────────────────
+    // If the ML selector was used, update preferences with the story's topic
+    if (mlSelectorUsed && topic) {
+      updateTopicPreferences({
+        userId: user.id,
+        storyTopicTags: [topic],
+        timeOnSegmentMs: 0, // Will be updated when story session ends
+        storyId: story.id,
+      }).catch((err) =>
+        console.warn(
+          "[story-generate] Failed to update topic preferences:",
+          err,
+        ),
+      );
+    }
+
+    return NextResponse.json({ story, mlSelectorUsed });
   } catch (error) {
     console.error("Error in POST /api/stories/generate:", error);
     return NextResponse.json(

@@ -12,6 +12,10 @@ import { URL } from "url";
 // Load .env.local
 dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
 
+// For local seed scripts, bypass TLS certificate verification so corporate
+// proxies / missing OS root-CAs don't block Node's https requests.
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -155,7 +159,7 @@ async function upsertSubtopic(
 async function seed() {
   console.log(`Seeding ${ALL_CONTENT.length} grammar content file(s)...\n`);
 
-  const reachable = await checkSupabaseReachable(supabaseUrl);
+  const reachable = await checkSupabaseReachable(supabaseUrl!);
   if (!reachable) {
     console.error(
       `Unable to reach Supabase at ${supabaseUrl}.\nPlease check your network, VPN, firewall, and that NEXT_PUBLIC_SUPABASE_URL is correct in .env.local. Also ensure you are running Node 18+ so that global fetch is available to the Supabase client.`,

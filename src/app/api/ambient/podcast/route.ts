@@ -104,7 +104,7 @@ export async function GET(request: Request) {
         }
 
         const episode = await parseRssFeed(feed.rss_url);
-        return { feed, episode, rawItem };
+        return { feed, episode, rawItem, rawFetchInfo };
       }),
     );
 

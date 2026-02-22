@@ -246,16 +246,20 @@ export async function getUserCompletedLessonIds(): Promise<Set<string>> {
   return new Set((data || []).map((r: { lesson_id: string }) => r.lesson_id));
 }
 
-/** Mark a lesson as completed for the current user */
+/** Mark a lesson as completed for the current user.
+ *  Also triggers the knowledge-graph grammar unlock so tagged words
+ *  become eligible for story introduction. */
 export async function markLessonComplete(
   lessonId: string,
+  grammarTag?: string,
 ): Promise<UserLessonCompletion | null> {
+  const supabase = getSupabase();
   const {
     data: { user },
-  } = await getSupabase().auth.getUser();
+  } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data, error } = await getSupabase()
+  const { data, error } = await supabase
     .from("user_lesson_completions")
     .upsert(
       { user_id: user.id, lesson_id: lessonId },
@@ -265,21 +269,36 @@ export async function markLessonComplete(
     .single();
 
   if (error) throw error;
+
+  // ── Knowledge-graph integration: unlock grammar-gated words ────────────
+  if (grammarTag) {
+    try {
+      const { onGrammarLessonComplete } = await import("@/lib/knowledge-graph");
+      await onGrammarLessonComplete(supabase, user.id, grammarTag, lessonId);
+    } catch (err) {
+      // Non-fatal — lesson completion still succeeds even if KG update fails
+      console.warn("[markLessonComplete] Knowledge-graph unlock failed:", err);
+    }
+  }
+
   return data;
 }
 
-/** Record an exercise attempt */
+/** Record an exercise attempt.
+ *  Optionally pass a wordId to also record the review in the knowledge graph. */
 export async function recordExerciseAttempt(
   exerciseId: string,
   wasCorrect: boolean,
   userAnswer: string,
+  wordId?: string,
 ): Promise<void> {
+  const supabase = getSupabase();
   const {
     data: { user },
-  } = await getSupabase().auth.getUser();
+  } = await supabase.auth.getUser();
   if (!user) return;
 
-  const { error } = await getSupabase().from("user_exercise_attempts").insert({
+  const { error } = await supabase.from("user_exercise_attempts").insert({
     user_id: user.id,
     exercise_id: exerciseId,
     was_correct: wasCorrect,
@@ -287,6 +306,23 @@ export async function recordExerciseAttempt(
   });
 
   if (error) throw error;
+
+  // ── Knowledge-graph integration: record grammar review for the word ────
+  if (wordId) {
+    try {
+      const { recordReview } = await import("@/lib/knowledge-graph");
+      await recordReview(supabase, user.id, {
+        wordId,
+        moduleSource: "grammar",
+        correct: wasCorrect,
+      });
+    } catch (err) {
+      console.warn(
+        "[recordExerciseAttempt] Knowledge-graph update failed:",
+        err,
+      );
+    }
+  }
 }
 
 /** Fetch grammar progress summary for the current user */

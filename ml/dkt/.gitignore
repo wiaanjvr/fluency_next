@@ -1,0 +1,5 @@
+# DKT runtime artifacts
+checkpoints/
+logs/
+__pycache__/
+*.pyc

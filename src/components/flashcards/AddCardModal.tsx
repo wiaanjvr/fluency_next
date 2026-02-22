@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Flashcard } from "@/types/flashcards";
 
 const WORD_CLASSES = [
   { value: "", label: "Select..." },
@@ -26,9 +27,16 @@ interface AddCardModalProps {
     grammar_notes?: string;
     tags?: string[];
   }) => Promise<void>;
+  /** Pass an existing card to enable editing mode */
+  editCard?: Flashcard | null;
 }
 
-export function AddCardModal({ open, onClose, onSubmit }: AddCardModalProps) {
+export function AddCardModal({
+  open,
+  onClose,
+  onSubmit,
+  editCard,
+}: AddCardModalProps) {
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
   const [exampleSentence, setExampleSentence] = useState("");
@@ -38,7 +46,25 @@ export function AddCardModal({ open, onClose, onSubmit }: AddCardModalProps) {
   const [tagsInput, setTagsInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Fill form when editing
+  useEffect(() => {
+    if (editCard && open) {
+      setFront(editCard.front);
+      setBack(editCard.back);
+      setExampleSentence(editCard.example_sentence || "");
+      setExampleTranslation(editCard.example_translation || "");
+      setWordClass(editCard.word_class || "");
+      setGrammarNotes(editCard.grammar_notes || "");
+      setTagsInput(editCard.tags?.join(", ") || "");
+    } else if (open && !editCard) {
+      resetForm();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editCard, open]);
+
   if (!open) return null;
+
+  const isEditing = !!editCard;
 
   const resetForm = () => {
     setFront("");
@@ -98,7 +124,9 @@ export function AddCardModal({ open, onClose, onSubmit }: AddCardModalProps) {
         )}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">Add Card</h2>
+          <h2 className="text-xl font-semibold text-white">
+            {isEditing ? "Edit Card" : "Add Card"}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -225,7 +253,13 @@ export function AddCardModal({ open, onClose, onSubmit }: AddCardModalProps) {
             "shadow-lg shadow-teal-500/25",
           )}
         >
-          {submitting ? "Adding..." : "Add Card"}
+          {submitting
+            ? isEditing
+              ? "Saving..."
+              : "Adding..."
+            : isEditing
+              ? "Save Changes"
+              : "Add Card"}
         </button>
       </form>
     </div>

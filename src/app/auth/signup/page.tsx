@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,7 +10,7 @@ import { signup, signInWithOAuth, resendConfirmationEmail } from "../actions";
 import { CheckCircle2, Mail, RefreshCw } from "lucide-react";
 import { TurnstileCaptcha } from "@/components/auth/TurnstileCaptcha";
 
-export default function SignUpPage() {
+function SignUpPageContent() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
   const [loading, setLoading] = useState(false);
@@ -480,5 +480,13 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense>
+      <SignUpPageContent />
+    </Suspense>
   );
 }

@@ -3,16 +3,17 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { segmentId: string } },
+  { params }: { params: Promise<{ segmentId: string }> },
 ) {
   try {
+    const { segmentId } = await params;
     const supabase = await createClient();
 
     // First try to get from vocabulary_exercises table
     const { data: exercises, error: exercisesError } = await supabase
       .from("vocabulary_exercises")
       .select("*")
-      .eq("segment_id", params.segmentId);
+      .eq("segment_id", segmentId);
 
     if (!exercisesError && exercises && exercises.length > 0) {
       return NextResponse.json(exercises);
@@ -22,7 +23,7 @@ export async function GET(
     const { data: segment, error: segmentError } = await supabase
       .from("content_segments")
       .select("vocabulary_exercises")
-      .eq("id", params.segmentId)
+      .eq("id", segmentId)
       .single();
 
     if (segmentError || !segment) {

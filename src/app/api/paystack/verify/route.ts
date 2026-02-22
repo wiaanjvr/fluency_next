@@ -42,7 +42,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const transactionData = verificationResult.data;
+    const transactionData =
+      verificationResult.data as typeof verificationResult.data & {
+        metadata?: Record<string, unknown>;
+        subscription?: { subscription_code?: string };
+      };
 
     console.log("[Paystack Verify] Transaction data", {
       status: transactionData.status,

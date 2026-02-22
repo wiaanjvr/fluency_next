@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Play } from "lucide-react";
+import { BookOpen, Play, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Deck, DeckStats } from "@/types/flashcards";
 
@@ -14,9 +14,11 @@ const LANGUAGE_FLAGS: Record<string, string> = {
 interface DeckCardProps {
   deck: Deck;
   stats: DeckStats;
+  /** Called when the user clicks the edit (pencil) button */
+  onEdit?: (deck: Deck) => void;
 }
 
-export function DeckCard({ deck, stats }: DeckCardProps) {
+export function DeckCard({ deck, stats, onEdit }: DeckCardProps) {
   const total = stats.newCount + stats.learningCount + stats.reviewCount;
   const newPct = total > 0 ? (stats.newCount / total) * 100 : 0;
   const learningPct = total > 0 ? (stats.learningCount / total) * 100 : 0;
@@ -55,8 +57,23 @@ export function DeckCard({ deck, stats }: DeckCardProps) {
           </h3>
           <p className="text-sm text-white/50">
             {deck.card_count} card{deck.card_count !== 1 ? "s" : ""}
+            {deck.description && (
+              <span className="ml-1 text-white/30">· {deck.description}</span>
+            )}
           </p>
         </div>
+        {onEdit && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(deck);
+            }}
+            className="p-1.5 rounded-lg text-white/20 hover:text-white/60 hover:bg-white/5 transition flex-shrink-0"
+            title="Edit deck"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Progress bar */}

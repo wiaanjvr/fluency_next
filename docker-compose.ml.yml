@@ -1,0 +1,380 @@
+# =============================================================================
+# Lingua ML Microservices — Docker Compose
+#
+# Brings up:
+#   - Redis (shared prediction cache + Celery broker/backend)
+#   - Celery worker (background training jobs)
+#   - Celery beat (cron scheduler)
+#   - All 8 ML FastAPI services (ports 8100-8800)
+#   - ML Gateway service (port 8900)
+#
+# Usage:
+#   docker compose -f docker-compose.ml.yml up --build -d
+#
+# All services share environment variables from .env.local + .env.
+# Never commit secrets — use docker secrets or a vault in production.
+# =============================================================================
+
+version: "3.9"
+
+# ── Shared environment ────────────────────────────────────────────────────────
+
+x-ml-env: &ml-env
+  NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+  SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+  ML_REDIS_URL: redis://redis:6379/0
+  REDIS_URL: redis://redis:6379/0
+  ML_CACHE_TTL_SECONDS: "3600"
+  ML_GATEWAY_API_KEY: ${ML_GATEWAY_API_KEY:-}
+  DKT_API_KEY: ${DKT_API_KEY:-}
+  CHURN_PREDICTION_API_KEY: ${CHURN_PREDICTION_API_KEY:-}
+  COLD_START_API_KEY: ${COLD_START_API_KEY:-}
+  COMPLEXITY_PREDICTOR_API_KEY: ${COMPLEXITY_PREDICTOR_API_KEY:-}
+  FEEDBACK_GENERATOR_API_KEY: ${FEEDBACK_GENERATOR_API_KEY:-}
+  RL_ROUTER_API_KEY: ${RL_ROUTER_API_KEY:-}
+  COGNITIVE_LOAD_API_KEY: ${COGNITIVE_LOAD_API_KEY:-}
+  STORY_SELECTOR_API_KEY: ${STORY_SELECTOR_API_KEY:-}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+
+# ── Shared build context ──────────────────────────────────────────────────────
+
+x-ml-build: &ml-build
+  context: .
+  args:
+    PYTHON_VERSION: "3.12"
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+
+volumes:
+  redis-data:
+  ml-model-weights: # shared volume for all model artefacts
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+
+networks:
+  ml-internal:
+    driver: bridge
+
+services:
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: >
+      redis-server
+      --save 60 1
+      --loglevel warning
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - ml-internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "6379:6379" # expose for local development; remove in production
+
+  # ── Celery worker ─────────────────────────────────────────────────────────────
+  celery-worker:
+    build:
+      <<: *ml-build
+      dockerfile: ml/shared/Dockerfile
+    command: >
+      celery -A ml.shared.celery_app worker
+      --loglevel=info
+      --concurrency=2
+      -Q ml-training
+      --hostname=worker@%h
+    environment:
+      <<: *ml-env
+    volumes:
+      - ml-model-weights:/app/ml/weights
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Celery beat (cron scheduler) ──────────────────────────────────────────────
+  celery-beat:
+    build:
+      <<: *ml-build
+      dockerfile: ml/shared/Dockerfile
+    command: >
+      celery -A ml.shared.celery_app beat
+      --loglevel=info
+      --scheduler celery.beat:PersistentScheduler
+    environment:
+      <<: *ml-env
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── DKT (port 8100) ───────────────────────────────────────────────────────────
+  ml-dkt:
+    build:
+      <<: *ml-build
+      dockerfile: ml/dkt/Dockerfile
+    environment:
+      <<: *ml-env
+    ports:
+      - "8100:8100"
+    volumes:
+      - ml-model-weights:/app/ml/weights
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import httpx; httpx.get('http://localhost:8100/ml/dkt/health').raise_for_status()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Cognitive Load (port 8200) ────────────────────────────────────────────────
+  ml-cognitive-load:
+    build:
+      <<: *ml-build
+      dockerfile: ml/cognitive_load/Dockerfile
+    environment:
+      <<: *ml-env
+    ports:
+      - "8200:8200"
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import httpx; httpx.get('http://localhost:8200/ml/cognitive-load/health').raise_for_status()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Story Word Selector (port 8300) ───────────────────────────────────────────
+  ml-story-selector:
+    build:
+      <<: *ml-build
+      dockerfile: ml/story_word_selector/Dockerfile
+    environment:
+      <<: *ml-env
+    ports:
+      - "8300:8300"
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import httpx; httpx.get('http://localhost:8300/ml/story/health').raise_for_status()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Complexity Predictor (port 8400) ──────────────────────────────────────────
+  ml-complexity:
+    build:
+      <<: *ml-build
+      dockerfile: ml/complexity_predictor/Dockerfile
+    environment:
+      <<: *ml-env
+    ports:
+      - "8400:8400"
+    volumes:
+      - ml-model-weights:/app/ml/weights
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import httpx; httpx.get('http://localhost:8400/ml/session/health').raise_for_status()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Feedback Generator (port 8500) ────────────────────────────────────────────
+  ml-feedback:
+    build:
+      <<: *ml-build
+      dockerfile: ml/feedback_generator/Dockerfile
+    environment:
+      <<: *ml-env
+    ports:
+      - "8500:8500"
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import httpx; httpx.get('http://localhost:8500/ml/feedback/health').raise_for_status()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Cold Start (port 8600) ────────────────────────────────────────────────────
+  ml-cold-start:
+    build:
+      <<: *ml-build
+      dockerfile: ml/cold_start/Dockerfile
+    environment:
+      <<: *ml-env
+    ports:
+      - "8600:8600"
+    volumes:
+      - ml-model-weights:/app/ml/weights
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import httpx; httpx.get('http://localhost:8600/ml/coldstart/health').raise_for_status()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Churn Prediction (port 8700) ──────────────────────────────────────────────
+  ml-churn:
+    build:
+      <<: *ml-build
+      dockerfile: ml/churn_prediction/Dockerfile
+    environment:
+      <<: *ml-env
+    ports:
+      - "8700:8700"
+    volumes:
+      - ml-model-weights:/app/ml/weights
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import httpx; httpx.get('http://localhost:8700/ml/churn/health').raise_for_status()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── RL Router (port 8800) ─────────────────────────────────────────────────────
+  ml-rl-router:
+    build:
+      <<: *ml-build
+      dockerfile: ml/rl_router/Dockerfile
+    environment:
+      <<: *ml-env
+    ports:
+      - "8800:8800"
+    volumes:
+      - ml-model-weights:/app/ml/weights
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import httpx; httpx.get('http://localhost:8800/ml/router/health').raise_for_status()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── ML Gateway — unified entry point (port 8900) ──────────────────────────────
+  ml-gateway:
+    build:
+      <<: *ml-build
+      dockerfile: ml/service/Dockerfile
+    environment:
+      <<: *ml-env
+      DKT_URL: http://ml-dkt:8100
+      COGNITIVE_LOAD_URL: http://ml-cognitive-load:8200
+      STORY_SELECTOR_URL: http://ml-story-selector:8300
+      COMPLEXITY_PREDICTOR_URL: http://ml-complexity:8400
+      FEEDBACK_GENERATOR_URL: http://ml-feedback:8500
+      COLD_START_URL: http://ml-cold-start:8600
+      CHURN_PREDICTION_URL: http://ml-churn:8700
+      RL_ROUTER_URL: http://ml-rl-router:8800
+    ports:
+      - "8900:8900"
+    networks:
+      - ml-internal
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import httpx; httpx.get('http://localhost:8900/ml/health').raise_for_status()",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3

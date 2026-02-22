@@ -72,7 +72,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const [ripples, setRipples] = React.useState<
       Array<{ x: number; y: number; id: number }>
     >([]);
-    const buttonRef = React.useRef<HTMLButtonElement>(null);
+    const buttonRef = React.useRef<HTMLButtonElement | null>(null);
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
       if (enableRipple && buttonRef.current) {
