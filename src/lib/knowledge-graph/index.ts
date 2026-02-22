@@ -12,6 +12,9 @@
 // ── Core review system ────────────────────────────────────────────────────
 export { recordReview, recordReviewBatch } from "./record-review";
 
+// ── Learner words sync (bridges user_words → learner_words_v2) ────────────
+export { syncToLearnerWords } from "./sync-learner-words";
+
 // ── Story engine word selection ───────────────────────────────────────────
 export { getWordsForStory } from "./story-word-selector";
 

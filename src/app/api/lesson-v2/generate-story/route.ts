@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get learner words (Redis-cached, invalidated on mastery update)
-    const knownWords = await getLearnerWords(supabase, user.id);
+    const knownWords = await getLearnerWords(supabase, user.id, targetLanguage);
 
     const masteryCount = computeMasteryCount(knownWords);
 

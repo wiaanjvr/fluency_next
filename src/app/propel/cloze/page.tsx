@@ -23,6 +23,8 @@ import { clozeReducer, initialState } from "@/lib/cloze/cloze-reducer";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, Check, X } from "lucide-react";
 import type { ClozeItem, InputMode, ClozeLevel } from "@/types/cloze";
+import { recordReview } from "@/lib/knowledge-graph/record-review";
+import type { ModuleSource } from "@/types/knowledge-graph";
 import Link from "next/link";
 import "@/styles/ocean-theme.css";
 
@@ -133,6 +135,7 @@ function ClozeContent({
   const [state, dispatch] = useReducer(clozeReducer, initialState);
   const [loading, setLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [activeLevel, setActiveLevel] = useState<ClozeLevel>("B1");
 
   // Map target language to 2-char code
   const langCode =
@@ -144,24 +147,30 @@ function ClozeContent({
           ? "it"
           : "fr";
 
-  // Default user level — in a real app this would come from profile
-  const userLevel: ClozeLevel = "B1";
+  const loadItems = useCallback(
+    async (level?: ClozeLevel) => {
+      const targetLevel = level ?? activeLevel;
+      setLoading(true);
+      const items = await fetchClozeItems(supabase, langCode, targetLevel);
+      if (items.length > 0) {
+        dispatch({ type: "SET_ITEMS", items });
+        addSeenIds(items.map((i) => i.id));
 
-  const loadItems = useCallback(async () => {
-    setLoading(true);
-    const items = await fetchClozeItems(supabase, langCode, userLevel);
-    if (items.length > 0) {
-      dispatch({ type: "SET_ITEMS", items });
-      addSeenIds(items.map((i) => i.id));
+        // Increment used_count in background
+        const ids = items.map((i) => i.id);
+        Promise.resolve(
+          supabase.rpc("increment_cloze_used_count", { item_ids: ids }),
+        ).catch(() => {});
+      }
+      setLoading(false);
+    },
+    [supabase, langCode, activeLevel],
+  );
 
-      // Increment used_count in background
-      const ids = items.map((i) => i.id);
-      Promise.resolve(
-        supabase.rpc("increment_cloze_used_count", { item_ids: ids }),
-      ).catch(() => {});
-    }
-    setLoading(false);
-  }, [supabase, langCode, userLevel]);
+  function handleLevelChange(level: ClozeLevel) {
+    setActiveLevel(level);
+    loadItems(level);
+  }
 
   useEffect(() => {
     if (ambientView === "container") {
@@ -188,15 +197,18 @@ function ClozeContent({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [state.answerState, state.sessionComplete]);
 
-  // Record progress to Supabase
+  // Record progress to Supabase + unified knowledge system
   useEffect(() => {
     if (state.answerState === "idle") return;
     const currentItem = state.items[state.currentIndex];
     if (!currentItem) return;
 
     const isCorrect = state.answerState === "correct";
+    // "close" counts as incorrect for scoring but we still track it
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
+
+      // 1. Record cloze-specific progress (existing behavior)
       Promise.resolve(
         supabase.from("user_cloze_progress").insert({
           user_id: user.id,
@@ -204,6 +216,64 @@ function ClozeContent({
           answered_correctly: isCorrect,
         }),
       ).catch(() => {});
+
+      // 2. Update unified knowledge system via recordReview
+      // Look up (or create) the word in user_words, then record the review
+      const syncKnowledge = async () => {
+        try {
+          const answerWord = currentItem.answer.toLowerCase();
+
+          // Try to find existing word in user_words
+          const { data: existingWords } = await supabase
+            .from("user_words")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("word", answerWord)
+            .limit(1);
+
+          let wordId: string | null = existingWords?.[0]?.id ?? null;
+
+          // If not found by word, try by lemma
+          if (!wordId) {
+            const { data: byLemma } = await supabase
+              .from("user_words")
+              .select("id")
+              .eq("user_id", user.id)
+              .eq("lemma", answerWord)
+              .limit(1);
+            wordId = byLemma?.[0]?.id ?? null;
+          }
+
+          // If the word doesn't exist in user_words yet, create it
+          if (!wordId) {
+            const { data: inserted } = await supabase
+              .from("user_words")
+              .insert({
+                user_id: user.id,
+                word: answerWord,
+                lemma: answerWord,
+                language: langCode,
+                status: "new",
+              })
+              .select("id")
+              .single();
+            wordId = inserted?.id ?? null;
+          }
+
+          if (wordId) {
+            await recordReview(supabase, user.id, {
+              wordId,
+              moduleSource: "cloze" as ModuleSource,
+              correct: isCorrect,
+            });
+          }
+        } catch (err) {
+          // Non-fatal — cloze progress is already saved
+          console.warn("[cloze] Knowledge sync failed:", err);
+        }
+      };
+
+      syncKnowledge();
     });
   }, [state.answerState]);
 
@@ -257,11 +327,36 @@ function ClozeContent({
           {/* Back link */}
           <Link
             href="/propel"
-            className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/60 transition-colors mb-6"
+            className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/60 transition-colors mb-4"
           >
             <ArrowLeft className="h-4 w-4" />
             Propel
           </Link>
+
+          {/* Level filter pills */}
+          <div className="flex items-center gap-2 mb-6 flex-wrap">
+            {LEVEL_ORDER.map((level) => (
+              <button
+                key={level}
+                onClick={() => handleLevelChange(level)}
+                disabled={
+                  loading ||
+                  (state.answerState !== "idle" && !state.sessionComplete)
+                }
+                className={cn(
+                  "px-3 py-1 text-xs font-medium rounded-full border transition-all duration-200",
+                  activeLevel === level
+                    ? "bg-teal-500/20 text-teal-400 border-teal-400/30"
+                    : "bg-white/5 text-white/40 border-white/10 hover:text-white/60 hover:border-white/20",
+                  (loading ||
+                    (state.answerState !== "idle" && !state.sessionComplete)) &&
+                    "opacity-50 cursor-not-allowed",
+                )}
+              >
+                {level}
+              </button>
+            ))}
+          </div>
 
           {loading ? (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -291,6 +386,7 @@ function ClozeContent({
             <SessionSummary
               score={state.score}
               history={state.sessionHistory}
+              maxStreak={state.maxStreak}
               onDiveAgain={loadItems}
             />
           ) : currentItem ? (
@@ -428,7 +524,8 @@ export default function ClozePage() {
       const { data: allWords } = await supabase
         .from("learner_words_v2")
         .select("id")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .eq("language", profile?.target_language ?? "fr");
       setWordsEncountered(allWords?.length ?? 0);
 
       const { data: adminRow } = await supabase

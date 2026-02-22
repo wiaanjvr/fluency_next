@@ -20,6 +20,7 @@ import type {
 import { PRODUCTION_WEIGHTS } from "@/types/knowledge-graph";
 import { calculateNextReview } from "@/lib/srs/algorithm";
 import { logInteractionEvent } from "@/lib/ml-events";
+import { syncToLearnerWords } from "./sync-learner-words";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -178,7 +179,23 @@ export async function recordReview(
     return null;
   }
 
-  // 6. Append to module_review_history -----------------------------------
+  // 6. Sync to learner_words_v2 (dashboard reads from this table) --------
+  // Fire-and-forget: the review is already saved in user_words.
+  syncToLearnerWords(supabase, {
+    userId,
+    word: unified.word,
+    lemma: unified.lemma,
+    language: unified.language ?? "fr",
+    status: srsResult.status,
+    correct,
+    repetitions: srsResult.repetitions,
+    exposureCount: newExposureCount,
+    nativeTranslation: unified.native_translation ?? null,
+  }).catch((err) => {
+    console.warn("[recordReview] Learner words sync failed:", err);
+  });
+
+  // 7. Append to module_review_history -----------------------------------
   const { error: histErr } = await supabase
     .from("module_review_history")
     .insert({
@@ -199,7 +216,7 @@ export async function recordReview(
     console.warn("[recordReview] Failed to insert history:", histErr.message);
   }
 
-  // 7. Backward-compat: also insert into word_interactions ---------------
+  // 8. Backward-compat: also insert into word_interactions ---------------
   await supabase.from("word_interactions").insert({
     user_id: userId,
     word_id: wordId,
@@ -207,7 +224,7 @@ export async function recordReview(
     response_time_ms: responseTimeMs ?? null,
   });
 
-  // 8. Emit ML interaction event (if session context provided) -----------
+  // 9. Emit ML interaction event (if session context provided) -----------
   if (event.sessionId && event.inputMode) {
     // Fire-and-forget — ML event logging should never block the review
     logInteractionEvent(supabase, userId, event.sessionId, {
@@ -223,7 +240,7 @@ export async function recordReview(
     });
   }
 
-  // 9. Build result -------------------------------------------------------
+  // 10. Build result ------------------------------------------------------
   return {
     wordId,
     moduleSource,

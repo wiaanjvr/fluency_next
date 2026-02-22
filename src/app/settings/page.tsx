@@ -24,6 +24,7 @@ import {
   X,
   AlertTriangle,
   Loader2,
+  Languages,
 } from "lucide-react";
 import {
   Card,
@@ -80,6 +81,9 @@ export default function SettingsPage() {
   const [processingRefund, setProcessingRefund] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showLanguageConfirm, setShowLanguageConfirm] = useState(false);
+  const [pendingLanguage, setPendingLanguage] = useState<string | null>(null);
+  const [changingLanguage, setChangingLanguage] = useState(false);
 
   const [fullName, setFullName] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("fr");
@@ -194,7 +198,31 @@ export default function SettingsPage() {
     );
   };
 
+  // Display name helper for language codes used in dialogs
+  const LANGUAGE_NAMES: Record<string, string> = {
+    fr: "French",
+    de: "German",
+    it: "Italian",
+    es: "Spanish",
+    pt: "Portuguese",
+    nl: "Dutch",
+    pl: "Polish",
+    ru: "Russian",
+    en: "English",
+  };
+
   const handleSaveProfile = async () => {
+    // If the target language changed, show the confirmation dialog first.
+    if (profile && targetLanguage !== profile.target_language) {
+      setPendingLanguage(targetLanguage);
+      setShowLanguageConfirm(true);
+      return;
+    }
+    await saveProfileFields();
+  };
+
+  /** Saves full_name, native_language (and target_language) via the server action. */
+  const saveProfileFields = async () => {
     setSaving(true);
     setMessage(null);
 
@@ -202,7 +230,7 @@ export default function SettingsPage() {
     formData.append("full_name", fullName);
     formData.append("target_language", targetLanguage);
     formData.append("native_language", nativeLanguage);
-    // proficiency_level is not editable - users must retake placement test
+    // proficiency_level is not editable — users must retake placement test
 
     const result = await updateProfile(formData);
 
@@ -217,6 +245,54 @@ export default function SettingsPage() {
     }
 
     setSaving(false);
+  };
+
+  const handleConfirmLanguageChange = async () => {
+    if (!pendingLanguage) return;
+    setChangingLanguage(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch("/api/settings/change-language", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newLanguage: pendingLanguage }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({
+          type: "error",
+          text: data.error || "Failed to change language.",
+        });
+        setShowLanguageConfirm(false);
+        setPendingLanguage(null);
+        setChangingLanguage(false);
+        return;
+      }
+
+      // Language switched — progress is preserved. Persist other profile fields.
+      setShowLanguageConfirm(false);
+      setPendingLanguage(null);
+      setChangingLanguage(false);
+      await saveProfileFields();
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: "Failed to change language. Please try again.",
+      });
+      setShowLanguageConfirm(false);
+      setPendingLanguage(null);
+      setChangingLanguage(false);
+    }
+  };
+
+  const handleCancelLanguageChange = () => {
+    // Revert the selector back to the saved language
+    if (profile) setTargetLanguage(profile.target_language);
+    setPendingLanguage(null);
+    setShowLanguageConfirm(false);
   };
 
   const handleAvatarClick = () => {
@@ -591,6 +667,78 @@ export default function SettingsPage() {
               </Button>
             </div>
           </div>
+          {/* Language Change Confirmation Dialog */}
+          {showLanguageConfirm && pendingLanguage && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
+              <Card className="max-w-md w-full mx-4 shadow-lg">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Languages className="h-5 w-5 text-blue-500" />
+                      <CardTitle>Change target language?</CardTitle>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleCancelLanguageChange}
+                      disabled={changingLanguage}
+                      className="h-8 w-8"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <CardDescription>
+                    You&apos;re switching from{" "}
+                    <strong>
+                      {LANGUAGE_NAMES[profile?.target_language ?? ""] ??
+                        profile?.target_language}
+                    </strong>{" "}
+                    to{" "}
+                    <strong>
+                      {LANGUAGE_NAMES[pendingLanguage] ?? pendingLanguage}
+                    </strong>
+                    .
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm text-blue-800 space-y-1">
+                    <p className="font-medium">Your progress is saved</p>
+                    <p className="font-light">
+                      All your{" "}
+                      {LANGUAGE_NAMES[profile?.target_language ?? ""] ??
+                        profile?.target_language}{" "}
+                      vocabulary and progress will remain intact. You can switch
+                      back at any time without losing anything.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-end gap-3">
+                    <Button
+                      variant="ghost"
+                      onClick={handleCancelLanguageChange}
+                      disabled={changingLanguage}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={handleConfirmLanguageChange}
+                      disabled={changingLanguage}
+                    >
+                      {changingLanguage ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Changing...
+                        </>
+                      ) : (
+                        "Yes, switch language"
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {showDeleteConfirm && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
               <Card className="max-w-md w-full mx-4 shadow-lg">

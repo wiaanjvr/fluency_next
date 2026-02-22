@@ -720,7 +720,8 @@ export default function DeckDetailPage() {
       const { data: allWords } = await supabase
         .from("learner_words_v2")
         .select("id")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .eq("language", profile?.target_language ?? "fr");
 
       setWordsEncountered(allWords?.length ?? 0);
 

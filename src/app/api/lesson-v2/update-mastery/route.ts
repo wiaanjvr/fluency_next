@@ -36,11 +36,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get current word
+    // Fetch the user's current target language so we query the right language partition
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("target_language")
+      .eq("id", user.id)
+      .single();
+    const language = profileRow?.target_language || "fr";
+
+    // Get current word — scoped to the user's active language
     const { data: wordRow, error: wordError } = await supabase
       .from("learner_words_v2")
       .select("*")
       .eq("user_id", user.id)
+      .eq("language", language)
       .eq("lemma", lemma)
       .single();
 
@@ -73,7 +82,7 @@ export async function POST(request: NextRequest) {
     const newTotalCorrect = word.totalCorrect + (correct ? 1 : 0);
     const now = new Date().toISOString();
 
-    // Update DB
+    // Update DB — scoped to language
     const { error: updateError } = await supabase
       .from("learner_words_v2")
       .update({
@@ -84,6 +93,7 @@ export async function POST(request: NextRequest) {
         last_reviewed_at: now,
       })
       .eq("user_id", user.id)
+      .eq("language", language)
       .eq("lemma", lemma);
 
     if (updateError) {
@@ -92,12 +102,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Invalidate cached learner words so next story gen picks up new mastery
-    await invalidateLearnerWordsCache(user.id);
+    await invalidateLearnerWordsCache(user.id, language);
 
     // Compute new mastery count via DB aggregate (index-only scan)
     // instead of fetching all words and counting client-side
     const { data: countResult } = await supabase.rpc("get_mastery_count", {
       p_user_id: user.id,
+      p_language: language,
     });
 
     const masteryCount = countResult ?? 0;

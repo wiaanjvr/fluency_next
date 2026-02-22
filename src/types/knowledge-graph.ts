@@ -55,6 +55,15 @@ export interface UnifiedWord extends UserWord {
   /** Pronunciation sub-score (0-100) */
   pronunciation_score: number;
 
+  /** Passive recognition ability (0-1) */
+  recognition_score: number;
+
+  /** Correct usage in story/sentence context (0-1) */
+  contextual_usage_score: number;
+
+  /** User-facing native translation for flashcards etc. */
+  native_translation: string | null;
+
   /** Grammar / semantic tags, e.g. ["subjunctive", "irregular", "dative"] */
   tags: string[];
 

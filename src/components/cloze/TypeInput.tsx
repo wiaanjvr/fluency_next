@@ -61,6 +61,8 @@ export function TypeInput({
                         "border-teal-400 text-white caret-teal-400",
                       answerState === "correct" &&
                         "border-teal-400 text-teal-300 bg-teal-500/20 ring-2 ring-teal-400 rounded-lg px-2",
+                      answerState === "close" &&
+                        "border-amber-400 text-amber-300 bg-amber-500/20 ring-2 ring-amber-400 rounded-lg px-2",
                       answerState === "incorrect" &&
                         "border-rose-400 text-rose-300 bg-rose-500/20 ring-2 ring-rose-400 rounded-lg px-2",
                     )}

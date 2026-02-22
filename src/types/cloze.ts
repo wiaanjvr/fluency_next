@@ -9,7 +9,7 @@ export type ClozeSource =
   | "reddit"
   | "tatoeba";
 export type InputMode = "type" | "choice" | "wordbank";
-export type AnswerState = "idle" | "correct" | "incorrect";
+export type AnswerState = "idle" | "correct" | "incorrect" | "close";
 
 export interface ClozeItem {
   id: string;
@@ -39,6 +39,7 @@ export interface SessionEntry {
   item: ClozeItem;
   userAnswer: string;
   correct: boolean;
+  modeUsed: InputMode;
 }
 
 export interface ClozeSessionState {
@@ -50,6 +51,8 @@ export interface ClozeSessionState {
   score: { correct: number; incorrect: number };
   sessionHistory: SessionEntry[];
   sessionComplete: boolean;
+  streak: number;
+  maxStreak: number;
 }
 
 export type ClozeAction =

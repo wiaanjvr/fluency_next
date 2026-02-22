@@ -38,11 +38,14 @@ export async function GET() {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    // Get learner words from DB
+    const targetLanguage = profile.target_language || "fr";
+
+    // Get learner words for the user's current language only
     const { data: dbWords, error: wordsError } = await supabase
       .from("learner_words_v2")
       .select("*")
       .eq("user_id", user.id)
+      .eq("language", targetLanguage)
       .order("frequency_rank", { ascending: true });
 
     if (wordsError) {

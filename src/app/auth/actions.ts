@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { invalidateProfileCache } from "@/lib/profile-cache";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -309,6 +310,10 @@ export async function updateProfile(formData: FormData) {
   if (error) {
     return { error: error.message };
   }
+
+  // Invalidate the Redis profile cache so every downstream route picks up
+  // the new values immediately (target_language, native_language, full_name).
+  await invalidateProfileCache(user.id);
 
   revalidatePath("/settings");
   return { success: true, message: "Profile updated successfully!" };

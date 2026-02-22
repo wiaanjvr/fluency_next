@@ -70,6 +70,8 @@ export function WordBank({
                       "border-teal-400 bg-teal-500/10 text-teal-300",
                     answerState === "correct" &&
                       "bg-teal-500/20 ring-2 ring-teal-400 border-teal-400 text-teal-300",
+                    answerState === "close" &&
+                      "bg-amber-500/20 ring-2 ring-amber-400 border-amber-400 text-amber-300",
                     answerState === "incorrect" &&
                       "bg-rose-500/20 ring-2 ring-rose-400 border-rose-400 text-rose-300",
                   )}

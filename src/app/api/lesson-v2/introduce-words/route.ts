@@ -39,11 +39,12 @@ export async function GET() {
 
     const language = profile?.target_language || "fr";
 
-    // Get existing known words
+    // Get existing known words for this language only
     const { data: dbWords } = await supabase
       .from("learner_words_v2")
       .select("*")
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .eq("language", language);
 
     const knownWords: LearnerWord[] = (dbWords || []).map((w: any) => ({
       word: w.word,
@@ -106,9 +107,18 @@ export async function POST(request: NextRequest) {
 
     const now = new Date().toISOString();
 
-    // Upsert each word as "introduced"
+    // Get the user's current target language to tag words correctly
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("target_language")
+      .eq("id", user.id)
+      .single();
+    const language = profileRow?.target_language || "fr";
+
+    // Upsert each word as "introduced", tagged with the current language
     const rows = words.map((w) => ({
       user_id: user.id,
+      language,
       word: w.word,
       lemma: w.lemma,
       translation: w.translation,
@@ -124,7 +134,7 @@ export async function POST(request: NextRequest) {
     const { error: upsertError } = await supabase
       .from("learner_words_v2")
       .upsert(rows, {
-        onConflict: "user_id,lemma",
+        onConflict: "user_id,language,lemma",
         ignoreDuplicates: false,
       });
 
@@ -134,7 +144,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Invalidate cached learner words so next story gen picks up new introductions
-    await invalidateLearnerWordsCache(user.id);
+    await invalidateLearnerWordsCache(user.id, language);
 
     // Log the introduction session
     await supabase.from("lesson_sessions_v2").insert({

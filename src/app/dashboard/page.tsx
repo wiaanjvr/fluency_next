@@ -473,12 +473,75 @@ function DashboardPageContent() {
           }
         }
 
-        const { data: allWords } = await supabase
-          .from("learner_words_v2")
-          .select("id, status")
-          .eq("user_id", user.id);
+        // Fetch from both learner_words_v2 AND user_words to get a unified view.
+        // learner_words_v2 is the story engine's table; user_words is Propel's table.
+        // Both are now language-scoped so only the active language's words are counted.
+        const activeLanguage = profile?.target_language || "fr";
+        const [{ data: learnerWords }, { data: propelWords }] =
+          await Promise.all([
+            supabase
+              .from("learner_words_v2")
+              .select("id, status, lemma")
+              .eq("user_id", user.id)
+              .eq("language", activeLanguage),
+            supabase
+              .from("user_words")
+              .select("id, status, lemma, word")
+              .eq("user_id", user.id)
+              .eq("language", activeLanguage),
+          ]);
 
-        const wordsCount = allWords?.length || 0;
+        // Deduplicate by lemma (or word as fallback), preferring user_words status
+        // since it has richer SRS data from Propel modules.
+        const wordsByLemma = new Map<
+          string,
+          { status: string; source: string }
+        >();
+
+        // First pass: add all learner_words_v2 entries
+        if (learnerWords) {
+          learnerWords.forEach((w) => {
+            const lemma = (w.lemma || "").toLowerCase();
+            if (lemma) {
+              // Map v2 statuses to v1 keys
+              const mapped =
+                w.status === "introduced"
+                  ? "new"
+                  : w.status === "mastered"
+                    ? "mastered"
+                    : w.status;
+              wordsByLemma.set(lemma, { status: mapped, source: "learner" });
+            }
+          });
+        }
+
+        // Second pass: merge user_words (Propel), overriding status if more advanced
+        const statusRank: Record<string, number> = {
+          new: 0,
+          learning: 1,
+          known: 2,
+          mastered: 3,
+        };
+        if (propelWords) {
+          propelWords.forEach((w) => {
+            const lemma = (w.lemma || w.word || "").toLowerCase();
+            if (!lemma) return;
+            const existing = wordsByLemma.get(lemma);
+            const propelStatus = w.status as string;
+            if (
+              !existing ||
+              (statusRank[propelStatus] ?? 0) >
+                (statusRank[existing.status] ?? 0)
+            ) {
+              wordsByLemma.set(lemma, {
+                status: propelStatus,
+                source: "propel",
+              });
+            }
+          });
+        }
+
+        const wordsCount = wordsByLemma.size;
 
         const vocabStats: VocabularyStats = {
           new: 0,
@@ -488,15 +551,12 @@ function DashboardPageContent() {
           total: wordsCount,
         };
 
-        if (allWords) {
-          allWords.forEach((word) => {
-            const v2Status = word.status as string;
-            // Map v2 statuses to v1 VocabularyStats keys
-            if (v2Status === "introduced") vocabStats.new++;
-            else if (v2Status === "learning") vocabStats.learning++;
-            else if (v2Status === "mastered") vocabStats.mastered++;
-          });
-        }
+        wordsByLemma.forEach(({ status }) => {
+          if (status === "new" || status === "introduced") vocabStats.new++;
+          else if (status === "learning") vocabStats.learning++;
+          else if (status === "known") vocabStats.known++;
+          else if (status === "mastered") vocabStats.mastered++;
+        });
 
         setVocabularyStats(vocabStats);
 
@@ -629,12 +689,56 @@ function DashboardPageContent() {
               }
             }
 
-            const { data: allWords } = await supabase
-              .from("learner_words_v2")
-              .select("id, status")
-              .eq("user_id", user.id);
+            const activeLanguage = profile.target_language || "fr";
+            const [{ data: learnerWords }, { data: propelWords }] =
+              await Promise.all([
+                supabase
+                  .from("learner_words_v2")
+                  .select("id, status, lemma")
+                  .eq("user_id", user.id)
+                  .eq("language", activeLanguage),
+                supabase
+                  .from("user_words")
+                  .select("id, status, lemma, word")
+                  .eq("user_id", user.id)
+                  .eq("language", activeLanguage),
+              ]);
 
-            const wordsCount = allWords?.length || 0;
+            // Deduplicate by lemma, preferring higher status
+            const wordsByLemma = new Map<string, string>();
+            const statusRank: Record<string, number> = {
+              new: 0,
+              introduced: 0,
+              learning: 1,
+              known: 2,
+              mastered: 3,
+            };
+
+            if (learnerWords) {
+              learnerWords.forEach((w) => {
+                const lemma = (w.lemma || "").toLowerCase();
+                if (lemma) {
+                  const mapped = w.status === "introduced" ? "new" : w.status;
+                  wordsByLemma.set(lemma, mapped);
+                }
+              });
+            }
+            if (propelWords) {
+              propelWords.forEach((w) => {
+                const lemma = (w.lemma || w.word || "").toLowerCase();
+                if (!lemma) return;
+                const existing = wordsByLemma.get(lemma);
+                const s = w.status as string;
+                if (
+                  !existing ||
+                  (statusRank[s] ?? 0) > (statusRank[existing] ?? 0)
+                ) {
+                  wordsByLemma.set(lemma, s);
+                }
+              });
+            }
+
+            const wordsCount = wordsByLemma.size;
 
             setStats({
               totalSessions: profile.sessions_completed || 0,
