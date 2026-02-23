@@ -79,6 +79,8 @@ export interface GrammarLesson {
   examples: GrammarExample[];
   cefr_level: CEFRLevel | null;
   created_at: string;
+  /** Grammar concept tag used for knowledge-graph unlock (e.g. "subjunctive") */
+  grammar_tag?: string | null;
 }
 
 export type ExerciseType =
@@ -103,6 +105,8 @@ export interface GrammarExercise {
   explanation: string;
   difficulty: 1 | 2 | 3;
   order_index: number;
+  /** Optional: linked user_words ID for knowledge-graph integration */
+  word_id?: string | null;
 }
 
 export interface UserLessonCompletion {

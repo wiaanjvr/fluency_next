@@ -5,10 +5,6 @@ import { cn } from "@/lib/utils";
 import { Volume2, BookmarkPlus, Check, X } from "lucide-react";
 import type { ReadingToken } from "@/lib/reading-utils";
 import { cleanWord } from "@/lib/reading-utils";
-import {
-  captureWordToFlashcard,
-  fetchUserDecks,
-} from "@/lib/captureToFlashcards";
 
 interface WordDefinition {
   definition: string;
@@ -35,6 +31,8 @@ interface WordDrawerProps {
   onMarkKnown: (word: string) => void;
   /** Called when user adds a word to flashcards */
   onAddToFlashcards: (word: string) => void;
+  /** Called when user opens drawer for a word (for session tracking) */
+  onWordLookedUp?: (word: string) => void;
 }
 
 /**
@@ -51,15 +49,12 @@ export function WordDrawer({
   onClose,
   onMarkKnown,
   onAddToFlashcards,
+  onWordLookedUp,
 }: WordDrawerProps) {
   const [definition, setDefinition] = useState<WordDefinition | null>(null);
   const [isLoadingDef, setIsLoadingDef] = useState(false);
   const [markedKnown, setMarkedKnown] = useState(false);
   const [savedToFlashcards, setSavedToFlashcards] = useState(false);
-  const [decks, setDecks] = useState<
-    { id: string; name: string; language: string }[]
-  >([]);
-  const [showDeckPicker, setShowDeckPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const definitionCache = useRef<Map<string, WordDefinition>>(new Map());
@@ -74,7 +69,6 @@ export function WordDrawer({
     // Reset state for new word
     setMarkedKnown(false);
     setSavedToFlashcards(false);
-    setShowDeckPicker(false);
 
     // Check cache
     const cached = definitionCache.current.get(word.toLowerCase());
@@ -107,8 +101,8 @@ export function WordDrawer({
           setDefinition(data);
         }
       })
-      .catch(() => {
-        // Fail silently
+      .catch((err) => {
+        console.warn("[WordDrawer] Failed to fetch definition:", err);
       })
       .finally(() => setIsLoadingDef(false));
   }, [word, isOpen, language, contentText]);
@@ -117,6 +111,9 @@ export function WordDrawer({
 
   useEffect(() => {
     if (!word || !isOpen || !textId) return;
+
+    // Notify parent for session-level tracking
+    onWordLookedUp?.(word);
 
     fetch("/api/reading/interact", {
       method: "POST",
@@ -127,8 +124,10 @@ export function WordDrawer({
         language,
         action: "looked_up",
       }),
-    }).catch(() => {});
-  }, [word, isOpen, textId, language]);
+    }).catch((err) => {
+      console.warn("[WordDrawer] Failed to log lookup interaction:", err);
+    });
+  }, [word, isOpen, textId, language, onWordLookedUp]);
 
   // ─── Example sentence from the text ───────────────────────────────
 
@@ -147,18 +146,21 @@ export function WordDrawer({
   const handleMarkKnown = useCallback(() => {
     if (markedKnown || !word) return;
     setMarkedKnown(true);
+    // Optimistic UI: notify parent immediately to update token styling
     onMarkKnown(word);
 
-    fetch("/api/reading/interact", {
+    // Call the dedicated mark-known API (syncs via KG pipeline)
+    fetch("/api/reading/mark-known", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        text_id: textId,
         word,
         language,
-        action: "marked_known",
+        textId,
       }),
-    }).catch(() => {});
+    }).catch((err) => {
+      console.warn("[WordDrawer] Failed to mark word as known:", err);
+    });
 
     // Close after a brief delay
     setTimeout(onClose, 600);
@@ -166,55 +168,42 @@ export function WordDrawer({
 
   // ─── Add to Flashcards ────────────────────────────────────────────
 
-  const handleShowDeckPicker = useCallback(async () => {
-    if (savedToFlashcards) return;
-    if (decks.length === 0) {
-      const userDecks = await fetchUserDecks(userId);
-      setDecks(userDecks);
-    }
-    setShowDeckPicker(true);
-  }, [userId, decks.length, savedToFlashcards]);
+  const handleAddToFlashcards = useCallback(async () => {
+    if (savedToFlashcards || isSaving || !word || !definition) return;
+    setIsSaving(true);
 
-  const handleSelectDeck = useCallback(
-    async (deckId: string) => {
-      if (!definition) return;
-      setIsSaving(true);
-      const result = await captureWordToFlashcard({
-        front: word,
-        back: definition.definition,
-        example_sentence: exampleSentence,
-        source: "reading",
-        deckId,
-        userId,
+    try {
+      const res = await fetch("/api/reading/add-flashcard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          word,
+          definition: definition.definition,
+          language,
+          exampleSentence,
+          textId,
+        }),
       });
-      setIsSaving(false);
-      if (result.success) {
-        setSavedToFlashcards(true);
-        setShowDeckPicker(false);
-        onAddToFlashcards(word);
 
-        fetch("/api/reading/interact", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text_id: textId,
-            word,
-            language,
-            action: "added_to_deck",
-          }),
-        }).catch(() => {});
+      if (res.ok) {
+        setSavedToFlashcards(true);
+        onAddToFlashcards(word);
       }
-    },
-    [
-      word,
-      definition,
-      exampleSentence,
-      userId,
-      textId,
-      language,
-      onAddToFlashcards,
-    ],
-  );
+    } catch {
+      // Fail silently
+    } finally {
+      setIsSaving(false);
+    }
+  }, [
+    word,
+    definition,
+    exampleSentence,
+    language,
+    textId,
+    savedToFlashcards,
+    isSaving,
+    onAddToFlashcards,
+  ]);
 
   // ─── Hear it (TTS for single word) ───────────────────────────────
 
@@ -377,63 +366,26 @@ export function WordDrawer({
           </button>
 
           {/* Add to Flashcards */}
-          <div className="relative">
-            <button
-              onClick={handleShowDeckPicker}
-              disabled={savedToFlashcards || isSaving}
-              className={cn(
-                "flex items-center justify-center gap-2 w-full md:w-auto py-3 px-5 rounded-xl",
-                "font-body text-sm font-medium transition-all duration-300",
-                savedToFlashcards
-                  ? "bg-teal-400/20 text-teal-400"
-                  : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white",
-                "border border-white/10",
-                isSaving && "opacity-50 cursor-wait",
-              )}
-            >
-              <BookmarkPlus className="w-4 h-4" />
-              {savedToFlashcards
-                ? "Added to Flashcards"
-                : isSaving
-                  ? "Saving..."
-                  : "Add to Flashcards"}
-            </button>
-
-            {/* Deck picker dropdown */}
-            {showDeckPicker && (
-              <div
-                className={cn(
-                  "absolute bottom-full mb-1 left-0 right-0 z-50",
-                  "rounded-xl border border-white/10 bg-[#0a1628] shadow-2xl",
-                  "max-h-40 overflow-y-auto",
-                )}
-              >
-                {decks.length === 0 ? (
-                  <div className="px-3 py-4 text-center">
-                    <p className="text-xs text-white/40">No decks yet.</p>
-                    <p className="text-xs text-white/30 mt-1">
-                      Create a deck in Flashcards first.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="py-1">
-                    {decks.map((deck) => (
-                      <button
-                        key={deck.id}
-                        onClick={() => handleSelectDeck(deck.id)}
-                        className={cn(
-                          "w-full text-left px-3 py-2 text-sm text-white/70",
-                          "hover:bg-white/5 hover:text-white transition",
-                        )}
-                      >
-                        {deck.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+          <button
+            onClick={handleAddToFlashcards}
+            disabled={savedToFlashcards || isSaving || !definition}
+            className={cn(
+              "flex items-center justify-center gap-2 w-full md:w-auto py-3 px-5 rounded-xl",
+              "font-body text-sm font-medium transition-all duration-300",
+              savedToFlashcards
+                ? "bg-teal-400/20 text-teal-400"
+                : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white",
+              "border border-white/10",
+              (isSaving || !definition) && "opacity-50 cursor-wait",
             )}
-          </div>
+          >
+            <BookmarkPlus className="w-4 h-4" />
+            {savedToFlashcards
+              ? "Added to Deck"
+              : isSaving
+                ? "Saving..."
+                : "Add to Flashcards"}
+          </button>
 
           {/* Hear it */}
           <button

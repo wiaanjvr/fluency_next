@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { AmbientPlayerProvider } from "@/contexts/AmbientPlayerContext";
+import { KnowledgeProvider } from "@/contexts/KnowledgeContext";
 import { AmbientPlayer } from "@/components/ambient";
 import { ProfileLocationSync } from "@/components/ProfileLocationSync";
 
@@ -39,10 +40,12 @@ export default function RootLayout({
         <LocationProvider>
           <AuthProvider>
             <ProfileLocationSync />
-            <AmbientPlayerProvider>
-              {children}
-              <AmbientPlayer />
-            </AmbientPlayerProvider>
+            <KnowledgeProvider>
+              <AmbientPlayerProvider>
+                {children}
+                <AmbientPlayer />
+              </AmbientPlayerProvider>
+            </KnowledgeProvider>
           </AuthProvider>
         </LocationProvider>
       </body>

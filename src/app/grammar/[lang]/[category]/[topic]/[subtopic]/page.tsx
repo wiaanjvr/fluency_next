@@ -68,6 +68,7 @@ export default function GrammarSubtopicPage() {
             lessonId={data.lesson.id}
             lessonTitle={data.lesson.title}
             languageCode={lang}
+            grammarTag={data.lesson.grammar_tag ?? data.subtopic.slug}
             onDone={() => setMode("lesson")}
           />
         )}

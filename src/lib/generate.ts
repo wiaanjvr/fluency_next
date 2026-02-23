@@ -8,7 +8,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateJSON } from "@/lib/ai-client";
-import { getLearnerStage, stageToContentType } from "@/lib/srs";
+import { getLearnerStage, stageToContentType } from "@/lib/learner-stage";
 import {
   getDueWords,
   getKnownWords,

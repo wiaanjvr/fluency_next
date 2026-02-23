@@ -1,10 +1,16 @@
 /**
- * POST /api/review
+ * @deprecated POST /api/review — LEGACY ENDPOINT
  *
- * Applies an SM-2 review to a single user_vocab row.
+ * Applies an SM-2 v1 review to a single `user_vocab` row.
+ * This endpoint is superseded by the Knowledge Graph pipeline:
+ *   - `recordReview()` from `@/lib/knowledge-graph` (per-review)
+ *   - `recordReviewBatch()` for batch operations
+ *   - Module-specific adapters (flashcard, cloze, reading, etc.)
+ *
+ * No frontend code currently calls this endpoint. It is retained temporarily
+ * for backward compatibility but should be removed in a future cleanup.
  *
  * Request body: { user_vocab_id: string, rating: 0 | 1 | 2 }
- *
  * Returns the updated user_vocab row.
  */
 

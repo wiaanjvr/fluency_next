@@ -1,0 +1,17 @@
+# Requirements for scripts/generate_pronunciation_audio.py
+#
+# Install with:
+#   pip install -r scripts/requirements-pronunciation-audio.txt
+#
+
+# Gemini TTS via REST (uses GOOGLE_API_KEY from .env.local)
+requests>=2.31.0
+
+# SSL certificate bundle — fixes Windows cert verification failures
+certifi>=2024.2.2
+
+# Supabase Python client (storage uploads + PostgREST DB updates)
+supabase>=2.3.0
+
+# Load .env.local credentials automatically
+python-dotenv>=1.0.0

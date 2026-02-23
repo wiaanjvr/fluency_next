@@ -9,7 +9,8 @@ import {
   validateAnswer,
   computeSessionResult,
 } from "@/lib/conjugation/questionEngine";
-import { useKnowledgeStore } from "@/lib/store/knowledgeStore";
+import { recordReviewBatch } from "@/lib/knowledge-graph/record-review";
+import type { ReviewEvent, ModuleSource } from "@/types/knowledge-graph";
 import type {
   ConjugationVerb,
   ConjugationForm,
@@ -308,6 +309,15 @@ export const useConjugationStore = create<ConjugationState>((set, get) => ({
 
     set({ sessionResult: result as SessionResult, phase: "results" });
 
+    // Notify dashboard recommendation engine
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("fluensea:session-complete", {
+          detail: { activityType: "conjugation" },
+        }),
+      );
+    }
+
     // Save session to API (non-blocking, fails silently for unauthenticated)
     try {
       const questionMap = new Map(state.queue.map((q) => [q.questionId, q]));
@@ -340,36 +350,74 @@ export const useConjugationStore = create<ConjugationState>((set, get) => ({
       // Session save failing is non-fatal
     }
 
-    // Update knowledge store for each answered question
-    const knowledgeStore = useKnowledgeStore.getState();
-    const questionMap = new Map(state.queue.map((q) => [q.questionId, q]));
+    // Sync to unified knowledge graph via recordReviewBatch
+    // Look up (or create) user_words entries for each verb infinitive, then record reviews
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const questionMap2 = new Map(state.queue.map((q) => [q.questionId, q]));
+        const infinitives = new Set<string>();
+        for (const answer of state.answers) {
+          const q = questionMap2.get(answer.questionId);
+          if (q?.infinitive) infinitives.add(q.infinitive.toLowerCase());
+        }
 
-    const updates: {
-      word: string;
-      tense: string;
-      pronoun: string;
-      score: number;
-    }[] = [];
+        // Look up existing user_words entries for these verb infinitives
+        const { data: existingWords } = await supabase
+          .from("user_words")
+          .select("id, word, lemma")
+          .eq("user_id", user.id)
+          .in("lemma", Array.from(infinitives));
 
-    // Group answers by verb+tense+pronoun
-    const grouped = new Map<string, { correct: number; total: number }>();
-    for (const answer of state.answers) {
-      const q = questionMap.get(answer.questionId);
-      if (!q) continue;
-      const key = `${q.infinitive}|${q.tense}|${q.pronounKey}`;
-      const existing = grouped.get(key) ?? { correct: 0, total: 0 };
-      existing.total++;
-      if (answer.isCorrect) existing.correct++;
-      grouped.set(key, existing);
+        const lemmaToId = new Map<string, string>();
+        for (const w of existingWords ?? []) {
+          lemmaToId.set((w.lemma ?? w.word).toLowerCase(), w.id);
+        }
+
+        // Create missing user_words entries for verbs not yet tracked
+        for (const inf of infinitives) {
+          if (!lemmaToId.has(inf)) {
+            const { data: inserted } = await supabase
+              .from("user_words")
+              .insert({
+                user_id: user.id,
+                word: inf,
+                lemma: inf,
+                language: state.config?.language ?? "fr",
+                status: "new",
+              })
+              .select("id")
+              .single();
+            if (inserted) lemmaToId.set(inf, inserted.id);
+          }
+        }
+
+        // Build review events for each answer
+        const events: ReviewEvent[] = [];
+        for (const answer of state.answers) {
+          const q = questionMap2.get(answer.questionId);
+          if (!q?.infinitive) continue;
+          const wordId = lemmaToId.get(q.infinitive.toLowerCase());
+          if (!wordId) continue;
+          events.push({
+            wordId,
+            moduleSource: "conjugation" as ModuleSource,
+            correct: answer.isCorrect,
+            responseTimeMs: answer.timeSpentMs,
+          });
+        }
+
+        if (events.length > 0) {
+          await recordReviewBatch(supabase, user.id, events);
+        }
+      }
+    } catch (err) {
+      // KG sync failing is non-fatal — conjugation_progress is already saved
+      console.warn("[conjugation] Knowledge graph sync failed:", err);
     }
-
-    for (const [key, stats] of grouped) {
-      const [word, tense, pronoun] = key.split("|");
-      const score = stats.total > 0 ? stats.correct / stats.total : 0;
-      updates.push({ word, tense, pronoun, score });
-    }
-
-    knowledgeStore.batchUpdateScores(updates);
   },
 
   // ---- Reset to config phase ----

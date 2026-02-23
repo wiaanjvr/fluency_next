@@ -18,9 +18,14 @@ interface ExerciseSessionStore {
   results: ExerciseResult[];
   score: number;
   lessonId: string | null;
+  grammarTag: string | null;
 
   // Actions
-  startSession: (exercises: GrammarExercise[], lessonId: string) => void;
+  startSession: (
+    exercises: GrammarExercise[],
+    lessonId: string,
+    grammarTag?: string | null,
+  ) => void;
   submitAnswer: (answer: string) => void;
   acknowledgeAndNext: () => void;
   reset: () => void;
@@ -38,8 +43,9 @@ export const useExerciseSession = create<ExerciseSessionStore>((set, get) => ({
   results: [],
   score: 0,
   lessonId: null,
+  grammarTag: null,
 
-  startSession: (exercises, lessonId) => {
+  startSession: (exercises, lessonId, grammarTag) => {
     set({
       state: "in_progress",
       exercises,
@@ -47,6 +53,7 @@ export const useExerciseSession = create<ExerciseSessionStore>((set, get) => ({
       results: [],
       score: 0,
       lessonId,
+      grammarTag: grammarTag ?? null,
     });
   },
 
@@ -66,7 +73,13 @@ export const useExerciseSession = create<ExerciseSessionStore>((set, get) => ({
     };
 
     // Record to DB (fire and forget)
-    recordExerciseAttempt(exercise.id, wasCorrect, answer).catch(console.error);
+    // Pass word_id if the exercise has one linked, enabling KG integration
+    recordExerciseAttempt(
+      exercise.id,
+      wasCorrect,
+      answer,
+      exercise.word_id ?? undefined,
+    ).catch(console.error);
 
     set({
       state: "reviewing_answer",
@@ -81,8 +94,20 @@ export const useExerciseSession = create<ExerciseSessionStore>((set, get) => ({
 
     if (nextIndex >= exercises.length) {
       // Session complete — mark lesson if all done
+      // Pass grammarTag so the KG can unlock grammar-gated words (#3+#4)
+      const { grammarTag } = get();
       if (lessonId) {
-        markLessonComplete(lessonId).catch(console.error);
+        markLessonComplete(lessonId, grammarTag ?? undefined).catch(
+          console.error,
+        );
+      }
+      // Notify dashboard recommendation engine
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("fluensea:session-complete", {
+            detail: { activityType: "grammar" },
+          }),
+        );
       }
       set({ state: "complete" });
     } else {
@@ -101,6 +126,7 @@ export const useExerciseSession = create<ExerciseSessionStore>((set, get) => ({
       results: [],
       score: 0,
       lessonId: null,
+      grammarTag: null,
     });
   },
 

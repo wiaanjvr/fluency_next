@@ -14,6 +14,7 @@ interface ExerciseSessionProps {
   lessonId: string;
   lessonTitle: string;
   languageCode: string;
+  grammarTag?: string | null;
   onDone?: () => void;
 }
 
@@ -22,6 +23,7 @@ export function ExerciseSession({
   lessonId,
   lessonTitle,
   languageCode,
+  grammarTag,
   onDone,
 }: ExerciseSessionProps) {
   const store = useExerciseSession();
@@ -29,7 +31,7 @@ export function ExerciseSession({
   // Auto-start if idle
   React.useEffect(() => {
     if (store.state === "idle" && exercises.length > 0) {
-      store.startSession(exercises, lessonId);
+      store.startSession(exercises, lessonId, grammarTag);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -46,7 +48,7 @@ export function ExerciseSession({
         score={store.score}
         total={store.exercises.length}
         languageCode={languageCode}
-        onRetry={() => store.startSession(exercises, lessonId)}
+        onRetry={() => store.startSession(exercises, lessonId, grammarTag)}
       />
     );
   }

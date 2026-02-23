@@ -145,6 +145,14 @@ export function clozeReducer(
     case "NEXT_QUESTION": {
       const nextIndex = state.currentIndex + 1;
       if (nextIndex >= state.items.length) {
+        // Notify dashboard recommendation engine
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("fluensea:session-complete", {
+              detail: { activityType: "cloze" },
+            }),
+          );
+        }
         return {
           ...state,
           sessionComplete: true,

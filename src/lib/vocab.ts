@@ -1,5 +1,13 @@
 /**
- * Supabase queries for the vocab / user_vocab / generated_content tables.
+ * @deprecated LEGACY — queries the `user_vocab` table (SM-2 v1 system).
+ *
+ * The `user_vocab` table is superseded by `user_words` + `learner_words_v2`
+ * managed by the Knowledge Graph pipeline (`@/lib/knowledge-graph`).
+ *
+ * Functions that query `user_vocab` (getDueWords, getKnownWords, etc.) should
+ * be migrated to use `user_words` queries. The `generated_content` helpers
+ * (insertGeneratedContent, getLatestGeneratedContent) are not SRS-dependent
+ * and can be extracted to a separate module when this file is removed.
  *
  * Every function accepts an already-authenticated SupabaseClient so RLS is
  * enforced automatically — no service-role key touches this module.

@@ -1,7 +1,15 @@
 /**
- * SM-2 Spaced Repetition Algorithm — pure functions, fully typed.
+ * @deprecated SM-2 v1 — DEPRECATED. Use the Knowledge Graph pipeline instead:
+ *   - Reviews: `recordReview()` / `recordReviewBatch()` from `@/lib/knowledge-graph`
+ *   - SRS algorithm: `@/lib/srs/algorithm.ts` (SM-2 v2, 0–5 scale)
+ *   - Flashcard scheduling: `@/lib/fsrs.ts` (FSRS-4.5)
+ *   - Stage helpers: `getLearnerStage` / `stageToContentType` moved to `@/lib/learner-stage.ts`
  *
- * Rating scale (simplified):
+ * This module and the `user_vocab` table it targets are superseded by the
+ * `user_words` + `learner_words_v2` tables managed by the KG pipeline.
+ * Retained temporarily for the legacy `/api/review` route and `generate.ts`.
+ *
+ * Original SM-2 v1 Rating scale (simplified):
  *   0 — forgot (complete failure)
  *   1 — hard   (correct with difficulty)
  *   2 — easy   (confident recall)
@@ -14,13 +22,13 @@
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-/** Allowed user recall ratings. */
+/** @deprecated Use SM-2 v2 (0–5 scale) from `@/lib/srs/algorithm.ts` instead. */
 export type ReviewRating = 0 | 1 | 2;
 
-/** Possible word statuses in the learning pipeline. */
+/** @deprecated Use `user_words.status` ('new' | 'learning' | 'familiar' | 'learned') instead. */
 export type VocabStatus = "unseen" | "learning" | "known";
 
-/** The SRS fields that are stored per user-word pair. */
+/** @deprecated Use `user_words` row shape from the KG pipeline instead. */
 export interface SrsState {
   status: VocabStatus;
   ease_factor: number;
@@ -29,7 +37,7 @@ export interface SrsState {
   next_review_at: Date;
 }
 
-/** The result of applying a review — same shape, ready to persist. */
+/** @deprecated Use `recordReview()` from `@/lib/knowledge-graph` which handles persistence. */
 export interface SrsUpdate {
   status: VocabStatus;
   ease_factor: number;
@@ -50,7 +58,8 @@ const KNOWN_REP_THRESHOLD = 5;
 // ─── Core Algorithm ──────────────────────────────────────────────────────────
 
 /**
- * Apply a single SM-2 review to the current SRS state.
+ * @deprecated Use `recordReview()` from `@/lib/knowledge-graph` instead.
+ * Apply a single SM-2 v1 review to the current SRS state.
  *
  * This is a **pure function** — it never mutates inputs and has no side-effects.
  */
@@ -117,7 +126,7 @@ export function applyReview(
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Build a fresh SRS state for a word being studied for the first time. */
+/** @deprecated Use KG pipeline — words are auto-initialized in `user_words`. */
 export function initialSrsState(): SrsState {
   return {
     status: "unseen",
@@ -128,14 +137,14 @@ export function initialSrsState(): SrsState {
   };
 }
 
-/** Determine the learner stage based on how many words they know. */
+/** @deprecated Moved to `@/lib/learner-stage.ts`. This re-export will be removed. */
 export function getLearnerStage(knownWordCount: number): 1 | 2 | 3 {
   if (knownWordCount < 50) return 1;
   if (knownWordCount < 500) return 2;
   return 3;
 }
 
-/** Map a numeric stage to the content-generation stage label. */
+/** @deprecated Moved to `@/lib/learner-stage.ts`. This re-export will be removed. */
 export function stageToContentType(
   stage: 1 | 2 | 3,
 ): "3_word" | "paragraph" | null {

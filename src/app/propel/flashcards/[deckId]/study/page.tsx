@@ -924,12 +924,16 @@ function StudyContent({
   // Track session results for knowledge graph sync
   const sessionResultsRef = useRef<
     Array<{
+      cardId: string;
       wordId?: string;
       correct: boolean;
       responseTimeMs: number;
       rating: Rating;
     }>
   >([]);
+
+  // Cache: card_id -> user_words.id (populated on first card review)
+  const cardWordMapRef = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
     if (ambientView === "container") {
@@ -1017,7 +1021,7 @@ function StudyContent({
     fetchStudyCards();
   }, [fetchStudyCards]);
 
-  // Rate a card — schedule, log, sync knowledge graph
+  // Rate a card — schedule, log, sync knowledge graph per-card (#8+#9)
   const handleRate = async (rating: Rating) => {
     const current = state.cards[state.currentIndex];
     if (!current) return;
@@ -1040,13 +1044,53 @@ function StudyContent({
       review_time_ms: elapsed,
     });
 
-    // Track for KG sync
+    // Track for session stats (store cardId alongside result)
     const isCorrect = rating >= 3;
     sessionResultsRef.current.push({
+      cardId: current.card_id,
       correct: isCorrect,
       responseTimeMs: elapsed,
       rating,
     });
+
+    // ── Per-card KG sync (replaces batch session-end sync) ──────────
+    // Fire-and-forget so we don't block the UI
+    (async () => {
+      try {
+        const front = current.flashcards.front.toLowerCase();
+        const adapter = createFlashcardAdapter(supabase, userId);
+
+        // Check cache first
+        let wordId = cardWordMapRef.current.get(current.card_id);
+
+        if (!wordId) {
+          // Look up user_words by front text (word or lemma)
+          const { data: matches } = await supabase
+            .from("user_words")
+            .select("id, word, lemma")
+            .eq("user_id", userId)
+            .or(`word.eq.${front},lemma.eq.${front}`);
+
+          if (matches && matches.length > 0 && matches[0].id) {
+            wordId = matches[0].id as string;
+            cardWordMapRef.current.set(current.card_id, wordId);
+          }
+        }
+
+        if (wordId) {
+          await adapter.onSessionComplete([
+            {
+              wordId,
+              correct: isCorrect,
+              responseTimeMs: elapsed,
+              rating: rating as 0 | 1 | 2 | 3 | 4 | 5,
+            },
+          ]);
+        }
+      } catch (err) {
+        console.warn("[Flashcards] Per-card KG sync failed:", err);
+      }
+    })();
 
     // If FSRS says show card again in session (learning steps), enqueue it
     if (result.showAgainInSession) {
@@ -1070,67 +1114,13 @@ function StudyContent({
     dispatch({ type: "NEXT_CARD" });
   };
 
-  // Sync session results with knowledge graph when session ends
+  // Update streak when session ends (KG sync now happens per-card in handleRate)
   useEffect(() => {
     if (!state.sessionComplete || sessionResultsRef.current.length === 0)
       return;
 
-    const syncKnowledgeGraph = async () => {
+    const updateStreak = async () => {
       try {
-        // Try to find matching user_words entries for the flashcard words
-        // This links flashcard reviews to the unified knowledge graph
-        const adapter = createFlashcardAdapter(supabase, userId);
-
-        // Get the flashcard fronts/backs from this session
-        const uniqueWords = new Set<string>();
-        state.cards.forEach((c) => {
-          uniqueWords.add(c.flashcards.front.toLowerCase());
-        });
-
-        // Look up user_words that match these flashcard words
-        if (uniqueWords.size > 0) {
-          const { data: userWords } = await supabase
-            .from("user_words")
-            .select("id, word, lemma")
-            .eq("user_id", userId)
-            .in("word", Array.from(uniqueWords));
-
-          if (userWords && userWords.length > 0) {
-            const wordMap = new Map(
-              userWords.map((w) => [w.word.toLowerCase(), w.id]),
-            );
-            const lemmaMap = new Map(
-              userWords.map((w) => [w.lemma?.toLowerCase(), w.id]),
-            );
-
-            const kgResults = sessionResultsRef.current
-              .map((result, idx) => {
-                const card = state.cards[idx % state.cards.length];
-                if (!card) return null;
-                const front = card.flashcards.front.toLowerCase();
-                const wordId = wordMap.get(front) || lemmaMap.get(front);
-                if (!wordId) return null;
-                return {
-                  wordId,
-                  correct: result.correct,
-                  responseTimeMs: result.responseTimeMs,
-                  rating: result.rating as 0 | 1 | 2 | 3 | 4 | 5,
-                };
-              })
-              .filter(Boolean) as Array<{
-              wordId: string;
-              correct: boolean;
-              responseTimeMs: number;
-              rating: 0 | 1 | 2 | 3 | 4 | 5;
-            }>;
-
-            if (kgResults.length > 0) {
-              await adapter.onSessionComplete(kgResults);
-            }
-          }
-        }
-
-        // Update streak
         const { data: profile } = await supabase
           .from("profiles")
           .select("streak, last_streak_date")
@@ -1161,11 +1151,18 @@ function StudyContent({
           }
         }
       } catch (err) {
-        console.warn("[Flashcards] KG sync failed:", err);
+        console.warn("[Flashcards] Streak update failed:", err);
       }
     };
 
-    syncKnowledgeGraph();
+    updateStreak();
+
+    // Notify dashboard recommendation engine
+    window.dispatchEvent(
+      new CustomEvent("fluensea:session-complete", {
+        detail: { activityType: "flashcards" },
+      }),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.sessionComplete]);
 

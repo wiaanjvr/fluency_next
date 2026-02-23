@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useReducer, useCallback } from "react";
+import { useState, useEffect, useReducer, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -25,28 +25,28 @@ import { ArrowLeft, Check, X } from "lucide-react";
 import type { ClozeItem, InputMode, ClozeLevel } from "@/types/cloze";
 import { recordReview } from "@/lib/knowledge-graph/record-review";
 import type { ModuleSource } from "@/types/knowledge-graph";
+import { lemmatize } from "@/lib/srs/word-utils";
 import Link from "next/link";
 import "@/styles/ocean-theme.css";
 
 const ITEMS_PER_SESSION = 10;
-const SEEN_IDS_KEY = "fluensea_cloze_seen_ids";
 
-function getSeenIds(): string[] {
-  if (typeof window === "undefined") return [];
+// Fix #14: Server-side seen IDs via user_cloze_progress table
+async function getSeenIds(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<string[]> {
   try {
-    return JSON.parse(localStorage.getItem(SEEN_IDS_KEY) || "[]");
+    const { data } = await supabase
+      .from("user_cloze_progress")
+      .select("cloze_item_id")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    return (data || []).map((row) => row.cloze_item_id);
   } catch {
     return [];
   }
-}
-
-function addSeenIds(ids: string[]) {
-  if (typeof window === "undefined") return;
-  const existing = getSeenIds();
-  const updated = [...new Set([...existing, ...ids])];
-  // Keep only last 500 to avoid bloat
-  const trimmed = updated.slice(-500);
-  localStorage.setItem(SEEN_IDS_KEY, JSON.stringify(trimmed));
 }
 
 const LEVEL_ORDER: ClozeLevel[] = ["A1", "A2", "B1", "B2", "C1"];
@@ -63,57 +63,105 @@ async function fetchClozeItems(
   supabase: ReturnType<typeof createClient>,
   userLanguage: string,
   userLevel: ClozeLevel,
+  userId: string,
 ): Promise<ClozeItem[]> {
-  const seenIds = getSeenIds();
+  const seenIds = await getSeenIds(supabase, userId);
 
-  // Build query
-  let query = supabase
-    .from("cloze_items")
-    .select("*")
+  // Fix #10: Query user_words for weak/due words to prioritize them
+  const now = new Date().toISOString();
+  const { data: weakWords } = await supabase
+    .from("user_words")
+    .select("word, lemma")
+    .eq("user_id", userId)
     .eq("language", userLanguage)
-    .eq("level", userLevel)
-    .order("used_count", { ascending: true })
-    .limit(ITEMS_PER_SESSION);
+    .or(`status.eq.new,status.eq.learning,next_review.lte.${now}`)
+    .limit(50);
 
-  // Exclude already seen items
-  if (seenIds.length > 0) {
-    query = query.not("id", "in", `(${seenIds.join(",")})`);
+  const weakWordSet = new Set<string>();
+  for (const w of weakWords || []) {
+    weakWordSet.add((w.word || "").toLowerCase());
+    if (w.lemma) weakWordSet.add(w.lemma.toLowerCase());
   }
 
-  const { data, error } = await query;
+  let priorityItems: ClozeItem[] = [];
 
-  if (error) {
-    console.error("[cloze] Fetch error:", error);
-    return [];
-  }
-
-  // If not enough items, broaden to adjacent levels
-  if (!data || data.length < ITEMS_PER_SESSION) {
-    const adjacentLevels = getAdjacentLevels(userLevel);
-    const existingIds = new Set((data || []).map((d: ClozeItem) => d.id));
-
-    let broadQuery = supabase
+  // First, try to get items that test weak/due words
+  if (weakWordSet.size > 0) {
+    const weakWordArr = Array.from(weakWordSet).filter(Boolean);
+    let priorityQuery = supabase
       .from("cloze_items")
       .select("*")
       .eq("language", userLanguage)
-      .in("level", adjacentLevels)
+      .eq("level", userLevel)
+      .in("answer", weakWordArr)
       .order("used_count", { ascending: true })
       .limit(ITEMS_PER_SESSION);
 
     if (seenIds.length > 0) {
-      broadQuery = broadQuery.not("id", "in", `(${seenIds.join(",")})`);
+      priorityQuery = priorityQuery.not("id", "in", `(${seenIds.join(",")})`);
     }
 
-    const { data: broadData } = await broadQuery;
-    if (broadData) {
-      const additional = broadData.filter(
-        (d: ClozeItem) => !existingIds.has(d.id),
-      );
-      return [...(data || []), ...additional].slice(0, ITEMS_PER_SESSION);
-    }
+    const { data: pData } = await priorityQuery;
+    priorityItems = (pData || []) as ClozeItem[];
   }
 
-  return (data || []) as ClozeItem[];
+  // Fill remaining slots with standard least-used items
+  const remaining = ITEMS_PER_SESSION - priorityItems.length;
+  if (remaining > 0) {
+    const excludeIds = [...seenIds, ...priorityItems.map((i) => i.id)];
+
+    let query = supabase
+      .from("cloze_items")
+      .select("*")
+      .eq("language", userLanguage)
+      .eq("level", userLevel)
+      .order("used_count", { ascending: true })
+      .limit(remaining);
+
+    if (excludeIds.length > 0) {
+      query = query.not("id", "in", `(${excludeIds.join(",")})`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("[cloze] Fetch error:", error);
+      return priorityItems;
+    }
+
+    const combined = [...priorityItems, ...(data || [])];
+
+    // If still not enough, broaden to adjacent levels
+    if (combined.length < ITEMS_PER_SESSION) {
+      const adjacentLevels = getAdjacentLevels(userLevel);
+      const existingIds = new Set(combined.map((d) => d.id));
+      const allExclude = [...seenIds, ...Array.from(existingIds)];
+
+      let broadQuery = supabase
+        .from("cloze_items")
+        .select("*")
+        .eq("language", userLanguage)
+        .in("level", adjacentLevels)
+        .order("used_count", { ascending: true })
+        .limit(ITEMS_PER_SESSION);
+
+      if (allExclude.length > 0) {
+        broadQuery = broadQuery.not("id", "in", `(${allExclude.join(",")})`);
+      }
+
+      const { data: broadData } = await broadQuery;
+      if (broadData) {
+        const additional = broadData.filter(
+          (d: ClozeItem) => !existingIds.has(d.id),
+        );
+        return [...combined, ...additional].slice(0, ITEMS_PER_SESSION);
+      }
+    }
+
+    return combined.slice(0, ITEMS_PER_SESSION);
+  }
+
+  return priorityItems;
 }
 
 function ClozeContent({
@@ -122,12 +170,14 @@ function ClozeContent({
   targetLanguage,
   isAdmin,
   wordsEncountered,
+  userId,
 }: {
   streak: number;
   avatarUrl?: string;
   targetLanguage: string;
   isAdmin: boolean;
   wordsEncountered: number;
+  userId: string;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -136,6 +186,9 @@ function ClozeContent({
   const [loading, setLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [activeLevel, setActiveLevel] = useState<ClozeLevel>("B1");
+
+  // Fix #17: Track question start time for responseTimeMs
+  const questionStartRef = useRef<number>(Date.now());
 
   // Map target language to 2-char code
   const langCode =
@@ -151,10 +204,15 @@ function ClozeContent({
     async (level?: ClozeLevel) => {
       const targetLevel = level ?? activeLevel;
       setLoading(true);
-      const items = await fetchClozeItems(supabase, langCode, targetLevel);
+      const items = await fetchClozeItems(
+        supabase,
+        langCode,
+        targetLevel,
+        userId,
+      );
       if (items.length > 0) {
         dispatch({ type: "SET_ITEMS", items });
-        addSeenIds(items.map((i) => i.id));
+        questionStartRef.current = Date.now();
 
         // Increment used_count in background
         const ids = items.map((i) => i.id);
@@ -164,7 +222,7 @@ function ClozeContent({
       }
       setLoading(false);
     },
-    [supabase, langCode, activeLevel],
+    [supabase, langCode, activeLevel, userId],
   );
 
   function handleLevelChange(level: ClozeLevel) {
@@ -189,6 +247,7 @@ function ClozeContent({
         if (e.key === "Enter" || e.key === "ArrowRight") {
           e.preventDefault();
           if (state.sessionComplete) return;
+          questionStartRef.current = Date.now();
           dispatch({ type: "NEXT_QUESTION" });
         }
       }
@@ -204,6 +263,9 @@ function ClozeContent({
     if (!currentItem) return;
 
     const isCorrect = state.answerState === "correct";
+    // Fix #17: Compute response time for this question
+    const responseTimeMs = Date.now() - questionStartRef.current;
+
     // "close" counts as incorrect for scoring but we still track it
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
@@ -218,10 +280,11 @@ function ClozeContent({
       ).catch(() => {});
 
       // 2. Update unified knowledge system via recordReview
-      // Look up (or create) the word in user_words, then record the review
       const syncKnowledge = async () => {
         try {
           const answerWord = currentItem.answer.toLowerCase();
+          // Fix #13: Use lemmatize() for proper lemma when creating user_words entries
+          const answerLemma = lemmatize(answerWord, langCode);
 
           // Try to find existing word in user_words
           const { data: existingWords } = await supabase
@@ -239,7 +302,7 @@ function ClozeContent({
               .from("user_words")
               .select("id")
               .eq("user_id", user.id)
-              .eq("lemma", answerWord)
+              .eq("lemma", answerLemma)
               .limit(1);
             wordId = byLemma?.[0]?.id ?? null;
           }
@@ -251,7 +314,7 @@ function ClozeContent({
               .insert({
                 user_id: user.id,
                 word: answerWord,
-                lemma: answerWord,
+                lemma: answerLemma,
                 language: langCode,
                 status: "new",
               })
@@ -265,6 +328,7 @@ function ClozeContent({
               wordId,
               moduleSource: "cloze" as ModuleSource,
               correct: isCorrect,
+              responseTimeMs,
             });
           }
         } catch (err) {
@@ -476,7 +540,10 @@ function ClozeContent({
                   item={currentItem}
                   answerState={state.answerState}
                   userAnswer={state.userAnswer}
-                  onNext={() => dispatch({ type: "NEXT_QUESTION" })}
+                  onNext={() => {
+                    questionStartRef.current = Date.now();
+                    dispatch({ type: "NEXT_QUESTION" });
+                  }}
                 />
               </div>
             </div>
@@ -495,6 +562,7 @@ export default function ClozePage() {
   const [targetLanguage, setTargetLanguage] = useState("fr");
   const [isAdmin, setIsAdmin] = useState(false);
   const [wordsEncountered, setWordsEncountered] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -506,6 +574,7 @@ export default function ClozePage() {
         router.replace("/auth/login");
         return;
       }
+      setUserId(user.id);
       setAvatarUrl(
         user.user_metadata?.avatar_url || user.user_metadata?.picture,
       );
@@ -540,7 +609,7 @@ export default function ClozePage() {
     load();
   }, [supabase, router]);
 
-  if (loading) return <LoadingScreen />;
+  if (loading || !userId) return <LoadingScreen />;
 
   return (
     <ProtectedRoute>
@@ -550,6 +619,7 @@ export default function ClozePage() {
         targetLanguage={targetLanguage}
         isAdmin={isAdmin}
         wordsEncountered={wordsEncountered}
+        userId={userId}
       />
     </ProtectedRoute>
   );

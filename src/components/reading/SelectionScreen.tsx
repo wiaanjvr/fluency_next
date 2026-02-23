@@ -55,10 +55,9 @@ export function SelectionScreen({
         const supabase = createClient();
         const { data } = await supabase
           .from("reading_texts")
-          .select("id, title, topic, word_count, language, cefr_level")
+          .select("id, title, topic, word_count, language, cefr_level, content")
           .is("user_id", null)
           .eq("language", targetLanguage)
-          .eq("cefr_level", cefrLevel)
           .order("created_at", { ascending: false })
           .limit(6);
 

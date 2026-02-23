@@ -20,6 +20,8 @@ const MODE_LABELS: Record<string, string> = {
 // Modes that have dedicated routes (not coming soon)
 const ROUTED_MODES: Record<string, string> = {
   conjugation: "/conjugation",
+  grammar: "/grammar",
+  pronunciation: "/propel/pronunciation",
 };
 
 export default function PropelModePage() {

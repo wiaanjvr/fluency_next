@@ -103,6 +103,67 @@ function FreeReadingContent({
   const tokensRef = useRef<ReadingToken[]>([]);
   const resolvedAudioRef = useRef<string>("");
 
+  // ─── Session vocabulary tracking (Change 8) ───────────────────
+
+  const lookedUpWordsRef = useRef<Set<string>>(new Set());
+  const knownWordsRef = useRef<Set<string>>(new Set());
+
+  /** Flush all looked-up words to user_words as 'learning' on session end */
+  const flushSessionVocab = useCallback(async () => {
+    const wordsToWrite = [...lookedUpWordsRef.current].filter(
+      (w) => !knownWordsRef.current.has(w),
+    );
+    if (wordsToWrite.length === 0) return;
+
+    try {
+      const supabase = createClient();
+      // Batch upsert looked-up words as 'learning' (ignoreDuplicates so we
+      // don't downgrade words the user already marked as 'known')
+      await supabase.from("user_words").upsert(
+        wordsToWrite.map((w) => ({
+          user_id: userId,
+          word: w,
+          lemma: w,
+          language: targetLanguage,
+          status: "learning",
+          rating: 0,
+          ease_factor: 2.5,
+          interval: 0,
+          repetitions: 0,
+        })),
+        { onConflict: "user_id,word,language", ignoreDuplicates: true },
+      );
+    } catch {
+      // Best-effort — don't block navigation
+    }
+  }, [userId, targetLanguage]);
+
+  // Flush on unmount
+  useEffect(() => {
+    return () => {
+      flushSessionVocab();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Flush vocab when user switches tabs / minimises (Fix #15)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushSessionVocab();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [flushSessionVocab]);
+
+  /** Called by WordDrawer when a word is opened */
+  const handleWordLookedUp = useCallback((word: string) => {
+    lookedUpWordsRef.current.add(word.toLowerCase());
+  }, []);
+
   // ─── Generate / fetch a reading text ──────────────────────────
 
   const generateReading = useCallback(
@@ -226,6 +287,13 @@ function FreeReadingContent({
 
   const handleAudioEnded = useCallback(() => {
     setShowSessionComplete(true);
+
+    // Notify dashboard recommendation engine
+    window.dispatchEvent(
+      new CustomEvent("fluensea:session-complete", {
+        detail: { activityType: "reading" },
+      }),
+    );
   }, []);
 
   // ─── Word tap handler ─────────────────────────────────────────
@@ -238,7 +306,7 @@ function FreeReadingContent({
   // ─── Word actions ─────────────────────────────────────────────
 
   const handleMarkKnown = useCallback((word: string) => {
-    // Update the token in the local state to reflect it's now known
+    // Optimistic UI: update token styling immediately
     setContentTokens((prev) =>
       prev.map((t) =>
         t.word.toLowerCase() === word.toLowerCase()
@@ -247,10 +315,12 @@ function FreeReadingContent({
       ),
     );
     setMarkedKnownCount((prev) => prev + 1);
+    // Track as known so session flush doesn't downgrade it
+    knownWordsRef.current.add(word.toLowerCase());
   }, []);
 
   const handleAddToFlashcards = useCallback((_word: string) => {
-    // The WordDrawer handles the actual save; nothing extra needed here
+    // The API route handles everything; nothing extra needed here
   }, []);
 
   // ─── Font size cycling (persisted to localStorage) ────────────
@@ -266,20 +336,26 @@ function FreeReadingContent({
   // ─── New text ─────────────────────────────────────────────────
 
   const handleNewText = useCallback(() => {
-    // Go back to selection screen
+    flushSessionVocab();
+    lookedUpWordsRef.current = new Set();
+    knownWordsRef.current = new Set();
     setMode("selection");
-  }, []);
+  }, [flushSessionVocab]);
 
   // ─── Session complete actions ─────────────────────────────────
 
   const handleDiveAgain = useCallback(() => {
+    flushSessionVocab();
+    lookedUpWordsRef.current = new Set();
+    knownWordsRef.current = new Set();
     setShowSessionComplete(false);
     setMode("selection");
-  }, []);
+  }, [flushSessionVocab]);
 
   const handleReturnToPropel = useCallback(() => {
+    flushSessionVocab();
     router.push("/propel");
-  }, [router]);
+  }, [router, flushSessionVocab]);
 
   // ─── Computed stats ───────────────────────────────────────────
 
@@ -304,7 +380,7 @@ function FreeReadingContent({
           const { data, error: fetchError } = await supabase
             .from("reading_texts")
             .select(
-              "id, title, content, content_tokens, audio_url, cefr_level, topic, word_count",
+              "id, title, content, content_tokens, audio_url, cefr_level, topic, word_count, language",
             )
             .eq("id", action.textId)
             .single();
@@ -323,9 +399,44 @@ function FreeReadingContent({
               word: cleanGeneratedText(t.word),
             }),
           );
-          tokensRef.current = cleanedTokens;
-          setContentTokens(cleanedTokens);
-          sentencesRef.current = detectSentences(cleanedTokens);
+
+          // Cross-reference tokens against the user's known vocabulary
+          // (curated texts have is_known: false for all words since they
+          // were created without user context)
+          const textLang = data.language || targetLanguage;
+          const [{ data: learnerWords }, { data: propelWords }] =
+            await Promise.all([
+              supabase
+                .from("learner_words_v2")
+                .select("word, lemma")
+                .eq("user_id", userId)
+                .eq("language", textLang),
+              supabase
+                .from("user_words")
+                .select("word, lemma")
+                .eq("user_id", userId)
+                .eq("language", textLang)
+                .in("status", ["learning", "known", "mastered"]),
+            ]);
+
+          const userKnownSet = new Set<string>();
+          for (const row of [...(learnerWords || []), ...(propelWords || [])]) {
+            userKnownSet.add((row.lemma || row.word).toLowerCase());
+          }
+
+          const crossReferencedTokens = cleanedTokens.map((token) => {
+            if (token.punctuation) return token;
+            const isKnown = userKnownSet.has(token.word.toLowerCase());
+            return {
+              ...token,
+              is_known: isKnown,
+              is_new: !isKnown,
+            };
+          });
+
+          tokensRef.current = crossReferencedTokens;
+          setContentTokens(crossReferencedTokens);
+          sentencesRef.current = detectSentences(crossReferencedTokens);
 
           if (data.audio_url) {
             cacheAudio(data.audio_url);
@@ -519,6 +630,7 @@ function FreeReadingContent({
               }}
               onMarkKnown={handleMarkKnown}
               onAddToFlashcards={handleAddToFlashcards}
+              onWordLookedUp={handleWordLookedUp}
             />
 
             {/* Session Complete Overlay */}

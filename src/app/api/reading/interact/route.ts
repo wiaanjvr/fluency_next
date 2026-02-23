@@ -57,39 +57,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If marked as known, also upsert into learner_words_v2
-    if (action === "marked_known") {
-      await supabase.from("learner_words_v2").upsert(
-        {
-          user_id: user.id,
-          word: word.toLowerCase(),
-          lemma: word.toLowerCase(),
-          translation: "", // Will be filled by user or later lookup
-          language,
-          status: "mastered",
-          correct_streak: 3,
-          total_reviews: 1,
-          total_correct: 1,
-        },
-        { onConflict: "user_id,lemma" },
-      );
-
-      // Also upsert into user_words for Propel SRS
-      await supabase.from("user_words").upsert(
-        {
-          user_id: user.id,
-          word: word.toLowerCase(),
-          lemma: word.toLowerCase(),
-          language,
-          status: "known",
-          rating: 4,
-          ease_factor: 2.5,
-          interval: 30,
-          repetitions: 3,
-        },
-        { onConflict: "user_id,word,language" },
-      );
-    }
+    // If marked as known, the /api/reading/mark-known route handles the
+    // user_words + learner_words_v2 upserts via the KG pipeline.
+    // No duplicate writes needed here — just the interaction log above.
 
     return NextResponse.json({ success: true });
   } catch (err) {

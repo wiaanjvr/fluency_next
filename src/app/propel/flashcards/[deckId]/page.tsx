@@ -227,6 +227,22 @@ function DeckDetailContent({
           state: "new",
           due: new Date().toISOString(),
         });
+
+        // Fix #19: Also create a user_words entry so the KG can link this card
+        // to the unified vocabulary system. Without this, session-end KG sync
+        // silently does nothing for manually-created cards.
+        if (deck) {
+          await supabase.from("user_words").upsert(
+            {
+              user_id: userId,
+              word: data.front.toLowerCase(),
+              lemma: data.front.toLowerCase(),
+              language: deck.language,
+              status: "new",
+            },
+            { onConflict: "user_id,word,language", ignoreDuplicates: true },
+          );
+        }
       }
     }
     await fetchDeckData();
