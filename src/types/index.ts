@@ -314,3 +314,25 @@ export {
   type EndSessionRequest,
   type EndSessionResponse,
 } from "./ml-events";
+
+// Community peer review types
+export type {
+  ExerciseType,
+  SubmissionStatus,
+  InlineCorrection,
+  CommunitySubmission,
+  CommunityReview,
+  CommunityReviewVote,
+  CommunityProfile,
+  SubmissionWithProfile,
+  ReviewWithProfile,
+  SubmitForReviewPayload,
+  SubmitReviewPayload,
+  VoteHelpfulPayload,
+  CommunityFeedParams,
+  CommunityFeedState,
+  ActiveSubmissionState,
+} from "./community";
+
+// Conjugation drill types
+export * from "./conjugation";

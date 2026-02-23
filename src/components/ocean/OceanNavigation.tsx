@@ -11,6 +11,7 @@ import {
   Compass,
   ChevronDown,
   BarChart,
+  Users,
 } from "lucide-react";
 import { AmbientLauncher } from "@/components/ambient";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
@@ -224,6 +225,55 @@ export function OceanNavigation({
           })}
           {/* Immerse — between Course and admin, nav-tab style */}
           <AmbientLauncher variant="nav" />
+
+          {/* Community */}
+          {(() => {
+            const communityHref = "/community";
+            const isActive = currentPath.startsWith(communityHref);
+            return (
+              <Link
+                key={communityHref}
+                href={communityHref}
+                className="nav-tab relative group"
+                onClick={(e) => handleLinkClick(e, communityHref)}
+              >
+                <div className="flex items-center gap-2">
+                  <Users
+                    className="w-4 h-4 transition-colors duration-200"
+                    style={{
+                      color: isActive ? "var(--turquoise)" : "var(--seafoam)",
+                      opacity: isActive ? 1 : 0.6,
+                    }}
+                  />
+                  <span
+                    className={cn(
+                      "text-sm font-body font-medium transition-colors duration-200",
+                    )}
+                    style={{
+                      color: isActive ? "var(--turquoise)" : "var(--sand)",
+                      opacity: isActive ? 1 : 0.7,
+                    }}
+                  >
+                    Community
+                  </span>
+                </div>
+                {/* Active indicator */}
+                <div
+                  className={cn(
+                    "mt-1 h-0.5 rounded-full transition-all duration-300",
+                    isActive
+                      ? "w-full opacity-100"
+                      : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
+                  )}
+                  style={{
+                    background: isActive
+                      ? "var(--turquoise)"
+                      : "var(--seafoam)",
+                  }}
+                />
+              </Link>
+            );
+          })()}
 
           {/* Admin nav item */}
           {isAdmin && (

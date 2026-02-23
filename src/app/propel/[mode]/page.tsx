@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Link from "next/link";
 import { OceanBackground } from "@/components/ocean";
 import { ArrowLeft, Construction } from "lucide-react";
@@ -16,9 +17,22 @@ const MODE_LABELS: Record<string, string> = {
   grammar: "Grammar Explanations",
 };
 
+// Modes that have dedicated routes (not coming soon)
+const ROUTED_MODES: Record<string, string> = {
+  conjugation: "/conjugation",
+};
+
 export default function PropelModePage() {
   const { mode } = useParams<{ mode: string }>();
+  const router = useRouter();
   const label = MODE_LABELS[mode] ?? mode;
+
+  // Redirect modes that have dedicated routes
+  useEffect(() => {
+    if (mode && ROUTED_MODES[mode]) {
+      router.push(ROUTED_MODES[mode]);
+    }
+  }, [mode, router]);
 
   return (
     <OceanBackground>
