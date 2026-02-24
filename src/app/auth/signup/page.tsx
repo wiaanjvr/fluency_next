@@ -141,8 +141,10 @@ function SignUpPageContent() {
   // ── Email confirmation screen ─────────────────────────────────────────────
   if (confirmedEmail) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
-        <div className="w-full max-w-md space-y-6 bg-muted/50 p-8 rounded-2xl shadow-md border border-border/30 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-background p-6 relative">
+        {/* Ambient glow */}
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-ocean-turquoise/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="w-full max-w-md space-y-6 bg-muted/30 backdrop-blur-lg p-8 rounded-3xl shadow-elevation-2 border border-white/[0.06] text-center">
           <div className="flex justify-center">
             <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
               <Mail className="w-8 h-8 text-success" />
@@ -150,10 +152,8 @@ function SignUpPageContent() {
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-light tracking-tight">
-              Check your email
-            </h2>
-            <p className="text-muted-foreground font-light text-sm">
+            <h2 className="text-heading">Check your email</h2>
+            <p className="text-body text-muted-foreground">
               We sent a confirmation link to
             </p>
             <p className="font-medium text-foreground break-all">
@@ -161,7 +161,7 @@ function SignUpPageContent() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-xl p-4 text-left space-y-2">
+          <div className="bg-muted/60 backdrop-blur-sm rounded-2xl p-4 text-left space-y-2 border border-white/[0.04]">
             <p className="text-sm font-light text-muted-foreground">
               1. Open the email from{" "}
               <span className="font-normal text-foreground">Fluensea</span>
@@ -192,7 +192,7 @@ function SignUpPageContent() {
 
           <Button
             variant="outline"
-            className="w-full h-11 rounded-xl font-light border-border/50"
+            className="w-full h-12 rounded-2xl font-light border-white/[0.08] hover:border-ocean-turquoise/30 transition-all duration-300"
             onClick={handleResend}
             disabled={resendLoading}
           >
@@ -204,14 +204,14 @@ function SignUpPageContent() {
             {resendLoading ? "Sending..." : "Resend confirmation email"}
           </Button>
 
-          <p className="text-center text-sm text-muted-foreground font-light">
+          <p className="text-caption text-muted-foreground">
             Wrong email?{" "}
             <button
               onClick={() => {
                 setConfirmedEmail(null);
                 setMessage(null);
               }}
-              className="text-foreground hover:underline font-normal"
+              className="text-ocean-turquoise font-medium hover:underline transition-colors duration-200"
             >
               Go back
             </button>
@@ -227,10 +227,13 @@ function SignUpPageContent() {
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-foreground text-background p-12 flex-col justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground to-foreground/90" />
+        {/* Ocean glow orbs */}
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-ocean-turquoise/8 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/3 right-0 w-64 h-64 bg-ocean-teal/6 rounded-full blur-[80px] pointer-events-none" />
 
         <div className="relative z-10">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-xl overflow-hidden bg-foreground flex items-center justify-center">
+          <Link href="/" className="flex items-center space-x-2 group">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-foreground flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
               <Image
                 src="/logo.png"
                 alt="Fluensea Logo"
@@ -244,33 +247,29 @@ function SignUpPageContent() {
           </Link>
         </div>
 
-        <div className="relative z-10 space-y-6">
-          <h1 className="text-6xl font-light leading-tight">
+        <div className="relative z-10 space-y-8">
+          <h1 className="text-display-lg leading-tight">
             Dive into
             <br />
             <span className="font-serif italic">language mastery</span>
           </h1>
-          <p className="text-xl font-light text-background/80 max-w-md">
+          <p className="text-body-lg text-background/80 max-w-md">
             Join a community of learners immersing themselves in language. Flow
             with the currents of comprehension.
           </p>
         </div>
 
         <div className="relative z-10">
-          <p className="text-sm font-light text-background/60">
-            © 2026 Fluensea.
-          </p>
+          <p className="text-caption text-background/60">© 2026 Fluensea.</p>
         </div>
       </div>
 
       {/* Right side - Form */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-6 bg-muted/50 p-6 rounded-2xl shadow-md border border-border/30">
+        <div className="w-full max-w-md space-y-6 bg-muted/30 backdrop-blur-lg p-8 rounded-3xl shadow-elevation-2 border border-white/[0.06]">
           <div className="space-y-2">
-            <h2 className="text-3xl font-light tracking-tight">
-              Create account
-            </h2>
-            <p className="text-muted-foreground font-light">
+            <h2 className="text-heading">Create account</h2>
+            <p className="text-body text-muted-foreground">
               Start your immersive learning journey today
             </p>
           </div>
@@ -278,10 +277,10 @@ function SignUpPageContent() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {message && (
               <div
-                className={`p-4 rounded-xl border flex items-start gap-3 ${
+                className={`p-4 rounded-2xl border flex items-start gap-3 backdrop-blur-sm ${
                   message.type === "success"
-                    ? "bg-success/10 border-success/20"
-                    : "bg-destructive/10 border-destructive/20"
+                    ? "bg-success/8 border-success/15"
+                    : "bg-destructive/8 border-destructive/15 animate-shake-gentle"
                 }`}
               >
                 {message.type === "success" && (
@@ -305,7 +304,7 @@ function SignUpPageContent() {
                 variant="outline"
                 onClick={() => handleOAuthSignup("google")}
                 disabled={loading || socialLoading !== null}
-                className="h-11 rounded-xl font-light border-border/50"
+                className="h-12 rounded-2xl font-light border-white/[0.08] hover:border-ocean-turquoise/30 transition-all duration-300"
               >
                 {socialLoading === "google" ? (
                   "..."
@@ -339,7 +338,7 @@ function SignUpPageContent() {
                 variant="outline"
                 onClick={() => handleOAuthSignup("github")}
                 disabled={loading || socialLoading !== null}
-                className="h-11 rounded-xl font-light border-border/50"
+                className="h-12 rounded-2xl font-light border-white/[0.08] hover:border-ocean-turquoise/30 transition-all duration-300"
               >
                 {socialLoading === "github" ? (
                   "..."
@@ -360,10 +359,10 @@ function SignUpPageContent() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/50" />
+                <div className="w-full border-t border-white/[0.06]" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-background px-3 text-muted-foreground font-light">
+                <span className="bg-muted/30 backdrop-blur-sm px-3 text-caption text-muted-foreground">
                   Or continue with email
                 </span>
               </div>
@@ -371,7 +370,7 @@ function SignUpPageContent() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label htmlFor="full_name" className="text-sm font-light">
+                <label htmlFor="full_name" className="text-caption font-medium">
                   Full Name{" "}
                   <span className="text-muted-foreground">(Optional)</span>
                 </label>
@@ -380,13 +379,13 @@ function SignUpPageContent() {
                   name="full_name"
                   type="text"
                   placeholder="John Doe"
-                  className="h-11 rounded-xl border-border/50 font-light"
+                  className="h-12 rounded-2xl border-white/[0.08] font-light"
                   disabled={loading || socialLoading !== null}
                 />
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-light">
+                <label htmlFor="email" className="text-caption font-medium">
                   Email
                 </label>
                 <Input
@@ -394,14 +393,14 @@ function SignUpPageContent() {
                   name="email"
                   type="email"
                   placeholder="you@example.com"
-                  className="h-11 rounded-xl border-border/50 font-light"
+                  className="h-12 rounded-2xl border-white/[0.08] font-light"
                   required
                   disabled={loading || socialLoading !== null}
                 />
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-light">
+                <label htmlFor="password" className="text-caption font-medium">
                   Password
                 </label>
                 <Input
@@ -409,7 +408,7 @@ function SignUpPageContent() {
                   name="password"
                   type="password"
                   placeholder="••••••••"
-                  className="h-11 rounded-xl border-border/50 font-light"
+                  className="h-12 rounded-2xl border-white/[0.08] font-light"
                   required
                   disabled={loading || socialLoading !== null}
                   minLength={6}
@@ -419,7 +418,7 @@ function SignUpPageContent() {
               <div className="space-y-2">
                 <label
                   htmlFor="confirm_password"
-                  className="text-sm font-light"
+                  className="text-caption font-medium"
                 >
                   Confirm Password
                 </label>
@@ -428,7 +427,7 @@ function SignUpPageContent() {
                   name="confirm_password"
                   type="password"
                   placeholder="••••••••"
-                  className="h-11 rounded-xl border-border/50 font-light"
+                  className="h-12 rounded-2xl border-white/[0.08] font-light"
                   required
                   disabled={loading || socialLoading !== null}
                   minLength={6}
@@ -461,17 +460,17 @@ function SignUpPageContent() {
 
             <Button
               type="submit"
-              className="w-full h-11 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-light"
+              className="w-full h-12 rounded-2xl bg-foreground text-background hover:bg-foreground/90 font-medium shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-300"
               disabled={loading || socialLoading !== null}
             >
               {loading ? "Creating account..." : "Create account"}
             </Button>
 
-            <p className="text-center text-sm text-muted-foreground font-light">
+            <p className="text-center text-caption text-muted-foreground">
               Already have an account?{" "}
               <Link
                 href={`/auth/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`}
-                className="text-foreground hover:underline font-normal"
+                className="text-ocean-turquoise font-medium hover:underline transition-colors duration-200"
               >
                 Sign in
               </Link>

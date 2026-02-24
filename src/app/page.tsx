@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,8 @@ import {
   Quote,
   Waves,
   Anchor,
+  Menu,
+  X,
 } from "lucide-react";
 
 /* =============================================================================
@@ -71,14 +74,15 @@ import {
 ============================================================================= */
 
 export default function Home() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <main className="bg-background text-foreground antialiased with-swim-bg">
       {/* ========== NAVIGATION ========== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b border-ocean-turquoise/20">
-        <div className="max-w-6xl mx-auto px-6">
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-background/80 border-b border-ocean-turquoise/10 shadow-[0_1px_0_rgba(42,169,160,0.06)]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 bg-background/90 border-b border-ocean-turquoise/20 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(42,169,160,0.2)] bg-background/90 border-b border-ocean-turquoise/20 flex items-center justify-center">
                 <Image
                   src="/logo.png"
                   alt="Fluensea Logo"
@@ -93,7 +97,8 @@ export default function Home() {
               </span>
             </Link>
 
-            <div className="flex items-center gap-6">
+            {/* Desktop nav */}
+            <div className="hidden sm:flex items-center gap-6">
               <Link
                 href="/pricing"
                 className="text-sm font-medium text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
@@ -112,28 +117,74 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
+
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMobileOpen((o) => !o)}
+              className="sm:hidden min-h-touch min-w-[44px] flex items-center justify-center rounded-xl text-muted-foreground hover:text-ocean-turquoise transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
           </div>
+
+          {/* Mobile dropdown */}
+          {mobileOpen && (
+            <div className="sm:hidden border-t border-ocean-turquoise/10 py-4 flex flex-col gap-1 animate-in fade-in slide-in-from-top-2 duration-200">
+              <Link
+                href="/pricing"
+                onClick={() => setMobileOpen(false)}
+                className="px-3 py-3 min-h-touch flex items-center rounded-xl text-sm font-medium text-muted-foreground hover:text-ocean-turquoise hover:bg-ocean-turquoise/5 transition-colors"
+              >
+                Pricing
+              </Link>
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileOpen(false)}
+                className="px-3 py-3 min-h-touch flex items-center rounded-xl text-sm font-medium text-muted-foreground hover:text-ocean-turquoise hover:bg-ocean-turquoise/5 transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/auth/signup"
+                onClick={() => setMobileOpen(false)}
+                className="mt-1"
+              >
+                <Button size="sm" className="w-full rounded-full font-medium">
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
 
       {/* ========== HERO SECTION ========== */}
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-16 overflow-hidden">
-        {/* Ocean ambient background */}
+        {/* Ocean ambient background — layered depth orbs */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-ocean-turquoise/[0.05] rounded-full blur-[120px] animate-pulse-glow" />
-          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-ocean-teal/[0.06] rounded-full blur-[100px]" />
-          <div className="absolute top-2/3 right-1/3 w-[300px] h-[300px] bg-ocean-turquoise/[0.03] rounded-full blur-[80px] animate-float" />
+          <div className="absolute top-1/4 left-1/5 w-[700px] h-[700px] bg-ocean-turquoise/[0.04] rounded-full blur-[150px] animate-pulse-glow" />
+          <div
+            className="absolute bottom-1/3 right-1/5 w-[550px] h-[550px] bg-ocean-teal/[0.05] rounded-full blur-[130px]"
+            style={{ animationDelay: "2s" }}
+          />
+          <div className="absolute top-2/3 right-1/3 w-[350px] h-[350px] bg-ocean-turquoise/[0.03] rounded-full blur-[100px] animate-float" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-ocean-turquoise/[0.015] rounded-full blur-[200px]" />
         </div>
 
         <div className="max-w-4xl mx-auto text-center">
           <ScrollReveal delay={100}>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-ocean-turquoise mb-8">
+            <p className="text-overline text-ocean-turquoise mb-10 tracking-[0.25em]">
               Immersive Language Learning
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight leading-[1.1] mb-8">
+            <h1 className="text-display-xl mb-10">
               Dive into
               <br />
               <span className="font-serif italic text-gradient-turquoise">
@@ -143,36 +194,36 @@ export default function Home() {
           </ScrollReveal>
 
           <ScrollReveal delay={400}>
-            <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-xl mx-auto mb-12 leading-relaxed">
+            <p className="text-body-lg text-muted-foreground max-w-xl mx-auto mb-14 leading-[1.7]">
               Immerse yourself in language. Flow with the currents of
               comprehension. Surface with confidence.
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={600}>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
               <Link href="/auth/signup">
                 <Button
                   size="lg"
-                  className="h-14 px-8 text-base font-medium rounded-full group"
+                  className="h-14 px-10 text-base font-medium rounded-full group shadow-[0_0_30px_rgba(42,169,160,0.2)]"
                 >
                   Start your journey
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1.5" />
                 </Button>
               </Link>
               <Button
                 variant="secondary"
                 size="lg"
-                className="h-14 px-8 text-base font-medium rounded-full group transition-all duration-300"
+                className="h-14 px-10 text-base font-medium rounded-full group transition-all duration-400"
               >
-                <Play className="mr-2 h-4 w-4" />
+                <Play className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                 Watch demo
               </Button>
             </div>
           </ScrollReveal>
 
           <ScrollReveal delay={800}>
-            <p className="text-sm text-muted-foreground/60 mt-8 font-light">
+            <p className="text-caption text-muted-foreground/50 mt-10">
               No credit card required
             </p>
           </ScrollReveal>
@@ -181,8 +232,8 @@ export default function Home() {
         {/* Scroll indicator */}
         <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
           <ScrollReveal delay={1200}>
-            <div className="w-6 h-10 rounded-full border border-border/50 flex justify-center pt-2">
-              <div className="w-1 h-2 bg-muted-foreground/40 rounded-full animate-bounce" />
+            <div className="w-6 h-10 rounded-full border border-border/40 flex justify-center pt-2 hover:border-ocean-turquoise/40 transition-colors duration-500">
+              <div className="w-1 h-2 bg-muted-foreground/30 rounded-full animate-bounce" />
             </div>
           </ScrollReveal>
         </div>
@@ -192,13 +243,13 @@ export default function Home() {
       <section className="py-40 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <ScrollReveal>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-ocean-turquoise mb-8">
+            <p className="text-overline text-ocean-turquoise mb-10 tracking-[0.25em]">
               The Philosophy
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={100}>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.3] mb-8">
+            <h2 className="text-display-md leading-[1.25] mb-10">
               Language flows like the ocean.
               <br />
               <span className="text-muted-foreground">
@@ -208,9 +259,9 @@ export default function Home() {
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
-            <p className="text-lg text-muted-foreground font-light leading-relaxed">
+            <p className="text-body-lg text-muted-foreground leading-[1.75] max-w-2xl mx-auto">
               Fluensea is built on the science of immersion. Just like diving
-              into the ocean, you'll be surrounded by comprehensible input. The
+              into the ocean, you’ll be surrounded by comprehensible input. The
               waves of practice ebb and flow, and with each session, you dive
               deeper into fluency.
             </p>
@@ -219,16 +270,16 @@ export default function Home() {
       </section>
 
       {/* ========== DEMO SECTION ========== */}
-      <section className="py-32 px-6 bg-muted/30">
+      <section className="py-40 px-6 bg-muted/20">
         <div className="max-w-5xl mx-auto">
           <ScrollReveal>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-ocean-turquoise mb-8 text-center">
+            <p className="text-overline text-ocean-turquoise mb-10 text-center tracking-[0.25em]">
               How It Works
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={100}>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-light text-center mb-20">
+            <h2 className="text-display-md text-center mb-20">
               Four waves. Every lesson.
             </h2>
           </ScrollReveal>
@@ -237,7 +288,7 @@ export default function Home() {
           <ScrollReveal delay={200}>
             <div className="relative">
               {/* Demo Preview */}
-              <div className="bg-card border border-ocean-turquoise/20 rounded-3xl p-8 md:p-12 shadow-luxury-xl overflow-hidden">
+              <div className="bg-card/80 backdrop-blur-xl border border-ocean-turquoise/15 rounded-3xl p-8 md:p-12 shadow-elevation-3 overflow-hidden">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                   {/* Left: Steps */}
                   <div className="space-y-8">
@@ -269,14 +320,14 @@ export default function Home() {
                         direction="left"
                       >
                         <div className="flex items-start gap-5 group">
-                          <div className="w-12 h-12 rounded-xl bg-ocean-turquoise/10 flex items-center justify-center flex-shrink-0 transition-colors duration-300 group-hover:bg-ocean-turquoise/20">
-                            <step.icon className="h-5 w-5 text-ocean-turquoise" />
+                          <div className="w-12 h-12 rounded-2xl bg-ocean-turquoise/8 border border-ocean-turquoise/10 flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-ocean-turquoise/15 group-hover:border-ocean-turquoise/25 group-hover:shadow-[0_0_24px_rgba(42,169,160,0.15)] group-hover:scale-105">
+                            <step.icon className="h-5 w-5 text-ocean-turquoise transition-transform duration-300 group-hover:scale-110" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-medium mb-1">
+                            <h3 className="text-subheading mb-1.5">
                               {step.title}
                             </h3>
-                            <p className="text-muted-foreground font-light">
+                            <p className="text-body text-muted-foreground">
                               {step.desc}
                             </p>
                           </div>
@@ -287,7 +338,7 @@ export default function Home() {
 
                   {/* Right: Lesson Preview */}
                   <ScrollReveal delay={400} direction="right">
-                    <div className="bg-background rounded-2xl border border-ocean-turquoise/20 p-6 shadow-luxury">
+                    <div className="bg-background/80 backdrop-blur-lg rounded-2xl border border-ocean-turquoise/15 p-6 shadow-elevation-2">
                       <div className="flex items-center justify-between mb-6">
                         <span className="text-xs font-light tracking-wider uppercase text-muted-foreground">
                           Lesson Preview
@@ -331,13 +382,13 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-20 items-center">
             <div>
               <ScrollReveal>
-                <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-8">
+                <p className="text-overline text-muted-foreground mb-10 tracking-[0.2em]">
                   The Difference
                 </p>
               </ScrollReveal>
 
               <ScrollReveal delay={100}>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
+                <h2 className="text-display-md leading-[1.2] mb-10">
                   Put in the reps.
                   <br />
                   <span className="font-serif italic text-ocean-turquoise">
@@ -347,7 +398,7 @@ export default function Home() {
               </ScrollReveal>
 
               <ScrollReveal delay={200}>
-                <p className="text-lg text-muted-foreground font-light leading-relaxed mb-8">
+                <p className="text-body-lg text-muted-foreground leading-[1.75] mb-10">
                   Each lesson builds on what you know, adding carefully measured
                   challenges. Track your streak. Complete your daily sessions.
                   Watch your vocabulary expand. Consistency turns effort into
@@ -375,7 +426,7 @@ export default function Home() {
 
             <ScrollReveal delay={200} direction="right">
               <div className="relative">
-                <div className="bg-card border border-border rounded-2xl p-8 shadow-luxury">
+                <div className="bg-card/80 backdrop-blur-lg border border-white/[0.06] rounded-2xl p-8 shadow-elevation-2">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-2 h-2 rounded-full bg-ocean-turquoise" />
                     <span className="text-sm text-muted-foreground font-light">
@@ -425,17 +476,17 @@ export default function Home() {
       </section>
 
       {/* ========== THE SCIENCE SECTION ========== */}
-      <section className="py-40 px-6 bg-muted/30">
+      <section className="py-40 px-6 bg-muted/20">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-20">
+          <div className="text-center mb-24">
             <ScrollReveal>
-              <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-8">
+              <p className="text-overline text-muted-foreground mb-10 tracking-[0.25em]">
                 The Science
               </p>
             </ScrollReveal>
 
             <ScrollReveal delay={100}>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
+              <h2 className="text-display-md leading-[1.2] mb-10">
                 Decades of research.
                 <br />
                 <span className="font-serif italic text-ocean-turquoise">
@@ -445,9 +496,9 @@ export default function Home() {
             </ScrollReveal>
 
             <ScrollReveal delay={200}>
-              <p className="text-lg text-muted-foreground font-light leading-relaxed max-w-3xl mx-auto">
+              <p className="text-body-lg text-muted-foreground leading-[1.75] max-w-3xl mx-auto">
                 The most proven approach combines comprehensible input immersion
-                (via Krashen's i+1 principle), spaced repetition for vocabulary,
+                (via Krashen’s i+1 principle), spaced repetition for vocabulary,
                 and early speaking practice like shadowing. This yields superior
                 fluency and retention backed by decades of research.
               </p>
@@ -455,16 +506,14 @@ export default function Home() {
           </div>
 
           {/* Core Principles Grid */}
-          <div className="grid md:grid-cols-3 gap-6 mb-20">
+          <div className="grid md:grid-cols-3 gap-8 mb-24">
             <ScrollReveal delay={300}>
-              <div className="bg-card border border-ocean-teal/20 rounded-2xl p-8 hover:border-ocean-teal/40 transition-colors duration-300">
-                <div className="text-4xl font-light text-ocean-teal mb-4">
+              <div className="bg-card/60 backdrop-blur-lg border border-ocean-teal/15 rounded-3xl p-8 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-ocean-teal/35 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.2),0_0_0_1px_rgba(42,169,160,0.1)] group">
+                <div className="text-4xl font-light text-ocean-teal mb-5 transition-transform duration-500 group-hover:scale-105">
                   95-98%
                 </div>
-                <h3 className="text-lg font-medium mb-3">
-                  Comprehensible Input
-                </h3>
-                <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                <h3 className="text-subheading mb-3">Comprehensible Input</h3>
+                <p className="text-body text-muted-foreground leading-relaxed">
                   Content at the sweet spot — mostly familiar with just enough
                   new material (i+1) to stretch your understanding naturally.
                 </p>
@@ -472,12 +521,12 @@ export default function Home() {
             </ScrollReveal>
 
             <ScrollReveal delay={400}>
-              <div className="bg-card border border-border rounded-2xl p-8">
-                <div className="text-4xl font-light text-ocean-turquoise mb-4">
+              <div className="bg-card/60 backdrop-blur-lg border border-white/[0.06] rounded-3xl p-8 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-ocean-turquoise/25 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.2),0_0_0_1px_rgba(42,169,160,0.1)] group">
+                <div className="text-4xl font-light text-ocean-turquoise mb-5 transition-transform duration-500 group-hover:scale-105">
                   95%+
                 </div>
-                <h3 className="text-lg font-medium mb-3">Retention Rate</h3>
-                <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                <h3 className="text-subheading mb-3">Retention Rate</h3>
+                <p className="text-body text-muted-foreground leading-relaxed">
                   Spaced repetition times reviews against the forgetting curve,
                   keeping vocabulary accessible long-term.
                 </p>
@@ -485,12 +534,12 @@ export default function Home() {
             </ScrollReveal>
 
             <ScrollReveal delay={500}>
-              <div className="bg-card border border-ocean-teal/20 rounded-2xl p-8 hover:border-ocean-teal/40 transition-colors duration-300">
-                <div className="text-4xl font-light text-ocean-teal mb-4">
+              <div className="bg-card/60 backdrop-blur-lg border border-ocean-teal/15 rounded-3xl p-8 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-ocean-teal/35 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.2),0_0_0_1px_rgba(42,169,160,0.1)] group">
+                <div className="text-4xl font-light text-ocean-teal mb-5 transition-transform duration-500 group-hover:scale-105">
                   3x
                 </div>
-                <h3 className="text-lg font-medium mb-3">Faster Proficiency</h3>
-                <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                <h3 className="text-subheading mb-3">Faster Proficiency</h3>
+                <p className="text-body text-muted-foreground leading-relaxed">
                   Immersion programs with early output practice achieve higher
                   speaking and listening scores than classroom-only methods.
                 </p>
@@ -500,7 +549,7 @@ export default function Home() {
 
           {/* Forgetting Curve Visualization */}
           <ScrollReveal delay={600}>
-            <div className="bg-card border border-border rounded-2xl p-8 md:p-12">
+            <div className="bg-card/70 backdrop-blur-lg border border-white/[0.06] rounded-3xl p-8 md:p-12 shadow-elevation-2">
               <div className="mb-8">
                 <h3 className="text-2xl font-light mb-2">
                   The{" "}
@@ -712,13 +761,13 @@ export default function Home() {
       <section className="py-40 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <ScrollReveal>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-8">
+            <p className="text-overline text-muted-foreground mb-10 tracking-[0.25em]">
               Accountability
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={100}>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-light leading-[1.2] mb-8">
+            <h2 className="text-display-md leading-[1.2] mb-10">
               Your commitment matters.
               <br />
               <span className="font-serif italic text-ocean-turquoise">
@@ -728,27 +777,27 @@ export default function Home() {
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
-            <p className="text-lg text-muted-foreground font-light leading-relaxed mb-12 max-w-xl mx-auto">
+            <p className="text-body-lg text-muted-foreground leading-[1.75] mb-14 max-w-xl mx-auto">
               Set monthly targets. Show up consistently. Hit your milestones.
-              We'll give you 50% back because your discipline deserves
+              We’ll give you 50% back because your discipline deserves
               recognition.
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={300}>
-            <div className="inline-flex flex-col sm:flex-row items-center gap-6 p-6 bg-card border border-border rounded-2xl">
+            <div className="inline-flex flex-col sm:flex-row items-center gap-8 p-8 bg-card/60 backdrop-blur-lg border border-white/[0.06] rounded-3xl shadow-elevation-2 transition-all duration-400 hover:shadow-ocean-glow hover:-translate-y-0.5">
               <div className="text-center sm:text-left">
-                <p className="text-sm text-muted-foreground font-light mb-1">
+                <p className="text-caption text-muted-foreground mb-2">
                   Your effort
                 </p>
-                <p className="text-2xl font-light">Consistent practice</p>
+                <p className="text-heading font-light">Consistent practice</p>
               </div>
-              <div className="hidden sm:block w-px h-12 bg-border" />
+              <div className="hidden sm:block w-px h-14 bg-gradient-to-b from-transparent via-ocean-turquoise/20 to-transparent" />
               <div className="text-center sm:text-left">
-                <p className="text-sm text-muted-foreground font-light mb-1">
+                <p className="text-caption text-muted-foreground mb-2">
                   Your reward
                 </p>
-                <p className="text-2xl font-light text-ocean-turquoise">
+                <p className="text-heading font-light text-ocean-turquoise">
                   50% cashback
                 </p>
               </div>
@@ -760,15 +809,16 @@ export default function Home() {
       {/* Testimonial removed */}
 
       {/* ========== FINAL CTA SECTION ========== */}
-      <section className="py-40 px-6 relative overflow-hidden">
-        {/* Ambient background */}
+      <section className="py-48 px-6 relative overflow-hidden">
+        {/* Ambient background — multiple glow layers */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-ocean-turquoise/[0.03] rounded-full blur-[150px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-ocean-turquoise/[0.025] rounded-full blur-[180px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-ocean-turquoise/[0.04] rounded-full blur-[100px] animate-pulse-glow" />
         </div>
 
         <div className="max-w-3xl mx-auto text-center">
           <ScrollReveal>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light leading-[1.2] mb-8">
+            <h2 className="text-display-lg leading-[1.15] mb-10">
               Ready to dive in?
               <br />
               <span className="font-serif italic text-gradient-turquoise">
@@ -778,7 +828,7 @@ export default function Home() {
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
-            <p className="text-lg text-muted-foreground font-light mb-12 max-w-lg mx-auto">
+            <p className="text-body-lg text-muted-foreground mb-14 max-w-lg mx-auto leading-[1.7]">
               Your first lesson awaits beneath the surface. No credit card
               required.
             </p>
@@ -788,10 +838,10 @@ export default function Home() {
             <Link href="/auth/signup">
               <Button
                 size="lg"
-                className="h-16 px-12 text-lg font-light rounded-full group"
+                className="h-16 px-14 text-lg font-light rounded-full group shadow-[0_0_40px_rgba(42,169,160,0.2)] hover:shadow-[0_0_60px_rgba(42,169,160,0.35)] transition-shadow duration-500"
               >
                 Begin your journey
-                <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1.5" />
               </Button>
             </Link>
           </ScrollReveal>
@@ -799,9 +849,9 @@ export default function Home() {
       </section>
 
       {/* ========== FOOTER ========== */}
-      <footer className="py-16 px-6 border-t border-ocean-turquoise/20">
+      <footer className="py-20 px-6 border-t border-ocean-turquoise/10">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-10">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg overflow-hidden bg-background flex items-center justify-center">
                 <Image
@@ -818,28 +868,28 @@ export default function Home() {
               </span>
             </div>
 
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-10">
               <Link
                 href="/about"
-                className="text-sm text-muted-foreground hover:text-ocean-turquoise font-light transition-colors"
+                className="text-caption text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
               >
                 About
               </Link>
               <Link
                 href="/pricing"
-                className="text-sm text-muted-foreground hover:text-ocean-turquoise font-light transition-colors"
+                className="text-caption text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
               >
                 Pricing
               </Link>
               <Link
                 href="/support"
-                className="text-sm text-muted-foreground hover:text-ocean-turquoise font-light transition-colors"
+                className="text-caption text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
               >
                 Support
               </Link>
             </div>
 
-            <p className="text-sm text-muted-foreground/60 font-light">
+            <p className="text-caption text-muted-foreground/50">
               © 2026 Fluensea
             </p>
           </div>

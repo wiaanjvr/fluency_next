@@ -9,6 +9,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { LearnerWord } from "@/types/lesson-v2";
 import {
@@ -155,6 +156,26 @@ export async function POST(request: NextRequest) {
       started_at: now,
       completed_at: now,
     });
+
+    // --- Goal tracking: log word_learned events ---
+    // Each word introduced counts toward vocabulary goals
+    if (words.length > 0) {
+      try {
+        const goalService = createServiceClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        );
+        await goalService.rpc("process_goal_event", {
+          p_user_id: user.id,
+          p_event_type: "word_learned",
+          p_value: words.length,
+          p_metadata: { language, source: "word-introduction" },
+        });
+      } catch (goalErr) {
+        // Non-critical — don't fail the request
+        console.warn("[introduce-words] Goal tracking failed:", goalErr);
+      }
+    }
 
     return NextResponse.json({
       success: true,

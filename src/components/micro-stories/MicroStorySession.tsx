@@ -302,6 +302,19 @@ export function MicroStorySession({
     setProgress(updatedProgress);
     setSessionResults((prev) => [...prev, result]);
 
+    // --- Goal tracking: story completed ---
+    fetch("/api/goals/log-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventType: "story_completed", value: 1 }),
+    }).catch(() => {});
+    // Also track daily activity (server deduplicates)
+    fetch("/api/goals/log-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventType: "daily_activity", value: 1 }),
+    }).catch(() => {});
+
     // Move to summary phase
     setPhase("summary");
   };

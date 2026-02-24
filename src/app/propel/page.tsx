@@ -393,7 +393,7 @@ function PropelContent({
         onBeforeNavigate={handleNavigation}
       />
 
-      <div className="relative z-10 min-h-screen flex flex-col justify-center pt-20 pb-12 px-6 md:pl-[370px]">
+      <div className="relative z-10 min-h-screen flex flex-col justify-center pt-20 pb-12 px-6 lg:pl-[370px]">
         <div className="max-w-3xl mx-auto w-full">
           {/* Page header */}
           <div className="mb-10 space-y-3 text-center md:text-left">

@@ -8,7 +8,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-3xl border-[1.5px] border-ocean-turquoise/60 bg-card text-card-foreground shadow-soft transition-all duration-300",
+      "rounded-3xl border-[1.5px] border-ocean-turquoise/60 bg-card text-card-foreground shadow-[0_4px_16px_rgba(0,0,0,0.12),0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm transition-all duration-400",
       floating && "animate-float",
       className,
     )}
@@ -25,7 +25,7 @@ const CardInteractive = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-3xl border-[1.5px] border-ocean-turquoise/60 bg-card text-card-foreground shadow-soft card-hover-lift cursor-pointer hover:shadow-ocean-turquoise/20 hover:-translate-y-1",
+      "rounded-3xl border-[1.5px] border-ocean-turquoise/60 bg-card text-card-foreground shadow-[0_4px_16px_rgba(0,0,0,0.12),0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.2),0_16px_48px_rgba(0,0,0,0.12),0_0_0_1px_rgba(42,169,160,0.2)] hover:-translate-y-1.5",
       floating && "animate-float",
       className,
     )}
@@ -40,7 +40,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-7", className)}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
     {...props}
   />
 ));

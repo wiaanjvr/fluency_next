@@ -3,6 +3,10 @@
     {
       "path": "/api/pipeline/generate-cloze",
       "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/goals/cron?action=auto",
+      "schedule": "1 0 * * *"
     }
   ]
 }

@@ -290,7 +290,7 @@ export default function DuelSettings({
               </div>
 
               {/* Stats grid */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { label: "Wins", value: wins, color: "#10B981" },
                   { label: "Losses", value: losses, color: "#f87171" },

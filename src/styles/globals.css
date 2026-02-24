@@ -198,6 +198,7 @@ body {
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -1550,13 +1551,198 @@ body {
 
 /* Focus styles for accessibility */
 :focus-visible {
-  outline: 2px solid hsl(var(--library-brass));
+  outline: 2px solid hsl(var(--ocean-turquoise));
   outline-offset: 3px;
   border-radius: 4px;
 }
 
 /* Selection color */
 ::selection {
-  background: hsl(var(--library-brass) / 0.35);
+  background: hsl(var(--ocean-turquoise) / 0.35);
   color: hsl(var(--foreground));
+}
+
+/* ==========================================================================
+   PREMIUM SKELETON SHIMMER
+   ========================================================================== */
+@keyframes skeletonShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(42, 169, 160, 0.06) 40%,
+    rgba(42, 169, 160, 0.12) 50%,
+    rgba(42, 169, 160, 0.06) 60%,
+    transparent 100%
+  );
+  animation: skeletonShimmer 1.8s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   PREMIUM TYPOGRAPHY SCALE (8pt grid)
+   ========================================================================== */
+.text-display-xl {
+  font-size: clamp(3rem, 6vw, 6rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 300;
+}
+
+.text-display-lg {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  font-weight: 300;
+}
+
+.text-display-md {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 300;
+}
+
+.text-heading {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+.text-subheading {
+  font-size: 1.125rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+}
+
+.text-body-lg {
+  font-size: 1.125rem;
+  line-height: 1.65;
+  letter-spacing: -0.005em;
+  font-weight: 300;
+}
+
+.text-body {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-caption {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  font-weight: 400;
+}
+
+.text-overline {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   ENHANCED ROW/TABLE HOVER EFFECTS
+   ========================================================================== */
+.row-hover {
+  transition: background-color 0.2s ease;
+}
+
+.row-hover:hover {
+  background-color: rgba(42, 169, 160, 0.04);
+}
+
+.zebra-stripe:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.015);
+}
+
+/* ==========================================================================
+   ENHANCED LAYERED BOX-SHADOWS
+   ========================================================================== */
+.shadow-elevation-1 {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-elevation-2 {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 4px 8px rgba(0, 0, 0, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    0 16px 48px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-elevation-3 {
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.04),
+    0 8px 16px rgba(0, 0, 0, 0.06),
+    0 16px 48px rgba(0, 0, 0, 0.12),
+    0 32px 80px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-ocean-glow {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(42, 169, 160, 0.1),
+    0 0 40px rgba(42, 169, 160, 0.08);
+}
+
+/* ==========================================================================
+   FORM INPUT POLISH — floating label support
+   ========================================================================== */
+.input-group {
+  position: relative;
+}
+
+.input-group .floating-label {
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  font-weight: 300;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: transparent;
+  padding: 0;
+}
+
+.input-group input:focus ~ .floating-label,
+.input-group input:not(:placeholder-shown) ~ .floating-label {
+  top: -0.5rem;
+  left: 0.75rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  color: hsl(var(--ocean-turquoise));
+  background: hsl(var(--background));
+  padding: 0 0.375rem;
+}
+
+/* ==========================================================================
+   NOISE TEXTURE OVERLAY — refinement
+   ========================================================================== */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
 }

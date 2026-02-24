@@ -16,6 +16,8 @@ import {
   Anchor,
   Ship,
   BadgePercent,
+  Menu,
+  X,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -79,6 +81,7 @@ function PricingPageContent() {
   const searchParams = useSearchParams();
   const currencyParam = searchParams.get("currency");
   const { currencyCode: detectedCurrency, paymentProvider } = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const [selectedCurrency, setSelectedCurrency] = useState(
     currencyParam || "ZAR",
@@ -193,11 +196,11 @@ function PricingPageContent() {
   return (
     <main className="bg-background text-foreground antialiased min-h-screen">
       {/* ========== NAVIGATION ========== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b border-ocean-turquoise/20">
-        <div className="max-w-6xl mx-auto px-6">
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-background/80 border-b border-ocean-turquoise/10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 bg-background/90 border-b border-ocean-turquoise/20 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-500 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(42,169,160,0.3)] bg-background/90 border-b border-ocean-turquoise/20 flex items-center justify-center">
                 <Image
                   src="/logo.png"
                   alt="Fluensea Logo"
@@ -212,7 +215,8 @@ function PricingPageContent() {
               </span>
             </Link>
 
-            <div className="flex items-center gap-6">
+            {/* Desktop nav */}
+            <div className="hidden sm:flex items-center gap-6">
               <Link
                 href="/"
                 className="text-sm font-medium text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
@@ -230,7 +234,49 @@ function PricingPageContent() {
                 </Button>
               </Link>
             </div>
+
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMobileOpen((o) => !o)}
+              className="sm:hidden min-h-touch min-w-[44px] flex items-center justify-center rounded-xl text-muted-foreground hover:text-ocean-turquoise transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
           </div>
+
+          {/* Mobile dropdown */}
+          {mobileOpen && (
+            <div className="sm:hidden border-t border-ocean-turquoise/10 py-4 flex flex-col gap-1 animate-in fade-in slide-in-from-top-2 duration-200">
+              <Link
+                href="/"
+                onClick={() => setMobileOpen(false)}
+                className="px-3 py-3 min-h-touch flex items-center rounded-xl text-sm font-medium text-muted-foreground hover:text-ocean-turquoise hover:bg-ocean-turquoise/5 transition-colors"
+              >
+                Home
+              </Link>
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileOpen(false)}
+                className="px-3 py-3 min-h-touch flex items-center rounded-xl text-sm font-medium text-muted-foreground hover:text-ocean-turquoise hover:bg-ocean-turquoise/5 transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/auth/signup"
+                onClick={() => setMobileOpen(false)}
+                className="mt-1"
+              >
+                <Button size="sm" className="w-full rounded-full font-medium">
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -245,13 +291,13 @@ function PricingPageContent() {
 
         <div className="max-w-4xl mx-auto text-center">
           <ScrollReveal delay={100}>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-ocean-turquoise mb-8">
+            <p className="text-overline text-ocean-turquoise mb-8">
               Simple, Transparent Pricing
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight leading-[1.1] mb-8">
+            <h1 className="text-display-xl leading-[1.1] mb-10">
               Choose your
               <br />
               <span className="font-serif italic text-gradient-turquoise">
@@ -261,7 +307,7 @@ function PricingPageContent() {
           </ScrollReveal>
 
           <ScrollReveal delay={400}>
-            <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-xl mx-auto mb-12 leading-relaxed">
+            <p className="text-body-lg text-muted-foreground max-w-xl mx-auto mb-14 leading-relaxed">
               From the shallows to the abyss — pick a plan that matches your
               commitment to fluency.
             </p>
@@ -276,10 +322,10 @@ function PricingPageContent() {
           <ScrollReveal>
             <div className="mb-16 flex flex-col items-center gap-6">
               {/* Monthly / Annual toggle */}
-              <div className="inline-flex items-center bg-muted/40 rounded-full p-1 gap-1">
+              <div className="inline-flex items-center bg-muted/30 backdrop-blur-lg rounded-full p-1.5 gap-1 border border-white/[0.06]">
                 <button
                   onClick={() => setBillingCycle("monthly")}
-                  className={`px-5 py-2 rounded-full text-sm font-light transition-all duration-200 ${
+                  className={`px-5 py-2 min-h-touch rounded-full text-sm font-light transition-all duration-200 ${
                     billingCycle === "monthly"
                       ? "bg-background shadow-sm text-foreground"
                       : "text-muted-foreground hover:text-foreground"
@@ -289,7 +335,7 @@ function PricingPageContent() {
                 </button>
                 <button
                   onClick={() => setBillingCycle("annual")}
-                  className={`px-5 py-2 rounded-full text-sm font-light transition-all duration-200 flex items-center gap-1.5 ${
+                  className={`px-5 py-2 min-h-touch rounded-full text-sm font-light transition-all duration-200 flex items-center gap-1.5 ${
                     billingCycle === "annual"
                       ? "bg-background shadow-sm text-foreground"
                       : "text-muted-foreground hover:text-foreground"
@@ -358,16 +404,16 @@ function PricingPageContent() {
               return (
                 <ScrollReveal key={slug} delay={500 + index * 150}>
                   <div
-                    className={`relative h-full rounded-3xl border-[1.5px] p-8 md:p-10 transition-all duration-500 ${
+                    className={`relative h-full rounded-3xl border-[1.5px] p-8 md:p-10 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] backdrop-blur-lg ${
                       isRecommended
                         ? "bg-ocean-teal/10 border-ocean-turquoise/50 shadow-[0_0_60px_rgba(42,169,160,0.1)]"
-                        : "bg-card border-border/50 hover:border-ocean-teal/30"
+                        : "bg-card/80 border-white/[0.06] hover:border-ocean-teal/30 shadow-elevation-1 hover:shadow-elevation-2 hover:-translate-y-1"
                     }`}
                   >
                     {/* Recommended Badge */}
                     {isRecommended && (
                       <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                        <div className="flex items-center gap-1.5 bg-ocean-turquoise text-ocean-midnight px-4 py-1.5 rounded-full text-sm font-light">
+                        <div className="flex items-center gap-1.5 bg-ocean-turquoise text-ocean-midnight px-4 py-1.5 rounded-full text-sm font-medium shadow-[0_0_20px_rgba(42,169,160,0.3)]">
                           <Crown className="w-3.5 h-3.5" />
                           Recommended
                         </div>
@@ -377,7 +423,7 @@ function PricingPageContent() {
                     {/* Plan Header */}
                     <div className="mb-8 flex items-center gap-3">
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-transform duration-300 hover:scale-110 ${
                           isRecommended
                             ? "bg-ocean-turquoise/20"
                             : "bg-ocean-teal/20"
@@ -392,10 +438,8 @@ function PricingPageContent() {
                         />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-light">
-                          {tier.displayName}
-                        </h3>
-                        <p className="text-muted-foreground font-light text-sm">
+                        <h3 className="text-subheading">{tier.displayName}</h3>
+                        <p className="text-caption text-muted-foreground">
                           {tier.description}
                         </p>
                       </div>
@@ -485,13 +529,13 @@ function PricingPageContent() {
       <section className="py-32 px-6 bg-muted/20">
         <div className="max-w-5xl mx-auto">
           <ScrollReveal>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-6 text-center">
+            <p className="text-overline text-muted-foreground mb-6 text-center">
               What You Get
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={100}>
-            <h2 className="text-3xl sm:text-4xl font-light text-center mb-16">
+            <h2 className="text-display-md text-center mb-16">
               Dive deeper,{" "}
               <span className="font-serif italic text-ocean-turquoise">
                 learn faster
@@ -502,12 +546,12 @@ function PricingPageContent() {
           <div className="grid md:grid-cols-3 gap-8">
             {featureHighlights.map((feature, index) => (
               <ScrollReveal key={index} delay={200 + index * 100}>
-                <div className="text-center">
-                  <div className="w-14 h-14 bg-ocean-teal/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <div className="text-center bg-card/60 backdrop-blur-lg rounded-3xl p-8 border border-white/[0.06] shadow-elevation-1 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-elevation-2">
+                  <div className="w-14 h-14 bg-ocean-teal/20 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform duration-300 hover:scale-110">
                     <feature.icon className="w-6 h-6 text-ocean-turquoise" />
                   </div>
-                  <h3 className="text-lg font-light mb-3">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                  <h3 className="text-subheading mb-3">{feature.title}</h3>
+                  <p className="text-body text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -518,16 +562,16 @@ function PricingPageContent() {
       </section>
 
       {/* ========== FAQ SECTION ========== */}
-      <section className="py-32 px-6">
+      <section className="py-40 px-6">
         <div className="max-w-3xl mx-auto">
           <ScrollReveal>
-            <p className="text-sm font-light tracking-[0.2em] uppercase text-muted-foreground mb-6 text-center">
+            <p className="text-overline text-muted-foreground mb-6 text-center">
               Questions
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={100}>
-            <h2 className="text-3xl sm:text-4xl font-light text-center mb-16">
+            <h2 className="text-display-md text-center mb-20">
               Frequently asked
             </h2>
           </ScrollReveal>
@@ -572,9 +616,9 @@ function PricingPageContent() {
               },
             ].map((faq, index) => (
               <ScrollReveal key={index} delay={200 + index * 80}>
-                <div className="border-b border-border/50 pb-8">
-                  <h3 className="text-lg font-light mb-3">{faq.q}</h3>
-                  <p className="text-muted-foreground font-light leading-relaxed">
+                <div className="border-b border-white/[0.06] pb-8">
+                  <h3 className="text-subheading mb-3">{faq.q}</h3>
+                  <p className="text-body text-muted-foreground leading-relaxed">
                     {faq.a}
                   </p>
                 </div>
@@ -585,10 +629,12 @@ function PricingPageContent() {
       </section>
 
       {/* ========== CTA SECTION ========== */}
-      <section className="py-32 px-6 bg-ocean-teal/10">
-        <div className="max-w-3xl mx-auto text-center">
+      <section className="py-40 px-6 bg-ocean-teal/10 relative overflow-hidden">
+        {/* Ambient glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-ocean-turquoise/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="max-w-3xl mx-auto text-center relative z-10">
           <ScrollReveal>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-light mb-6">
+            <h2 className="text-display-md mb-8">
               Ready to become{" "}
               <span className="font-serif italic text-ocean-turquoise">
                 fluent?
@@ -597,7 +643,7 @@ function PricingPageContent() {
           </ScrollReveal>
 
           <ScrollReveal delay={100}>
-            <p className="text-lg text-muted-foreground font-light mb-10 max-w-xl mx-auto">
+            <p className="text-body-lg text-muted-foreground mb-12 max-w-xl mx-auto">
               Join learners committed to building fluency through discipline and
               consistent practice.
             </p>
@@ -607,16 +653,16 @@ function PricingPageContent() {
             <Link href="/auth/signup">
               <Button
                 size="lg"
-                className="bg-ocean-turquoise text-ocean-midnight hover:bg-ocean-turquoise/90 h-14 px-10 text-base font-light rounded-full group"
+                className="bg-ocean-turquoise text-ocean-midnight hover:bg-ocean-turquoise/90 h-14 px-10 text-base font-medium rounded-full group shadow-[0_0_30px_rgba(42,169,160,0.3)] hover:shadow-[0_0_40px_rgba(42,169,160,0.4)] transition-all duration-500"
               >
                 Start learning free
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
               </Button>
             </Link>
           </ScrollReveal>
 
           <ScrollReveal delay={300}>
-            <p className="text-sm text-muted-foreground/60 mt-6 font-light">
+            <p className="text-caption text-muted-foreground/60 mt-8">
               No credit card required
             </p>
           </ScrollReveal>
@@ -624,32 +670,32 @@ function PricingPageContent() {
       </section>
 
       {/* ========== FOOTER ========== */}
-      <footer className="py-12 px-6 border-t border-ocean-turquoise/20">
+      <footer className="py-20 px-6 border-t border-ocean-turquoise/10">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-ocean-turquoise to-ocean-teal flex items-center justify-center">
               <Waves className="w-4 h-4 text-white" />
             </div>
-            <span className="text-sm font-light text-muted-foreground">
+            <span className="text-caption text-muted-foreground">
               &copy; {new Date().getFullYear()} Fluensea. All rights reserved.
             </span>
           </div>
-          <div className="flex items-center gap-6 text-sm font-light text-muted-foreground">
+          <div className="flex items-center gap-6 text-caption text-muted-foreground">
             <Link
               href="/terms"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-ocean-turquoise transition-colors duration-300"
             >
               Terms
             </Link>
             <Link
               href="/privacy"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-ocean-turquoise transition-colors duration-300"
             >
               Privacy
             </Link>
             <Link
               href="/contact"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-ocean-turquoise transition-colors duration-300"
             >
               Contact
             </Link>

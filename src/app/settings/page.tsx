@@ -350,7 +350,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 sm:px-6 py-6">
           <div className="flex items-center gap-4">
             <Link href="/dashboard">
               <Button variant="ghost" size="icon">
@@ -362,14 +362,14 @@ export default function SettingsPage() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 sm:px-6 py-12">
         <div className="max-w-3xl mx-auto space-y-6">
           {message && (
             <div
-              className={`p-3 rounded-md text-sm ${
+              className={`p-3 rounded-md text-sm border ${
                 message.type === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200"
-                  : "bg-red-50 text-red-800 border border-red-200"
+                  ? "feedback-success"
+                  : "feedback-error"
               }`}
             >
               {message.text}
@@ -377,7 +377,7 @@ export default function SettingsPage() {
           )}
 
           {/* Profile Photo & Basic Info */}
-          <div id="profile" className="card-luxury p-8">
+          <div id="profile" className="card-luxury p-6 sm:p-8">
             <div className="mb-8">
               <h2 className="text-2xl font-light mb-2">Profile</h2>
               <p className="text-sm text-muted-foreground font-light">
@@ -451,7 +451,10 @@ export default function SettingsPage() {
               </div>
 
               {/* Language Settings */}
-              <div id="language" className="grid grid-cols-2 gap-4">
+              <div
+                id="language"
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+              >
                 <div className="space-y-2">
                   <label className="text-sm font-light">Target Language</label>
                   <Select
@@ -556,7 +559,7 @@ export default function SettingsPage() {
             )}
 
           {/* Subscription */}
-          <div id="settings" className="card-luxury p-8">
+          <div id="settings" className="card-luxury p-6 sm:p-8">
             <div className="mb-8">
               <h2 className="text-2xl font-light mb-2">Subscription</h2>
               <p className="text-sm text-muted-foreground font-light">
@@ -645,7 +648,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Account Actions */}
-          <div className="card-luxury p-8">
+          <div className="card-luxury p-6 sm:p-8">
             <div className="mb-8">
               <h2 className="text-2xl font-light mb-2">Account Actions</h2>
             </div>
@@ -659,8 +662,7 @@ export default function SettingsPage() {
               </Button>
               <Button
                 variant="outline"
-                className="w-full"
-                style={{ color: "#ff2222", borderColor: "rgba(255,34,34,0.3)" }}
+                className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 Delete Account
@@ -674,7 +676,7 @@ export default function SettingsPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Languages className="h-5 w-5 text-blue-500" />
+                      <Languages className="h-5 w-5 text-ocean-turquoise" />
                       <CardTitle>Change target language?</CardTitle>
                     </div>
                     <Button
@@ -701,7 +703,7 @@ export default function SettingsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm text-blue-800 space-y-1">
+                  <div className="rounded-lg bg-ocean-turquoise/10 border border-ocean-turquoise/30 p-3 text-sm text-ocean-turquoise space-y-1">
                     <p className="font-medium">Your progress is saved</p>
                     <p className="font-light">
                       All your{" "}
@@ -720,7 +722,7 @@ export default function SettingsPage() {
                       Cancel
                     </Button>
                     <Button
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="bg-ocean-turquoise hover:bg-ocean-turquoise/90 text-background"
                       onClick={handleConfirmLanguageChange}
                       disabled={changingLanguage}
                     >
@@ -745,7 +747,7 @@ export default function SettingsPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-red-500" />
+                      <AlertTriangle className="h-5 w-5 text-destructive" />
                       <CardTitle>Delete account</CardTitle>
                     </div>
                     <Button

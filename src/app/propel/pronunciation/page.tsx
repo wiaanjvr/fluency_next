@@ -232,6 +232,22 @@ function PronunciationContent({
         }),
       );
 
+      // --- Goal tracking: pronunciation session completed ---
+      fetch("/api/goals/log-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventType: "pronunciation_completed",
+          value: 1,
+        }),
+      }).catch(() => {});
+      // Also track daily activity (server deduplicates)
+      fetch("/api/goals/log-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventType: "daily_activity", value: 1 }),
+      }).catch(() => {});
+
       // Save session to backend (best-effort)
       fetch("/api/pronunciation/progress", {
         method: "POST",

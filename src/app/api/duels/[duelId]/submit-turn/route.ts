@@ -4,6 +4,7 @@
 
 import { verifyAuth } from "@/lib/auth/verify-auth";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { generateDuelRound } from "@/lib/duel/generate-round";
 import type { SubmitTurnRequest, DuelQuestion } from "@/types/duel";
 
@@ -177,6 +178,25 @@ export async function POST(
         !isChallenger ? scoreThisRound : round.opponent_score || 0,
         7,
       );
+
+      // --- Goal tracking: log quiz_won for the winner ---
+      if (winnerId) {
+        try {
+          const goalService = createServiceClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          );
+          await goalService.rpc("process_goal_event", {
+            p_user_id: winnerId,
+            p_event_type: "quiz_won",
+            p_value: 1,
+            p_metadata: { duel_id: duelId },
+          });
+        } catch (goalErr) {
+          // Non-critical — don't fail the request
+          console.warn("[submit-turn] Goal tracking failed:", goalErr);
+        }
+      }
     } else {
       // Advance to next round
       const nextRound = duel.current_round + 1;

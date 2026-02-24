@@ -237,6 +237,22 @@ function ConversationContent({
         }),
       );
 
+      // --- Goal tracking: AI conversation completed ---
+      fetch("/api/goals/log-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventType: "ai_conversation_completed",
+          value: 1,
+        }),
+      }).catch(() => {});
+      // Also track daily activity (server deduplicates)
+      fetch("/api/goals/log-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventType: "daily_activity", value: 1 }),
+      }).catch(() => {});
+
       // Persist the conversation session to the backend + knowledge graph
       // Extract unique vocabulary words from the transcript
       const vocabularyUsed = extractVocabularyFromTranscript(
@@ -291,7 +307,7 @@ function ConversationContent({
         wordsEncountered={wordsEncountered}
       />
 
-      <div className="relative z-10 min-h-screen pt-20 pb-8 px-4 md:pl-[370px]">
+      <div className="relative z-10 min-h-screen pt-20 pb-8 px-4 lg:pl-[370px]">
         {/* Back link — only show in setup & summary */}
         {view !== "session" && (
           <div className="max-w-5xl mx-auto mb-6">

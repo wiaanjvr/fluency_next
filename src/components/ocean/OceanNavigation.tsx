@@ -12,6 +12,7 @@ import {
   ChevronDown,
   BarChart,
   Users,
+  Target,
 } from "lucide-react";
 import { AmbientLauncher } from "@/components/ambient";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
@@ -40,6 +41,7 @@ interface OceanNavigationProps {
 const navItems = [
   { href: "/dashboard", label: "Course", icon: Compass },
   { href: "/propel", label: "Propel", icon: Waves },
+  { href: "/goals", label: "Goals", icon: Target },
 ];
 
 export function OceanNavigation({

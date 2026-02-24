@@ -203,6 +203,13 @@ export function useSessionTracker() {
 
         const { summary } = await res.json();
 
+        // --- Goal tracking: daily activity (server deduplicates per day) ---
+        fetch("/api/goals/log-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ eventType: "daily_activity", value: 1 }),
+        }).catch(() => {});
+
         // Reset
         sessionRef.current = null;
         setState({

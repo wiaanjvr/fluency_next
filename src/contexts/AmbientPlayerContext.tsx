@@ -132,6 +132,37 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
   const triedStationIdsRef = useRef<Set<string>>(new Set());
   const triedEpisodeUrlsRef = useRef<Set<string>>(new Set());
 
+  // --- Immersion time tracking for goal system ---
+  const immersionStartRef = useRef<number | null>(null);
+
+  // Track when playback starts/resumes
+  useEffect(() => {
+    if (
+      isPlaying &&
+      (mode === "radio" || mode === "podcast" || mode === "video")
+    ) {
+      if (!immersionStartRef.current) {
+        immersionStartRef.current = Date.now();
+      }
+    } else if (!isPlaying && immersionStartRef.current) {
+      // Playback paused — log elapsed time
+      const elapsedMs = Date.now() - immersionStartRef.current;
+      const elapsedMinutes = Math.round(elapsedMs / 60000);
+      immersionStartRef.current = null;
+      if (elapsedMinutes >= 1) {
+        fetch("/api/goals/log-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventType: "immersion_listened",
+            value: elapsedMinutes,
+            metadata: { mode },
+          }),
+        }).catch(() => {});
+      }
+    }
+  }, [isPlaying, mode]);
+
   // ── Create the audio element once ─────────────────────────────────────────
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -373,6 +404,24 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
   );
 
   const closeAmbient = useCallback(() => {
+    // --- Log immersion time before closing ---
+    if (immersionStartRef.current) {
+      const elapsedMs = Date.now() - immersionStartRef.current;
+      const elapsedMinutes = Math.round(elapsedMs / 60000);
+      immersionStartRef.current = null;
+      if (elapsedMinutes >= 1) {
+        fetch("/api/goals/log-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventType: "immersion_listened",
+            value: elapsedMinutes,
+            metadata: { mode },
+          }),
+        }).catch(() => {});
+      }
+    }
+
     const audio = audioRef.current;
     if (audio) {
       audio.pause();
@@ -388,7 +437,7 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     setAmbientViewState(null);
     triedStationIdsRef.current.clear();
     triedEpisodeUrlsRef.current.clear();
-  }, []);
+  }, [mode]);
 
   const playStation = useCallback((station: AmbientStation) => {
     const audio = audioRef.current;

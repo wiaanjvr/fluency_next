@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MilestoneCelebration } from "@/components/progression";
-import { RewardModal } from "@/components/rewards";
+import { RewardModal, GameboardRewardModal } from "@/components/rewards";
+import type { GameboardStatus, GameboardTier } from "@/types/gameboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { UsageLimitBanner } from "@/components/ui/UsageLimitBanner";
 import {
@@ -143,37 +144,22 @@ function DashboardContent({
         ref={contentRef}
         className={cn(
           "relative z-10 min-h-screen pt-24 pb-16 px-6",
-          isProgressView ? "md:pl-[570px]" : "md:pl-[350px]",
+          isProgressView ? "lg:pl-[570px]" : "lg:pl-[350px]",
         )}
       >
         {/* Payment Success Notification */}
         {showPaymentSuccess && (
           <div className="fixed top-20 right-6 z-50 max-w-md">
-            <div
-              className="ocean-card p-4"
-              style={{ background: "rgba(61, 214, 181, 0.1)" }}
-            >
+            <div className="ocean-card p-4 bg-ocean-turquoise/10">
               <div className="flex items-start gap-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                  style={{ background: "rgba(61, 214, 181, 0.2)" }}
-                >
-                  <Check
-                    className="w-5 h-5"
-                    style={{ color: "var(--turquoise)" }}
-                  />
+                <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-ocean-turquoise/20">
+                  <Check className="w-5 h-5 text-[var(--turquoise)]" />
                 </div>
                 <div className="flex-1">
-                  <h3
-                    className="font-display font-semibold mb-1"
-                    style={{ color: "var(--turquoise)" }}
-                  >
+                  <h3 className="font-display font-semibold mb-1 text-[var(--turquoise)]">
                     Welcome aboard!
                   </h3>
-                  <p
-                    className="text-sm font-body"
-                    style={{ color: "var(--seafoam)" }}
-                  >
+                  <p className="text-sm font-body text-[var(--seafoam)]">
                     Your{" "}
                     {getTierConfig(subscriptionTier as TierSlug)?.displayName ||
                       "subscription"}{" "}
@@ -182,8 +168,7 @@ function DashboardContent({
                 </div>
                 <button
                   onClick={() => setShowPaymentSuccess(false)}
-                  className="transition-opacity hover:opacity-100 opacity-60"
-                  style={{ color: "var(--sand)" }}
+                  className="transition-opacity hover:opacity-100 opacity-60 text-[var(--sand)]"
                 >
                   ×
                 </button>
@@ -207,15 +192,9 @@ function DashboardContent({
           {/* Tier Badge */}
           {hasAccess(subscriptionTier as TierSlug, "diver") && (
             <div className="flex justify-center">
-              <div
-                className="flex items-center gap-2 px-4 py-2 rounded-full ocean-card"
-                style={{ background: "rgba(255, 179, 0, 0.1)" }}
-              >
-                <Crown className="w-4 h-4" style={{ color: "#ffb300" }} />
-                <span
-                  className="text-sm font-body font-medium"
-                  style={{ color: "#ffb300" }}
-                >
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full ocean-card bg-[rgba(255,179,0,0.1)]">
+                <Crown className="w-4 h-4 text-[#ffb300]" />
+                <span className="text-sm font-body font-medium text-[#ffb300]">
                   {getTierConfig(subscriptionTier as TierSlug)?.displayName ||
                     "Pro"}
                 </span>
@@ -227,7 +206,7 @@ function DashboardContent({
           <section
             style={{
               transform: `translate(${mousePosition.x * -4}px, ${mousePosition.y * -4}px)`,
-              transition: "transform 0.3s ease-out",
+              transition: "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             {ambientView === "container" ? (
@@ -245,7 +224,7 @@ function DashboardContent({
           {/* ========== VOCABULARY VIEWER ========== */}
           {userId && (
             <section
-              className="ocean-card p-6 ocean-card-animate"
+              className="ocean-card p-6 ocean-card-animate backdrop-blur-lg"
               style={{ animationDelay: "0.5s" }}
             >
               <VocabularyViewer userId={userId} language={targetLanguage} />
@@ -256,32 +235,22 @@ function DashboardContent({
           {stats.wordsEncountered >= 50 &&
             !hasAccess(subscriptionTier as TierSlug, "diver") && (
               <section
-                className="ocean-card ocean-card-animate p-6"
-                style={{
-                  animationDelay: "0.6s",
-                  background:
-                    "linear-gradient(135deg, rgba(255, 179, 0, 0.06) 0%, rgba(255, 140, 0, 0.03) 100%)",
-                }}
+                className="ocean-card ocean-card-animate p-8 backdrop-blur-lg bg-gradient-to-br from-[rgba(255,179,0,0.06)] to-[rgba(255,140,0,0.03)]"
+                style={{ animationDelay: "0.6s" }}
               >
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3
-                      className="font-display text-xl font-semibold mb-1"
-                      style={{ color: "var(--sand)" }}
-                    >
+                  <div className="space-y-1">
+                    <h3 className="font-display text-xl font-semibold mb-1 text-[var(--sand)]">
                       Go deeper
                     </h3>
-                    <p
-                      className="text-sm font-body"
-                      style={{ color: "var(--seafoam)" }}
-                    >
+                    <p className="text-sm font-body text-[var(--seafoam)]">
                       Unlimited immersion time, longer stories, and advanced
                       shadowing tools.
                     </p>
                   </div>
                   <Link href="/pricing">
                     <button
-                      className="ocean-cta px-6 py-3 text-sm font-semibold flex items-center gap-2"
+                      className="ocean-cta px-6 py-3 text-sm font-semibold flex items-center gap-2 transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,179,0,0.3)]"
                       style={{
                         background: "linear-gradient(135deg, #ffb300, #ff8c00)",
                       }}
@@ -338,6 +307,24 @@ function DashboardPageContent() {
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [creditsAwarded, setCreditsAwarded] = useState(0);
   const [rewardId, setRewardId] = useState("");
+
+  // ── Gameboard reward state ──────────────────────────────────────────────
+  const [showGameboardModal, setShowGameboardModal] = useState(false);
+  const [gameboardStatus, setGameboardStatus] = useState<
+    GameboardStatus | "not_eligible" | "no_reward"
+  >("no_reward");
+  const [gameboardTier, setGameboardTier] = useState<
+    GameboardTier | "snorkeler" | string
+  >("snorkeler");
+  const [gameboardClaimedIndex, setGameboardClaimedIndex] = useState<
+    number | null
+  >(null);
+  const [gameboardClaimedDiscount, setGameboardClaimedDiscount] = useState<
+    number | null
+  >(null);
+  const [gameboardExpiresAt, setGameboardExpiresAt] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -617,6 +604,33 @@ function DashboardPageContent() {
             // Non-critical — don't block dashboard loading
             console.error("Reward check failed:", rewardErr);
           }
+
+          // ── Check gameboard reward (tile-flip discount) ─────────────
+          try {
+            const gbRes = await fetch("/api/rewards/gameboard/check", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+            });
+            if (gbRes.ok) {
+              const gb = await gbRes.json();
+              setGameboardTier(profile?.subscription_tier || "snorkeler");
+              setGameboardStatus(gb.status);
+              setGameboardExpiresAt(gb.expiresAt);
+              if (gb.status === "claimed") {
+                setGameboardClaimedIndex(gb.chosenIndex ?? null);
+                setGameboardClaimedDiscount(gb.discountPercent ?? null);
+              }
+              // Show modal if there's a pending (unclaimed) reward
+              if (gb.eligible && gb.status === "pending") {
+                setShowGameboardModal(true);
+              }
+            }
+          } catch (gbErr) {
+            console.error("Gameboard check failed:", gbErr);
+          }
+        } else {
+          // Show locked state for free/snorkeler users (optional preview)
+          setGameboardTier(profile?.subscription_tier || "snorkeler");
         }
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -773,6 +787,21 @@ function DashboardPageContent() {
         onClose={() => setShowRewardModal(false)}
         creditsAwarded={creditsAwarded}
         rewardId={rewardId}
+      />
+
+      {/* Gameboard Reward Modal — tile-flip discount board */}
+      <GameboardRewardModal
+        isOpen={showGameboardModal}
+        onClose={() => setShowGameboardModal(false)}
+        status={gameboardStatus}
+        tier={gameboardTier}
+        claimedIndex={gameboardClaimedIndex}
+        claimedDiscount={gameboardClaimedDiscount}
+        expiresAt={gameboardExpiresAt}
+        onClaimed={(discount) => {
+          setGameboardClaimedDiscount(discount);
+          setGameboardStatus("claimed");
+        }}
       />
       <DiveTransitionProvider>
         <DashboardContent

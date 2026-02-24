@@ -54,10 +54,13 @@ function LoginPageContent() {
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-foreground text-background p-12 flex-col justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground to-foreground/90" />
+        {/* Subtle ocean glow */}
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-ocean-turquoise/[0.04] rounded-full blur-[150px]" />
+        <div className="absolute top-1/4 right-0 w-[300px] h-[300px] bg-ocean-teal/[0.03] rounded-full blur-[120px]" />
 
         <div className="relative z-10">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-xl overflow-hidden bg-foreground flex items-center justify-center">
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-foreground flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110">
               <Image
                 src="/logo.png"
                 alt="Fluensea Logo"
@@ -71,19 +74,19 @@ function LoginPageContent() {
           </Link>
         </div>
 
-        <div className="relative z-10 space-y-6">
-          <h1 className="text-6xl font-light leading-tight">
+        <div className="relative z-10 space-y-8">
+          <h1 className="text-display-lg leading-tight">
             Welcome back to
             <br />
             <span className="font-serif italic">the depths</span>
           </h1>
-          <p className="text-xl font-light text-background/80 max-w-md">
+          <p className="text-body-lg text-background/70 max-w-md leading-[1.7]">
             Continue your immersive journey. Dive back into fluency.
           </p>
         </div>
 
         <div className="relative z-10">
-          <p className="text-sm font-light text-background/60">
+          <p className="text-caption text-background/50">
             © 2026 Fluensea. Dive into fluency.
           </p>
         </div>
@@ -91,20 +94,20 @@ function LoginPageContent() {
 
       {/* Right side - Form */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-6 bg-muted/50 p-6 rounded-2xl shadow-md border border-border/30">
-          <div className="space-y-2">
-            <h2 className="text-3xl font-light tracking-tight">Sign in</h2>
-            <p className="text-muted-foreground font-light">
+        <div className="w-full max-w-md space-y-8 bg-muted/30 backdrop-blur-lg p-8 rounded-3xl shadow-elevation-2 border border-white/[0.06]">
+          <div className="space-y-3">
+            <h2 className="text-heading tracking-tight">Sign in</h2>
+            <p className="text-body text-muted-foreground">
               {plan === "diver" || plan === "submariner"
                 ? "Sign in to continue with your subscription"
                 : "Enter your credentials to continue"}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
-                <p className="text-sm text-destructive font-light">{error}</p>
+              <div className="p-4 rounded-2xl bg-destructive/8 border border-destructive/15 backdrop-blur-sm animate-shake-gentle">
+                <p className="text-caption text-destructive">{error}</p>
               </div>
             )}
 
@@ -114,7 +117,7 @@ function LoginPageContent() {
                 variant="outline"
                 onClick={() => handleOAuthLogin("google")}
                 disabled={loading || socialLoading !== null}
-                className="h-11 rounded-xl font-light border-border/50"
+                className="h-12 rounded-2xl font-light border-white/[0.08] hover:border-ocean-turquoise/30 hover:bg-ocean-turquoise/5 transition-all duration-300"
               >
                 {socialLoading === "google" ? (
                   "..."
@@ -148,7 +151,7 @@ function LoginPageContent() {
                 variant="outline"
                 onClick={() => handleOAuthLogin("github")}
                 disabled={loading || socialLoading !== null}
-                className="h-11 rounded-xl font-light border-border/50"
+                className="h-12 rounded-2xl font-light border-white/[0.08] hover:border-ocean-turquoise/30 hover:bg-ocean-turquoise/5 transition-all duration-300"
               >
                 {socialLoading === "github" ? (
                   "..."
@@ -167,20 +170,20 @@ function LoginPageContent() {
               </Button>
             </div>
 
-            <div className="relative">
+            <div className="relative my-2">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/50" />
+                <div className="w-full border-t border-white/[0.06]" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-background px-3 text-muted-foreground font-light">
+                <span className="bg-muted/30 px-4 text-muted-foreground/70 text-caption">
                   Or continue with email
                 </span>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-light">
+            <div className="space-y-5">
+              <div className="space-y-2.5">
+                <label htmlFor="email" className="text-caption font-medium">
                   Email
                 </label>
                 <Input
@@ -188,20 +191,23 @@ function LoginPageContent() {
                   name="email"
                   type="email"
                   placeholder="you@example.com"
-                  className="h-11 rounded-xl border-border/50 font-light"
+                  className="h-12 rounded-2xl border-white/[0.08] font-light"
                   required
                   disabled={loading || socialLoading !== null}
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm font-light">
+                  <label
+                    htmlFor="password"
+                    className="text-caption font-medium"
+                  >
                     Password
                   </label>
                   <Link
                     href="/auth/forgot-password"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors font-light"
+                    className="text-caption text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
                   >
                     Forgot password?
                   </Link>
@@ -211,7 +217,7 @@ function LoginPageContent() {
                   name="password"
                   type="password"
                   placeholder="••••••••"
-                  className="h-11 rounded-xl border-border/50 font-light"
+                  className="h-12 rounded-2xl border-white/[0.08] font-light"
                   required
                   disabled={loading || socialLoading !== null}
                 />
@@ -220,17 +226,17 @@ function LoginPageContent() {
 
             <Button
               type="submit"
-              className="w-full h-11 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-light"
+              className="w-full h-12 rounded-2xl bg-foreground text-background hover:bg-foreground/90 font-medium shadow-elevation-1 transition-all duration-300 hover:shadow-elevation-2"
               disabled={loading || socialLoading !== null}
             >
               {loading ? "Signing in..." : "Sign in"}
             </Button>
 
-            <p className="text-center text-sm text-muted-foreground font-light">
-              Don't have an account?{" "}
+            <p className="text-center text-caption text-muted-foreground">
+              Don&apos;t have an account?{" "}
               <Link
                 href="/auth/signup"
-                className="text-foreground hover:underline font-normal"
+                className="text-ocean-turquoise hover:underline font-medium transition-colors duration-300"
               >
                 Sign up
               </Link>

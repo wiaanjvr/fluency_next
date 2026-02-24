@@ -152,6 +152,23 @@ export function clozeReducer(
               detail: { activityType: "cloze" },
             }),
           );
+
+          // --- Goal tracking: cloze exercises completed ---
+          // Log the total number of exercises completed in this session
+          fetch("/api/goals/log-event", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              eventType: "cloze_completed",
+              value: state.items.length,
+            }),
+          }).catch(() => {});
+          // Also track daily activity (server deduplicates)
+          fetch("/api/goals/log-event", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ eventType: "daily_activity", value: 1 }),
+          }).catch(() => {});
         }
         return {
           ...state,

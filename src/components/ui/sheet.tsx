@@ -59,7 +59,7 @@ const SheetContent = React.forwardRef<
       <DialogPrimitive.Title className="sr-only">Panel</DialogPrimitive.Title>
       <DialogPrimitive.Description className="sr-only" />
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-full p-1.5 text-seafoam/60 opacity-70 transition-all hover:opacity-100 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-ocean-turquoise/40 disabled:pointer-events-none">
+      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-full p-1.5 min-h-touch min-w-[44px] flex items-center justify-center text-seafoam/60 opacity-70 transition-all hover:opacity-100 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-ocean-turquoise/40 disabled:pointer-events-none">
         <X className="h-5 w-5" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>

@@ -260,13 +260,11 @@ export default function ConversationSession({
       <div className="w-full max-w-2xl flex items-center justify-between">
         <button
           onClick={handleEndSession}
-          className="font-body text-sm px-3 py-1.5 rounded-lg transition-colors duration-200 hover:bg-white/5 cursor-pointer"
+          className="font-body text-sm px-3 py-1.5 min-h-touch rounded-lg transition-colors duration-200 hover:bg-white/5 cursor-pointer flex items-center gap-1.5"
           style={{ color: "var(--seafoam)", opacity: 0.6 }}
         >
-          <span className="flex items-center gap-1.5">
-            <PhoneOff className="w-3.5 h-3.5" />
-            End Session
-          </span>
+          <PhoneOff className="w-3.5 h-3.5" />
+          End Session
         </button>
 
         {/* Session timer */}

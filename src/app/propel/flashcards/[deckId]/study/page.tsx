@@ -1163,6 +1163,22 @@ function StudyContent({
         detail: { activityType: "flashcards" },
       }),
     );
+
+    // --- Goal tracking: flashcard session completed ---
+    fetch("/api/goals/log-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        eventType: "flashcard_session_completed",
+        value: 1,
+      }),
+    }).catch(() => {});
+    // Also track daily activity (server deduplicates)
+    fetch("/api/goals/log-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventType: "daily_activity", value: 1 }),
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.sessionComplete]);
 
