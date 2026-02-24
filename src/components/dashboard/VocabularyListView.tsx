@@ -20,7 +20,11 @@ const STAGE = {
     depthRange: 20,
     glow: "rgba(245, 158, 11, 0.18)",
     hoverGlow: "rgba(245, 158, 11, 0.40)",
-    pill: { bg: "rgba(245,158,11,0.10)", border: "rgba(245,158,11,0.28)", text: "#fbbf24" },
+    pill: {
+      bg: "rgba(245,158,11,0.10)",
+      border: "rgba(245,158,11,0.28)",
+      text: "#fbbf24",
+    },
     desc: "Just encountered",
   },
   learning: {
@@ -30,7 +34,11 @@ const STAGE = {
     depthRange: 32,
     glow: "rgba(16, 185, 129, 0.16)",
     hoverGlow: "rgba(16, 185, 129, 0.38)",
-    pill: { bg: "rgba(16,185,129,0.10)", border: "rgba(16,185,129,0.28)", text: "#34d399" },
+    pill: {
+      bg: "rgba(16,185,129,0.10)",
+      border: "rgba(16,185,129,0.28)",
+      text: "#34d399",
+    },
     desc: "Building familiarity",
   },
   known: {
@@ -40,7 +48,11 @@ const STAGE = {
     depthRange: 24,
     glow: "rgba(6, 182, 212, 0.16)",
     hoverGlow: "rgba(6, 182, 212, 0.40)",
-    pill: { bg: "rgba(6,182,212,0.10)", border: "rgba(6,182,212,0.28)", text: "#22d3ee" },
+    pill: {
+      bg: "rgba(6,182,212,0.10)",
+      border: "rgba(6,182,212,0.28)",
+      text: "#22d3ee",
+    },
     desc: "Solid recall",
   },
   mastered: {
@@ -50,7 +62,11 @@ const STAGE = {
     depthRange: 24,
     glow: "rgba(167, 139, 250, 0.18)",
     hoverGlow: "rgba(167, 139, 250, 0.45)",
-    pill: { bg: "rgba(167,139,250,0.10)", border: "rgba(167,139,250,0.28)", text: "#c4b5fd" },
+    pill: {
+      bg: "rgba(167,139,250,0.10)",
+      border: "rgba(167,139,250,0.28)",
+      text: "#c4b5fd",
+    },
     desc: "Deep memory",
   },
 } as const;
@@ -63,7 +79,10 @@ function getStage(status: string): (typeof STAGE)[StageKey] {
 
 function getDepthPercent(word: UserWord): number {
   const stage = getStage(word.status);
-  const easePct = Math.max(0, Math.min(1, (word.ease_factor - 1.3) / (3.5 - 1.3)));
+  const easePct = Math.max(
+    0,
+    Math.min(1, (word.ease_factor - 1.3) / (3.5 - 1.3)),
+  );
   return Math.round(stage.depthBase + easePct * stage.depthRange);
 }
 
@@ -113,32 +132,62 @@ function ReviewChip({ nextReview }: { nextReview: string }) {
       </span>
     );
   }
-  if (diffDays < 1) return <span className="text-xs text-[var(--turquoise)]">in {Math.round(diffDays * 24)}h</span>;
-  if (diffDays < 30) return <span className="text-xs text-[var(--seafoam)]">in {Math.round(diffDays)}d</span>;
-  return <span className="text-xs text-[var(--seafoam)]">{formatDistanceToNow(reviewDate, { addSuffix: true })}</span>;
+  if (diffDays < 1)
+    return (
+      <span className="text-xs text-[var(--turquoise)]">
+        in {Math.round(diffDays * 24)}h
+      </span>
+    );
+  if (diffDays < 30)
+    return (
+      <span className="text-xs text-[var(--seafoam)]">
+        in {Math.round(diffDays)}d
+      </span>
+    );
+  return (
+    <span className="text-xs text-[var(--seafoam)]">
+      {formatDistanceToNow(reviewDate, { addSuffix: true })}
+    </span>
+  );
 }
 
 // --- Main component -----------------------------------------------------------
-export function VocabularyListView({ words, language }: VocabularyListViewProps) {
+export function VocabularyListView({
+  words,
+  language,
+}: VocabularyListViewProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [sortField, setSortField] = useState<"word" | "status" | "next_review">("next_review");
+  const [sortField, setSortField] = useState<"word" | "status" | "next_review">(
+    "next_review",
+  );
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const handleSort = (field: typeof sortField) => {
     if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else { setSortField(field); setSortDir("asc"); }
+    else {
+      setSortField(field);
+      setSortDir("asc");
+    }
   };
 
   const sorted = useMemo(() => {
-    const order: Record<string, number> = { new: 0, learning: 1, known: 2, mastered: 3 };
+    const order: Record<string, number> = {
+      new: 0,
+      learning: 1,
+      known: 2,
+      mastered: 3,
+    };
     return [...words].sort((a, b) => {
       let cmp = 0;
       if (sortField === "word") cmp = a.word.localeCompare(b.word);
-      else if (sortField === "status") cmp = (order[a.status] ?? 0) - (order[b.status] ?? 0);
-      else cmp = new Date(a.next_review).getTime() - new Date(b.next_review).getTime();
+      else if (sortField === "status")
+        cmp = (order[a.status] ?? 0) - (order[b.status] ?? 0);
+      else
+        cmp =
+          new Date(a.next_review).getTime() - new Date(b.next_review).getTime();
       return sortDir === "asc" ? cmp : -cmp;
     });
   }, [words, sortField, sortDir]);
@@ -150,19 +199,30 @@ export function VocabularyListView({ words, language }: VocabularyListViewProps)
       const res = await fetch("/api/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: word, targetLang: "en", sourceLang: language }),
+        body: JSON.stringify({
+          text: word,
+          targetLang: "en",
+          sourceLang: language,
+        }),
       });
       const data = await res.json();
       setTranslations((t) => ({ ...t, [id]: data.translation ?? "—" }));
     } catch {
       setTranslations((t) => ({ ...t, [id]: "Translation unavailable" }));
     } finally {
-      setLoadingIds((s) => { const n = new Set(s); n.delete(id); return n; });
+      setLoadingIds((s) => {
+        const n = new Set(s);
+        n.delete(id);
+        return n;
+      });
     }
   };
 
   const toggle = (id: string, word: string) => {
-    if (expandedId === id) { setExpandedId(null); return; }
+    if (expandedId === id) {
+      setExpandedId(null);
+      return;
+    }
     setExpandedId(id);
     fetchTranslation(id, word);
   };
@@ -171,21 +231,35 @@ export function VocabularyListView({ words, language }: VocabularyListViewProps)
     return (
       <div className="py-16 flex flex-col items-center gap-2 text-center">
         <span className="text-4xl">🌊</span>
-        <p className="text-[var(--seafoam)] text-sm">No words found in these waters.</p>
+        <p className="text-[var(--seafoam)] text-sm">
+          No words found in these waters.
+        </p>
       </div>
     );
   }
 
-  const ColHeader = ({ field, children }: { field: typeof sortField; children: React.ReactNode }) => (
+  const ColHeader = ({
+    field,
+    children,
+  }: {
+    field: typeof sortField;
+    children: React.ReactNode;
+  }) => (
     <button
       onClick={() => handleSort(field)}
       className={cn(
         "text-[11px] font-semibold uppercase tracking-wider transition-colors text-left",
-        sortField === field ? "text-[var(--turquoise)]" : "text-[var(--seafoam)]/50 hover:text-[var(--seafoam)]",
+        sortField === field
+          ? "text-[var(--turquoise)]"
+          : "text-[var(--seafoam)]/50 hover:text-[var(--seafoam)]",
       )}
     >
       {children}
-      {sortField === field && <span className="ml-0.5 opacity-70">{sortDir === "asc" ? " ↑" : " ↓"}</span>}
+      {sortField === field && (
+        <span className="ml-0.5 opacity-70">
+          {sortDir === "asc" ? " ↑" : " ↓"}
+        </span>
+      )}
     </button>
   );
 
@@ -252,7 +326,7 @@ export function VocabularyListView({ words, language }: VocabularyListViewProps)
                     style={{
                       color: stage.pill.text,
                       transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                      opacity: isHovered || isExpanded ? 1 : 0.30,
+                      opacity: isHovered || isExpanded ? 1 : 0.3,
                     }}
                   >
                     <ChevronDown className="h-4 w-4" />
@@ -281,7 +355,7 @@ export function VocabularyListView({ words, language }: VocabularyListViewProps)
                           Loading…
                         </span>
                       ) : (
-                        translations[word.id] ?? "—"
+                        (translations[word.id] ?? "—")
                       )}
                     </div>
                   </div>
@@ -301,7 +375,9 @@ export function VocabularyListView({ words, language }: VocabularyListViewProps)
                     >
                       {stage.emoji} {stage.label}
                     </span>
-                    <div className="text-[10px] text-[var(--seafoam)]/50 mt-1">{stage.desc}</div>
+                    <div className="text-[10px] text-[var(--seafoam)]/50 mt-1">
+                      {stage.desc}
+                    </div>
                   </div>
 
                   {/* Reviews */}
@@ -310,7 +386,8 @@ export function VocabularyListView({ words, language }: VocabularyListViewProps)
                       Sessions
                     </div>
                     <div className="text-sm text-[var(--sand)]">
-                      {word.repetitions} review{word.repetitions !== 1 ? "s" : ""}
+                      {word.repetitions} review
+                      {word.repetitions !== 1 ? "s" : ""}
                     </div>
                   </div>
 
@@ -320,7 +397,9 @@ export function VocabularyListView({ words, language }: VocabularyListViewProps)
                       <div className="text-[10px] uppercase tracking-wider text-[var(--seafoam)]/45 mb-1.5">
                         Type
                       </div>
-                      <div className="text-sm capitalize text-[var(--sand)]">{word.part_of_speech}</div>
+                      <div className="text-sm capitalize text-[var(--sand)]">
+                        {word.part_of_speech}
+                      </div>
                     </div>
                   )}
                 </div>

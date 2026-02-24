@@ -2,20 +2,51 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SubmissionCard, langFlag } from "./SubmissionCard";
 import { SubmissionModal } from "./SubmissionModal";
 import { useCommunityStore } from "@/lib/store/communityStore";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Waves } from "lucide-react";
+import { Loader2, Waves, Pen, Mic, ArrowRightLeft } from "lucide-react";
 import type { ExerciseType } from "@/types/community";
 
-const TYPE_FILTERS: { value: ExerciseType | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "writing", label: "✍️ Writing" },
-  { value: "speaking", label: "🎙️ Speaking" },
-  { value: "translation", label: "🔄 Translation" },
+const TYPE_FILTERS: {
+  value: ExerciseType | "all";
+  label: string;
+  icon: React.ReactNode;
+}[] = [
+  { value: "all", label: "All Dives", icon: <Waves className="h-3 w-3" /> },
+  { value: "writing", label: "Writing", icon: <Pen className="h-3 w-3" /> },
+  { value: "speaking", label: "Speaking", icon: <Mic className="h-3 w-3" /> },
+  {
+    value: "translation",
+    label: "Translation",
+    icon: <ArrowRightLeft className="h-3 w-3" />,
+  },
+];
+
+// Ghost preview cards — shown in empty state to communicate what the feed will look like
+const GHOST_PREVIEWS = [
+  {
+    creature: "🐠",
+    name: "CoralDiver_42",
+    time: "2 hours ago",
+    type: "Writing",
+    tint: "bg-ocean-turquoise/10 text-ocean-turquoise border-ocean-turquoise/20",
+    prompt: "Describe your morning routine in French",
+    content:
+      "Le matin, je me lève à sept heures. Je prends une douche froide puis je bois mon café en regardant par la fenêtre…",
+  },
+  {
+    creature: "🐙",
+    name: "AbyssExplorer_17",
+    time: "5 hours ago",
+    type: "Translation",
+    tint: "bg-amber-500/10 text-amber-300 border-amber-500/20",
+    prompt: "Translate this paragraph from English to Spanish",
+    content:
+      "El océano es un lugar de misterio y maravilla. Sus profundidades esconden secretos que todavía no hemos descubierto…",
+  },
 ];
 
 interface CommunityFeedProps {
@@ -62,34 +93,37 @@ export function CommunityFeed({ language, className }: CommunityFeedProps) {
 
   return (
     <div className={cn("w-full", className)}>
-      {/* Filter bar */}
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
-        {TYPE_FILTERS.map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() =>
-              setFilterType(
-                value === "all" ? undefined : (value as ExerciseType),
-              )
-            }
-            className={cn(
-              "rounded-xl px-3.5 py-2 text-xs font-medium transition-all border",
-              activeTypeFilter === value
-                ? "bg-ocean-turquoise/15 text-ocean-turquoise border-ocean-turquoise/25"
-                : "bg-white/[0.03] text-seafoam/50 border-white/5 hover:bg-white/5 hover:text-seafoam/70",
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      {/* Filter bar — hidden when there's too little content to filter */}
+      {(submissions.length >= 3 || filterType !== undefined) && (
+        <div className="flex items-center gap-1.5 mb-5 flex-wrap">
+          {TYPE_FILTERS.map(({ value, label, icon }) => (
+            <button
+              key={value}
+              onClick={() =>
+                setFilterType(
+                  value === "all" ? undefined : (value as ExerciseType),
+                )
+              }
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all border",
+                activeTypeFilter === value
+                  ? "bg-ocean-turquoise/15 text-ocean-turquoise border-ocean-turquoise/25"
+                  : "bg-white/[0.03] text-seafoam/40 border-white/[0.05] hover:bg-white/[0.06] hover:text-seafoam/70",
+              )}
+            >
+              {icon}
+              {label}
+            </button>
+          ))}
 
-        {/* Active language indicator */}
-        {filterLanguage && (
-          <Badge variant="secondary" className="ml-auto">
-            {langFlag(filterLanguage)} {filterLanguage.toUpperCase()}
-          </Badge>
-        )}
-      </div>
+          {/* Active language indicator */}
+          {filterLanguage && (
+            <span className="ml-auto inline-flex items-center gap-1 rounded-xl bg-white/[0.03] border border-white/[0.05] px-2.5 py-1 text-xs text-seafoam/50">
+              {langFlag(filterLanguage)} {filterLanguage.toUpperCase()}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Error state */}
       {feedError && (
@@ -110,37 +144,84 @@ export function CommunityFeed({ language, className }: CommunityFeedProps) {
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="rounded-3xl border border-ocean-turquoise/10 p-5"
+              className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <Skeleton className="h-9 w-9 rounded-full" />
+              <div className="flex items-center gap-3 mb-3.5">
+                <Skeleton className="h-10 w-10 rounded-full" />
                 <div className="flex-1">
-                  <Skeleton className="h-4 w-24 mb-1" />
+                  <Skeleton className="h-4 w-28 mb-1.5" />
                   <Skeleton className="h-3 w-16" />
                 </div>
+                <Skeleton className="h-5 w-16 rounded-lg" />
               </div>
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-3/4 mb-3" />
-              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-3 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-full mb-1.5" />
+              <Skeleton className="h-4 w-4/5 mb-4" />
+              <Skeleton className="h-8 w-full rounded-xl" />
             </div>
           ))}
         </div>
       )}
 
-      {/* Empty state */}
+      {/* Rich empty state — ghost cards + prompts */}
       {!feedLoading && submissions.length === 0 && !feedError && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="h-20 w-20 rounded-full bg-ocean-turquoise/5 flex items-center justify-center mb-6">
-            <Waves className="h-10 w-10 text-ocean-turquoise/30" />
+        <div className="space-y-6">
+          {/* Ghost "teaser" cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-40 pointer-events-none select-none">
+            {GHOST_PREVIEWS.map((ghost, i) => (
+              <div
+                key={i}
+                className="rounded-3xl border border-ocean-turquoise/10 bg-white/[0.02] p-5"
+              >
+                <div className="flex items-start gap-3 mb-3.5">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-ocean-turquoise/20 to-teal-900/40 border border-ocean-turquoise/15 flex items-center justify-center text-lg">
+                    {ghost.creature}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-sand/70">
+                      {ghost.name}
+                    </p>
+                    <p className="text-xs text-seafoam/30">{ghost.time}</p>
+                  </div>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-medium",
+                      ghost.tint,
+                    )}
+                  >
+                    {ghost.type}
+                  </span>
+                </div>
+                <p className="text-[11px] text-seafoam/40 italic mb-2 border-l-2 border-ocean-turquoise/15 pl-2">
+                  {ghost.prompt}
+                </p>
+                <p className="text-sm text-sand/50 font-light leading-relaxed mb-4">
+                  {ghost.content}
+                </p>
+                <div className="flex items-center gap-2 rounded-xl bg-ocean-turquoise/5 border border-ocean-turquoise/10 px-3 py-2">
+                  <span className="text-xs text-ocean-turquoise/60">
+                    Be the first to review · earn +5 depth points
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
-          <h3 className="text-lg font-display font-semibold text-sand/80 mb-2">
-            No submissions yet
-          </h3>
-          <p className="text-sm text-seafoam/40 max-w-sm">
-            Be the first to submit your work for review
-            {filterLanguage ? ` in ${filterLanguage.toUpperCase()}` : ""}. The
-            community is waiting to help!
-          </p>
+
+          {/* Empty state CTA overlay */}
+          <div className="text-center -mt-2">
+            <div className="inline-flex flex-col items-center gap-3 rounded-2xl border border-ocean-turquoise/15 bg-ocean-turquoise/[0.05] px-8 py-6">
+              <span className="text-3xl">🌊</span>
+              <div>
+                <h3 className="text-base font-display font-semibold text-sand/80 mb-1">
+                  The tank is calm — for now
+                </h3>
+                <p className="text-sm text-seafoam/40 max-w-xs">
+                  No open submissions yet. Be the first to dive in — submit your
+                  work and start the current.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -171,7 +252,7 @@ export function CommunityFeed({ language, className }: CommunityFeedProps) {
                     Loading…
                   </>
                 ) : (
-                  "Load more submissions"
+                  "Dive deeper — load more"
                 )}
               </button>
             </div>

@@ -15,6 +15,7 @@ import { ReviewCard } from "./ReviewCard";
 import { ReviewForm } from "./ReviewForm";
 import { AudioPlayer } from "./AudioPlayer";
 import { langFlag, EXERCISE_LABELS, EXERCISE_ICONS } from "./SubmissionCard";
+import { getOceanCreature, getOceanDisplayName } from "./CommunityLeaderboard";
 import { useCommunityStore } from "@/lib/store/communityStore";
 import { useAuth } from "@/contexts/AuthContext";
 import type { SubmitReviewPayload } from "@/types/community";
@@ -89,7 +90,12 @@ export function SubmissionModal({
   );
 
   const profile = activeSubmission?.profiles;
-  const displayName = profile?.full_name || "Anonymous Learner";
+  const displayName = activeSubmission
+    ? getOceanDisplayName(activeSubmission.user_id, profile?.full_name)
+    : "";
+  const creature = activeSubmission
+    ? getOceanCreature(activeSubmission.user_id)
+    : "🌊";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -108,7 +114,7 @@ export function SubmissionModal({
             <SheetHeader className="mb-6">
               <div className="flex items-center gap-3 mb-2">
                 {/* Author avatar */}
-                <div className="h-10 w-10 shrink-0 rounded-full bg-ocean-turquoise/10 flex items-center justify-center overflow-hidden">
+                <div className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-ocean-turquoise/20 to-teal-900/40 border border-ocean-turquoise/15 flex items-center justify-center overflow-hidden">
                   {profile?.avatar_url ? (
                     <img
                       src={profile.avatar_url}
@@ -116,9 +122,7 @@ export function SubmissionModal({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="text-sm font-medium text-ocean-turquoise">
-                      {displayName.charAt(0).toUpperCase()}
-                    </span>
+                    <span className="text-lg leading-none">{creature}</span>
                   )}
                 </div>
                 <div>
@@ -150,8 +154,9 @@ export function SubmissionModal({
                   }
                 >
                   <MessageSquare className="h-3 w-3 mr-1" />
-                  {activeSubmission.review_count} review
-                  {activeSubmission.review_count !== 1 ? "s" : ""}
+                  {activeSubmission.review_count === 0
+                    ? "Be the first to review"
+                    : `${activeSubmission.review_count} review${activeSubmission.review_count !== 1 ? "s" : ""}`}
                 </Badge>
               </div>
             </SheetHeader>
@@ -201,23 +206,35 @@ export function SubmissionModal({
             <div className="mb-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-display font-semibold text-sand">
-                  Reviews
+                  Corrections from the community
                 </h3>
                 {!isOwnSubmission && !hasReviewed && !showReviewForm && (
                   <button
                     onClick={() => setShowReviewForm(true)}
-                    className="rounded-xl bg-ocean-turquoise/15 px-3 py-1.5 text-xs font-medium text-ocean-turquoise hover:bg-ocean-turquoise/25 transition-colors border border-ocean-turquoise/20"
+                    className="rounded-xl bg-[var(--turquoise)] text-[var(--midnight)] px-3 py-1.5 text-xs font-semibold hover:brightness-110 transition-all"
                   >
-                    Write a review
+                    Write a correction
                   </button>
                 )}
               </div>
 
               {activeReviews.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-ocean-turquoise/10 bg-white/[0.01] p-8 text-center">
-                  <p className="text-seafoam/40 text-sm">
-                    No reviews yet. Be the first to help!
+                <div className="rounded-2xl border border-dashed border-ocean-turquoise/15 bg-ocean-turquoise/[0.03] p-8 text-center">
+                  <span className="text-2xl block mb-2">🤿</span>
+                  <p className="text-sm font-medium text-sand/60 mb-1">
+                    No corrections yet
                   </p>
+                  <p className="text-xs text-seafoam/30">
+                    Be the first dive buddy to help — earn +5 depth points
+                  </p>
+                  {!isOwnSubmission && !hasReviewed && !showReviewForm && (
+                    <button
+                      onClick={() => setShowReviewForm(true)}
+                      className="mt-4 rounded-xl bg-ocean-turquoise/15 border border-ocean-turquoise/20 px-4 py-2 text-xs font-medium text-ocean-turquoise hover:bg-ocean-turquoise/25 transition-colors"
+                    >
+                      Dive in and review →
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-3">

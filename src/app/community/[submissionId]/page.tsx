@@ -13,6 +13,10 @@ import {
   EXERCISE_LABELS,
   EXERCISE_ICONS,
 } from "@/components/community/SubmissionCard";
+import {
+  getOceanCreature,
+  getOceanDisplayName,
+} from "@/components/community/CommunityLeaderboard";
 import { useCommunityStore } from "@/lib/store/communityStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, MessageSquare } from "lucide-react";
@@ -74,7 +78,12 @@ export default function SubmissionDetailPage() {
   };
 
   const profile = activeSubmission?.profiles;
-  const displayName = profile?.full_name || "Anonymous Learner";
+  const displayName = activeSubmission
+    ? getOceanDisplayName(activeSubmission.user_id, profile?.full_name)
+    : "";
+  const creature = activeSubmission
+    ? getOceanCreature(activeSubmission.user_id)
+    : "🌊";
 
   return (
     <ProtectedRoute>
@@ -100,7 +109,7 @@ export default function SubmissionDetailPage() {
             <>
               {/* Author header */}
               <div className="flex items-center gap-3 mb-6">
-                <div className="h-12 w-12 shrink-0 rounded-full bg-ocean-turquoise/10 flex items-center justify-center overflow-hidden">
+                <div className="h-12 w-12 shrink-0 rounded-full bg-gradient-to-br from-ocean-turquoise/20 to-teal-900/40 border border-ocean-turquoise/15 flex items-center justify-center overflow-hidden">
                   {profile?.avatar_url ? (
                     <img
                       src={profile.avatar_url}
@@ -108,9 +117,7 @@ export default function SubmissionDetailPage() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="text-lg font-medium text-ocean-turquoise">
-                      {displayName.charAt(0).toUpperCase()}
-                    </span>
+                    <span className="text-xl leading-none">{creature}</span>
                   )}
                 </div>
                 <div>
