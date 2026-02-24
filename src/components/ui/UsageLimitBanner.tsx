@@ -159,62 +159,112 @@ export function UsageLimitBanner({
   if (hasNoSessionsLeft) {
     return (
       <div
-        className={cn(
-          "bg-gradient-to-r from-ocean-teal/10 to-ocean-midnight/10 border border-ocean-turquoise/30 rounded-lg p-6",
-          className,
-        )}
+        className={cn("rounded-2xl p-5", className)}
+        style={{
+          background: "rgba(255,100,80,0.05)",
+          border: "1px solid rgba(255,100,80,0.2)",
+          backdropFilter: "blur(8px)",
+        }}
       >
         <div className="flex items-start justify-between gap-6">
           <div className="flex-1">
-            <h3 className="font-serif text-lg mb-2">
-              You've reached your daily limit
-            </h3>
-            <p className="text-sm text-muted-foreground font-light mb-4">
-              Come back tomorrow to continue learning, or upgrade to Diver for
-              unlimited access to all lesson types.
+            <p
+              className="font-display text-base italic mb-1"
+              style={{ color: "var(--sand)" }}
+            >
+              Surface reached
             </p>
-            <Link href={isSignedIn ? "/checkout?tier=diver" : "/auth/login"}>
-              <Button className="gap-2">
-                <Crown className="w-4 h-4" />
-                Upgrade to Diver
-              </Button>
-            </Link>
+            <p
+              className="text-sm font-body"
+              style={{ color: "var(--seafoam)", opacity: 0.75 }}
+            >
+              All dives used today. Return at dawn, or go unlimited.
+            </p>
           </div>
+          <Link href={isSignedIn ? "/checkout?tier=diver" : "/auth/login"}>
+            <button
+              className="text-sm font-body font-medium px-4 py-2 rounded-full transition-all duration-200"
+              style={{
+                background: "rgba(255,179,0,0.1)",
+                border: "1px solid rgba(255,179,0,0.3)",
+                color: "#ffb300",
+                cursor: "pointer",
+              }}
+            >
+              Go unlimited
+            </button>
+          </Link>
         </div>
       </div>
     );
   }
 
-  // Show compact summary (display total remaining across all lesson types)
+  // Show compact summary — ocean-themed depth-meter dots
   return (
     <div
-      className={cn(
-        "bg-muted/30 border border-border/50 rounded-lg p-4",
-        className,
-      )}
+      className={cn("rounded-2xl p-4", className)}
+      style={{
+        background: "rgba(0, 229, 204, 0.04)",
+        border: "1px solid rgba(0, 229, 204, 0.14)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+      }}
     >
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Info className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-light text-muted-foreground">
-            Today's remaining sessions:
+        <div className="flex items-center gap-3">
+          {/* Depth-meter dots — filled = available dive */}
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: TOTAL_DAILY_FREE }).map((_, idx) => {
+              const isAvailable = idx < totalRemaining;
+              return (
+                <div
+                  key={idx}
+                  className="rounded-full transition-all duration-400"
+                  style={{
+                    width: 9,
+                    height: 9,
+                    background: isAvailable
+                      ? "#00e5cc"
+                      : "rgba(255,255,255,0.1)",
+                    boxShadow: isAvailable
+                      ? "0 0 7px rgba(0,229,204,0.55)"
+                      : "none",
+                  }}
+                />
+              );
+            })}
+          </div>
+          <span
+            className="text-sm font-body"
+            style={{ color: "var(--seafoam)" }}
+          >
+            {totalRemaining === TOTAL_DAILY_FREE
+              ? `${TOTAL_DAILY_FREE} dives available today`
+              : totalRemaining === 1
+                ? "1 dive remaining today"
+                : `${totalRemaining} dives remaining today`}
           </span>
         </div>
-        <div className="flex items-center gap-4 text-sm">
-          <div>
-            <span className="text-foreground font-normal">
-              {totalRemaining}
-            </span>
-            <span className="text-muted-foreground font-light ml-1">
-              remaining of {TOTAL_DAILY_FREE}
-            </span>
-          </div>
-        </div>
         <Link href={isSignedIn ? "/checkout?tier=diver" : "/auth/login"}>
-          <Button variant="ghost" size="sm" className="gap-2">
-            <Crown className="w-4 h-4" />
-            Start Diving
-          </Button>
+          <button
+            className="text-xs font-body font-medium transition-all duration-200"
+            style={{
+              color: "rgba(0,229,204,0.55)",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: "4px 0",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = "#00e5cc";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "rgba(0,229,204,0.55)";
+            }}
+          >
+            Go unlimited →
+          </button>
         </Link>
       </div>
     </div>

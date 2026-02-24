@@ -338,34 +338,108 @@ export function NextLessonHero({
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Dive In CTA */}
-        <Link href={ctaHref} onClick={handleDiveClick}>
-          <button
-            className={cn(
-              "ocean-cta px-8 py-4 text-lg font-semibold flex items-center gap-3 group",
-              "transition-all duration-300",
-              hasRecommendation && urgency >= 80 && "animate-gentle-pulse",
-            )}
-          >
-            <span>{ctaLabel}</span>
-            <ArrowRight
+        {/* Dive In CTA — sonar idle ripple + submerge on hover */}
+        <div className="relative inline-flex">
+          {/* Expanding sonar rings radiating outward when idle */}
+          {!isHovered &&
+            [0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="absolute inset-0 rounded-full pointer-events-none"
+                style={{
+                  border: "1px solid rgba(0,229,204,0.28)",
+                  animation: `cta-sonar ${2.8 + i * 0.4}s ease-out ${
+                    i * 0.85
+                  }s infinite`,
+                }}
+              />
+            ))}
+          <Link href={ctaHref} onClick={handleDiveClick}>
+            <button
               className={cn(
-                "w-5 h-5 transition-transform duration-300",
-                isHovered ? "translate-x-1" : "",
+                "ocean-cta relative px-8 py-4 text-lg font-semibold flex items-center gap-3 group",
+                "transition-all duration-300",
+                hasRecommendation && urgency >= 80 && "animate-gentle-pulse",
               )}
-            />
-          </button>
-        </Link>
+              style={{
+                transform: isHovered
+                  ? "translateY(4px) scale(0.98)"
+                  : "translateY(0) scale(1)",
+                boxShadow: isHovered
+                  ? "0 2px 16px rgba(0,229,204,0.2), inset 0 2px 8px rgba(0,0,0,0.25)"
+                  : undefined,
+                transition:
+                  "transform 0.25s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease",
+              }}
+            >
+              <span>{ctaLabel}</span>
+              <ArrowRight
+                className={cn(
+                  "w-5 h-5 transition-transform duration-300",
+                  isHovered ? "translate-x-1" : "",
+                )}
+              />
+            </button>
+          </Link>
+        </div>
       </div>
 
-      {/* Decorative corner accent */}
+      {/* Sonar depth pulse — bottom right ambient animation */}
       <div
-        className="absolute top-6 right-6 w-24 h-24 rounded-full pointer-events-none"
-        style={{
-          background: `radial-gradient(circle, rgba(61, 214, 181, 0.08) 0%, transparent 70%)`,
-          filter: "blur(12px)",
-        }}
-      />
+        className="absolute pointer-events-none"
+        style={{ right: 44, bottom: 44 }}
+      >
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="absolute rounded-full"
+            style={{
+              width: 10,
+              height: 10,
+              top: "50%",
+              left: "50%",
+              border: "1px solid rgba(0,229,204,0.45)",
+              animation: `sonar-ping 3.6s ease-out ${i * 1.2}s infinite`,
+            }}
+          />
+        ))}
+        <div
+          className="relative w-2.5 h-2.5 rounded-full"
+          style={{
+            background: "rgba(0,229,204,0.55)",
+            boxShadow: "0 0 8px 2px rgba(0,229,204,0.4)",
+          }}
+        />
+      </div>
+
+      {/* Floating vocabulary preview — for new divers */}
+      {wordsAbsorbed < 30 && (
+        <div className="absolute top-8 right-8 flex flex-col items-end gap-2 pointer-events-none">
+          {["lumière", "mer", "vague"].map((word, i) => (
+            <div
+              key={word}
+              style={{
+                animation: `vocab-bubble-float ${
+                  2.4 + i * 0.7
+                }s ease-in-out ${i * 0.9}s infinite`,
+                background: "rgba(0,229,204,0.07)",
+                border: "1px solid rgba(0,229,204,0.18)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                borderRadius: 100,
+                padding: "5px 14px",
+                fontSize: 13,
+                fontFamily: "var(--font-display)",
+                color: "rgba(0,229,204,0.78)",
+                letterSpacing: "0.03em",
+                fontStyle: "italic",
+              }}
+            >
+              {word}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Keyframe styles for gentle pulse + cold start wave */}
       <style jsx>{`
@@ -388,6 +462,37 @@ export function NextLessonHero({
           }
           50% {
             transform: translateX(100%);
+          }
+        }
+        @keyframes sonar-ping {
+          0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.55;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(8);
+            opacity: 0;
+          }
+        }
+        @keyframes vocab-bubble-float {
+          0%,
+          100% {
+            transform: translateY(0px);
+            opacity: 0.75;
+          }
+          50% {
+            transform: translateY(-6px);
+            opacity: 1;
+          }
+        }
+        @keyframes cta-sonar {
+          0% {
+            transform: scale(1);
+            opacity: 0.45;
+          }
+          100% {
+            transform: scale(2.6);
+            opacity: 0;
           }
         }
       `}</style>

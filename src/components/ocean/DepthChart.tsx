@@ -138,6 +138,18 @@ export function DepthChart({
         .depth-bubble-2 { animation: depth-bubble-rise 3s ease-in infinite; animation-delay: 0.4s; }
         .depth-bubble-3 { animation: depth-bubble-rise 3s ease-in infinite; animation-delay: 0.8s; }
         .depth-bubble-4 { animation: depth-bubble-rise 3s ease-in infinite; animation-delay: 1.2s; }
+        @keyframes current-shimmer {
+          0%   { transform: translateY(calc(100% + 4rem)); }
+          100% { transform: translateY(-4rem); }
+        }
+        @keyframes bio-particle {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.45; }
+          33%       { transform: translate(3px, -6px) scale(1.3); opacity: 0.9; }
+          66%       { transform: translate(-2px, -3px) scale(0.8); opacity: 0.7; }
+        }
+        .bio-particle-a { animation: bio-particle 3.8s ease-in-out infinite; animation-delay: 0s; }
+        .bio-particle-b { animation: bio-particle 3.8s ease-in-out infinite; animation-delay: 1.3s; }
+        .bio-particle-c { animation: bio-particle 3.8s ease-in-out infinite; animation-delay: 2.6s; }
       `}</style>
 
       {/* Header */}
@@ -177,15 +189,26 @@ export function DepthChart({
 
             {/* Connector line running the length of the track */}
             <div
-              className="absolute left-1/2 -translate-x-1/2 w-[2px] rounded-[1px]"
+              className="absolute left-1/2 -translate-x-1/2 w-[2px] rounded-[1px] overflow-hidden"
               style={{
                 top: 8,
                 bottom: 8,
                 background:
-                  "linear-gradient(180deg, rgba(0,200,180,0.5) 0%, rgba(0,120,140,0.3) 40%, rgba(0,60,100,0.2) 80%, rgba(0,20,60,0.1) 100%)",
+                  "linear-gradient(180deg, rgba(0,200,180,0.4) 0%, rgba(0,120,140,0.22) 40%, rgba(0,60,100,0.12) 80%, rgba(0,20,60,0.06) 100%)",
                 zIndex: 0,
               }}
-            />
+            >
+              {/* Animated current — bright pulse flowing upward */}
+              <div
+                className="absolute inset-x-0"
+                style={{
+                  height: "4rem",
+                  background:
+                    "linear-gradient(180deg, transparent 0%, rgba(0,229,204,0.75) 50%, transparent 100%)",
+                  animation: "current-shimmer 5s linear infinite",
+                }}
+              />
+            </div>
 
             {/* Diver dot + bubble trail */}
             <div
@@ -249,25 +272,78 @@ export function DepthChart({
           <div className="flex flex-col flex-1">
             {ZONES.map((zone, i) => {
               const isActive = i === activeZoneIndex;
+              // Pressure-based opacity: zones below active = increasing deep darkness
+              // Zones above active = already surfaced, gently faded
+              const distBelow = i > activeZoneIndex ? i - activeZoneIndex : 0;
+              const distAbove = i < activeZoneIndex ? activeZoneIndex - i : 0;
+              const pressureOpacity = isActive
+                ? 1
+                : distBelow > 0
+                  ? Math.max(0.05, 0.22 - distBelow * 0.06)
+                  : Math.max(0.2, 0.42 - distAbove * 0.12);
               return (
                 <div
                   key={zone.id}
-                  className="flex flex-col justify-center transition-all duration-300"
+                  className="relative flex flex-col justify-center"
                   style={{
                     flex: 1,
                     minHeight: 52,
                     paddingTop: 6,
                     paddingBottom: 6,
                     paddingLeft: 12,
+                    opacity: pressureOpacity,
                     borderLeft: isActive
-                      ? "1px solid rgba(0,229,204,0.4)"
+                      ? "2px solid rgba(0,229,204,0.55)"
                       : "1px solid rgba(255,255,255,0.04)",
+                    background: isActive
+                      ? "rgba(0,229,204,0.04)"
+                      : "transparent",
+                    transition:
+                      "opacity 0.5s ease, background 0.4s ease, border-color 0.4s ease",
                   }}
                 >
+                  {/* Bioluminescent particles — active zone only */}
+                  {isActive && (
+                    <>
+                      <div
+                        className="bio-particle-a absolute rounded-full pointer-events-none"
+                        style={{
+                          right: 8,
+                          top: "25%",
+                          width: 4,
+                          height: 4,
+                          background: "rgba(0,229,204,0.85)",
+                          boxShadow: "0 0 6px 2px rgba(0,229,204,0.5)",
+                        }}
+                      />
+                      <div
+                        className="bio-particle-b absolute rounded-full pointer-events-none"
+                        style={{
+                          right: 20,
+                          top: "52%",
+                          width: 5,
+                          height: 5,
+                          background: "rgba(61,214,181,0.7)",
+                          boxShadow: "0 0 8px 2px rgba(61,214,181,0.45)",
+                        }}
+                      />
+                      <div
+                        className="bio-particle-c absolute rounded-full pointer-events-none"
+                        style={{
+                          right: 6,
+                          bottom: "22%",
+                          width: 3,
+                          height: 3,
+                          background: "rgba(0,229,204,0.9)",
+                          boxShadow: "0 0 5px 2px rgba(0,229,204,0.6)",
+                        }}
+                      />
+                    </>
+                  )}
                   <div
                     className="text-[16px] font-semibold uppercase tracking-widest transition-colors duration-300"
                     style={{
-                      color: isActive ? "#00e5cc" : "rgba(255,255,255,0.2)",
+                      color: isActive ? "#00e5cc" : "rgba(255,255,255,0.85)",
                     }}
                   >
                     {zone.name}
@@ -277,8 +353,8 @@ export function DepthChart({
                     style={{
                       fontFamily: "var(--font-mono, 'DM Mono', monospace)",
                       color: isActive
-                        ? "rgba(0,229,204,0.5)"
-                        : "rgba(255,255,255,0.12)",
+                        ? "rgba(0,229,204,0.55)"
+                        : "rgba(255,255,255,0.5)",
                     }}
                   >
                     {zone.depthLabel}
@@ -287,8 +363,8 @@ export function DepthChart({
                     className="text-[14px] mt-0.5 italic leading-snug transition-colors duration-300"
                     style={{
                       color: isActive
-                        ? "rgba(255,255,255,0.3)"
-                        : "rgba(255,255,255,0.12)",
+                        ? "rgba(255,255,255,0.35)"
+                        : "rgba(255,255,255,0.4)",
                     }}
                   >
                     {zone.description}
@@ -301,64 +377,81 @@ export function DepthChart({
 
         {/* ── Stats row ──────────────────────────────── */}
         <div
-          className="flex mt-5 pt-4"
+          className="mt-5 pt-4"
           style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
         >
-          {/* Words */}
-          <div
-            className="flex-1 flex flex-col gap-0.5"
-            style={{
-              paddingLeft: 0,
-              paddingRight: 12,
-              borderRight: "1px solid rgba(255,255,255,0.05)",
-            }}
-          >
-            <span
-              className="tabular-nums leading-none"
-              style={{
-                fontFamily: "var(--font-mono, 'DM Mono', monospace)",
-                fontSize: 24,
-                color: "#fff",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {wordCount}
-            </span>
-            <span
-              className="text-[13px] font-semibold uppercase tracking-widest"
-              style={{ color: "rgba(255,255,255,0.25)" }}
-            >
-              Words
-            </span>
-          </div>
-
-          {/* Time immersed */}
-          <div
-            className="flex-1 flex flex-col gap-0.5"
-            style={{
-              paddingLeft: 12,
-              paddingRight: 12,
-              borderRight: "1px solid rgba(255,255,255,0.05)",
-            }}
-          >
-            <span
-              className="tabular-nums leading-none"
-              style={{
-                fontFamily: "var(--font-mono, 'DM Mono', monospace)",
-                fontSize: 24,
-                color: "#fff",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {timeLabel}
-            </span>
-            <span
-              className="text-[13px] font-semibold uppercase tracking-widest"
-              style={{ color: "rgba(255,255,255,0.25)" }}
-            >
-              Immersed
-            </span>
-          </div>
+          {wordCount === 0 && totalMinutes === 0 ? (
+            /* New diver — reframe instead of showing discouraging zeros */
+            <div className="flex flex-col gap-1.5">
+              <span
+                className="font-display text-base italic"
+                style={{ color: "var(--seafoam)", opacity: 0.8 }}
+              >
+                Your dive begins now
+              </span>
+              <span
+                className="text-[12px] font-body uppercase tracking-widest"
+                style={{ color: "rgba(255,255,255,0.22)" }}
+              >
+                First session awaits ↓
+              </span>
+            </div>
+          ) : (
+            /* Returning diver — show real stats */
+            <div className="flex">
+              <div
+                className="flex-1 flex flex-col gap-0.5"
+                style={{
+                  paddingLeft: 0,
+                  paddingRight: 12,
+                  borderRight: "1px solid rgba(255,255,255,0.05)",
+                }}
+              >
+                <span
+                  className="tabular-nums leading-none"
+                  style={{
+                    fontFamily: "var(--font-mono, 'DM Mono', monospace)",
+                    fontSize: 24,
+                    color: "#fff",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  {wordCount}
+                </span>
+                <span
+                  className="text-[13px] font-semibold uppercase tracking-widest"
+                  style={{ color: "rgba(255,255,255,0.25)" }}
+                >
+                  Words
+                </span>
+              </div>
+              <div
+                className="flex-1 flex flex-col gap-0.5"
+                style={{
+                  paddingLeft: 12,
+                  paddingRight: 12,
+                }}
+              >
+                <span
+                  className="tabular-nums leading-none"
+                  style={{
+                    fontFamily: "var(--font-mono, 'DM Mono', monospace)",
+                    fontSize: 24,
+                    color: "#fff",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  {timeLabel}
+                </span>
+                <span
+                  className="text-[13px] font-semibold uppercase tracking-widest"
+                  style={{ color: "rgba(255,255,255,0.25)" }}
+                >
+                  Immersed
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -65,7 +65,11 @@ export function OceanBackground({ className, children }: OceanBackgroundProps) {
     <div
       ref={containerRef}
       className={cn("relative min-h-screen overflow-visible", className)}
-      style={{ background: "var(--midnight)" }}
+      style={{
+        // Pressure gradient — background darkens with depth, visible through semi-transparent cards
+        background:
+          "linear-gradient(180deg, #0d1929 0%, #080f1e 30%, #050b16 65%, #020709 100%)",
+      }}
     >
       {/* ===== LAYER 1: Sky/Surface (top 15%) ===== */}
       <div

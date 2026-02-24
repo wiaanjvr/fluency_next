@@ -2,377 +2,333 @@
 
 import { useState, useMemo } from "react";
 import { UserWord } from "@/types";
-import { Card } from "@/components/ui/card";
-import {
-  Clock,
-  TrendingUp,
-  CheckCircle2,
-  AlertCircle,
-  ArrowUpDown,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { ChevronDown, Loader2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import { Button } from "@/components/ui/button";
 
 interface VocabularyListViewProps {
   words: UserWord[];
   language: string;
 }
 
-type SortField =
-  | "word"
-  | "status"
-  | "next_review"
-  | "created_at"
-  | "ease_factor";
-type SortDirection = "asc" | "desc";
+// --- Ocean depth stages -------------------------------------------------------
+const STAGE = {
+  new: {
+    label: "Surfacing",
+    emoji: "🪸",
+    depthBase: 0,
+    depthRange: 20,
+    glow: "rgba(245, 158, 11, 0.18)",
+    hoverGlow: "rgba(245, 158, 11, 0.40)",
+    pill: { bg: "rgba(245,158,11,0.10)", border: "rgba(245,158,11,0.28)", text: "#fbbf24" },
+    desc: "Just encountered",
+  },
+  learning: {
+    label: "Drifting",
+    emoji: "🐠",
+    depthBase: 20,
+    depthRange: 32,
+    glow: "rgba(16, 185, 129, 0.16)",
+    hoverGlow: "rgba(16, 185, 129, 0.38)",
+    pill: { bg: "rgba(16,185,129,0.10)", border: "rgba(16,185,129,0.28)", text: "#34d399" },
+    desc: "Building familiarity",
+  },
+  known: {
+    label: "Diving",
+    emoji: "🐋",
+    depthBase: 52,
+    depthRange: 24,
+    glow: "rgba(6, 182, 212, 0.16)",
+    hoverGlow: "rgba(6, 182, 212, 0.40)",
+    pill: { bg: "rgba(6,182,212,0.10)", border: "rgba(6,182,212,0.28)", text: "#22d3ee" },
+    desc: "Solid recall",
+  },
+  mastered: {
+    label: "Abyssal",
+    emoji: "✨",
+    depthBase: 76,
+    depthRange: 24,
+    glow: "rgba(167, 139, 250, 0.18)",
+    hoverGlow: "rgba(167, 139, 250, 0.45)",
+    pill: { bg: "rgba(167,139,250,0.10)", border: "rgba(167,139,250,0.28)", text: "#c4b5fd" },
+    desc: "Deep memory",
+  },
+} as const;
 
-export function VocabularyListView({
-  words,
-  language,
-}: VocabularyListViewProps) {
-  const [sortField, setSortField] = useState<SortField>("next_review");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [expandedWord, setExpandedWord] = useState<string | null>(null);
-  const [translations, setTranslations] = useState<Record<string, string>>({});
-  const [loadingTranslations, setLoadingTranslations] = useState<Set<string>>(
-    new Set(),
+type StageKey = keyof typeof STAGE;
+
+function getStage(status: string): (typeof STAGE)[StageKey] {
+  return STAGE[(status as StageKey) in STAGE ? (status as StageKey) : "new"];
+}
+
+function getDepthPercent(word: UserWord): number {
+  const stage = getStage(word.status);
+  const easePct = Math.max(0, Math.min(1, (word.ease_factor - 1.3) / (3.5 - 1.3)));
+  return Math.round(stage.depthBase + easePct * stage.depthRange);
+}
+
+// --- Depth gauge --------------------------------------------------------------
+function DepthGauge({ word }: { word: UserWord }) {
+  const pct = getDepthPercent(word);
+  const stage = getStage(word.status);
+
+  return (
+    <div className="flex flex-col gap-1.5 w-full">
+      <div
+        className="relative w-full h-[5px] rounded-full overflow-hidden"
+        style={{ background: "rgba(255,255,255,0.07)" }}
+      >
+        <div
+          className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+          style={{
+            width: `${pct}%`,
+            background:
+              "linear-gradient(90deg, #d97706 0%, #10b981 33%, #06b6d4 65%, #818cf8 100%)",
+          }}
+        />
+      </div>
+      <span
+        className="text-[10px] font-semibold uppercase tracking-wide"
+        style={{ color: stage.pill.text }}
+      >
+        {stage.emoji} {stage.label}
+      </span>
+    </div>
   );
+}
 
-  const sortedWords = useMemo(() => {
-    return [...words].sort((a, b) => {
-      let comparison = 0;
+// --- Review chip --------------------------------------------------------------
+function ReviewChip({ nextReview }: { nextReview: string }) {
+  const reviewDate = new Date(nextReview);
+  const now = new Date();
+  const isDue = reviewDate <= now;
+  const diffMs = reviewDate.getTime() - now.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
-      switch (sortField) {
-        case "word":
-          comparison = a.word.localeCompare(b.word);
-          break;
-        case "status":
-          const statusOrder = { new: 0, learning: 1, known: 2, mastered: 3 };
-          comparison = statusOrder[a.status] - statusOrder[b.status];
-          break;
-        case "next_review":
-          comparison =
-            new Date(a.next_review).getTime() -
-            new Date(b.next_review).getTime();
-          break;
-        case "created_at":
-          comparison =
-            new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-          break;
-        case "ease_factor":
-          comparison = a.ease_factor - b.ease_factor;
-          break;
-      }
+  if (isDue) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[rgba(248,113,113,0.12)] border border-[rgba(248,113,113,0.28)] text-[#fca5a5]">
+        <Zap className="h-2.5 w-2.5" />
+        Ready
+      </span>
+    );
+  }
+  if (diffDays < 1) return <span className="text-xs text-[var(--turquoise)]">in {Math.round(diffDays * 24)}h</span>;
+  if (diffDays < 30) return <span className="text-xs text-[var(--seafoam)]">in {Math.round(diffDays)}d</span>;
+  return <span className="text-xs text-[var(--seafoam)]">{formatDistanceToNow(reviewDate, { addSuffix: true })}</span>;
+}
 
-      return sortDirection === "asc" ? comparison : -comparison;
-    });
-  }, [words, sortField, sortDirection]);
+// --- Main component -----------------------------------------------------------
+export function VocabularyListView({ words, language }: VocabularyListViewProps) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<"word" | "status" | "next_review">("next_review");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortField(field); setSortDir("asc"); }
   };
 
-  const getTranslation = async (wordId: string, word: string) => {
-    if (translations[wordId]) {
-      return;
-    }
+  const sorted = useMemo(() => {
+    const order: Record<string, number> = { new: 0, learning: 1, known: 2, mastered: 3 };
+    return [...words].sort((a, b) => {
+      let cmp = 0;
+      if (sortField === "word") cmp = a.word.localeCompare(b.word);
+      else if (sortField === "status") cmp = (order[a.status] ?? 0) - (order[b.status] ?? 0);
+      else cmp = new Date(a.next_review).getTime() - new Date(b.next_review).getTime();
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [words, sortField, sortDir]);
 
-    setLoadingTranslations((prev) => new Set(prev).add(wordId));
-
+  const fetchTranslation = async (id: string, word: string) => {
+    if (translations[id] || loadingIds.has(id)) return;
+    setLoadingIds((s) => new Set(s).add(id));
     try {
-      const response = await fetch("/api/translate", {
+      const res = await fetch("/api/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: word,
-          targetLang: "en",
-          sourceLang: language,
-        }),
+        body: JSON.stringify({ text: word, targetLang: "en", sourceLang: language }),
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTranslations((prev) => ({ ...prev, [wordId]: data.translation }));
-      }
-    } catch (error) {
-      console.error("Translation error:", error);
-      setTranslations((prev) => ({
-        ...prev,
-        [wordId]: "Translation unavailable",
-      }));
+      const data = await res.json();
+      setTranslations((t) => ({ ...t, [id]: data.translation ?? "—" }));
+    } catch {
+      setTranslations((t) => ({ ...t, [id]: "Translation unavailable" }));
     } finally {
-      setLoadingTranslations((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(wordId);
-        return newSet;
-      });
+      setLoadingIds((s) => { const n = new Set(s); n.delete(id); return n; });
     }
   };
 
-  const toggleExpand = (wordId: string, word: string) => {
-    if (expandedWord === wordId) {
-      setExpandedWord(null);
-    } else {
-      setExpandedWord(wordId);
-      getTranslation(wordId, word);
-    }
+  const toggle = (id: string, word: string) => {
+    if (expandedId === id) { setExpandedId(null); return; }
+    setExpandedId(id);
+    fetchTranslation(id, word);
   };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "new":
-        return "text-blue-500 bg-blue-500/10 border-blue-500/20";
-      case "learning":
-        return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20";
-      case "known":
-        return "text-green-500 bg-green-500/10 border-green-500/20";
-      case "mastered":
-        return "text-purple-500 bg-purple-500/10 border-purple-500/20";
-      default:
-        return "text-gray-500 bg-gray-500/10 border-gray-500/20";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "new":
-        return <AlertCircle className="h-4 w-4" />;
-      case "learning":
-        return <TrendingUp className="h-4 w-4" />;
-      case "known":
-        return <CheckCircle2 className="h-4 w-4" />;
-      case "mastered":
-        return <CheckCircle2 className="h-4 w-4 fill-current" />;
-      default:
-        return null;
-    }
-  };
-
-  const getReviewStatus = (nextReview: string) => {
-    const reviewDate = new Date(nextReview);
-    const now = new Date();
-    const isPast = reviewDate <= now;
-
-    return {
-      isPast,
-      text: isPast
-        ? "Due now"
-        : `Due ${formatDistanceToNow(reviewDate, { addSuffix: true })}`,
-      color: isPast ? "text-red-500" : "text-muted-foreground",
-    };
-  };
-
-  const SortButton = ({
-    field,
-    children,
-  }: {
-    field: SortField;
-    children: React.ReactNode;
-  }) => (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => handleSort(field)}
-      className="gap-1 h-8 text-xs font-medium"
-    >
-      {children}
-      <ArrowUpDown
-        className={cn(
-          "h-3 w-3",
-          sortField === field ? "opacity-100" : "opacity-50",
-        )}
-      />
-    </Button>
-  );
 
   if (words.length === 0) {
     return (
-      <Card className="p-8 text-center">
-        <p className="text-muted-foreground">No words found</p>
-      </Card>
+      <div className="py-16 flex flex-col items-center gap-2 text-center">
+        <span className="text-4xl">🌊</span>
+        <p className="text-[var(--seafoam)] text-sm">No words found in these waters.</p>
+      </div>
     );
   }
 
+  const ColHeader = ({ field, children }: { field: typeof sortField; children: React.ReactNode }) => (
+    <button
+      onClick={() => handleSort(field)}
+      className={cn(
+        "text-[11px] font-semibold uppercase tracking-wider transition-colors text-left",
+        sortField === field ? "text-[var(--turquoise)]" : "text-[var(--seafoam)]/50 hover:text-[var(--seafoam)]",
+      )}
+    >
+      {children}
+      {sortField === field && <span className="ml-0.5 opacity-70">{sortDir === "asc" ? " ↑" : " ↓"}</span>}
+    </button>
+  );
+
   return (
-    <Card>
-      {/* Header */}
-      <div className="grid grid-cols-12 gap-4 p-4 bg-muted/50 border-b text-xs font-medium text-muted-foreground">
-        <div className="col-span-3">
-          <SortButton field="word">Word</SortButton>
-        </div>
-        <div className="col-span-2">
-          <SortButton field="status">Status</SortButton>
-        </div>
-        <div className="col-span-2">
-          <SortButton field="ease_factor">Mastery</SortButton>
-        </div>
-        <div className="col-span-2">
-          <SortButton field="next_review">Next Review</SortButton>
-        </div>
-        <div className="col-span-2">
-          <SortButton field="created_at">Added</SortButton>
-        </div>
-        <div className="col-span-1"></div>
+    <div className="w-full">
+      {/* Column headers */}
+      <div className="grid grid-cols-[1fr_180px_110px_28px] gap-3 px-4 py-2.5 border-b border-white/[0.06]">
+        <ColHeader field="word">Word</ColHeader>
+        <ColHeader field="status">Depth</ColHeader>
+        <ColHeader field="next_review">Next Review</ColHeader>
+        <div />
       </div>
 
-      {/* Word list */}
-      <div className="divide-y">
-        {sortedWords.map((word) => {
-          const isExpanded = expandedWord === word.id;
-          const reviewStatus = getReviewStatus(word.next_review);
-          const isLoadingTranslation = loadingTranslations.has(word.id);
+      {/* Rows */}
+      <div role="list">
+        {sorted.map((word) => {
+          const stage = getStage(word.status);
+          const isExpanded = expandedId === word.id;
+          const isHovered = hoveredId === word.id;
 
           return (
-            <div key={word.id} className="hover:bg-muted/50 transition-colors">
+            <div key={word.id} role="listitem">
+              {/* Row button */}
               <button
-                onClick={() => toggleExpand(word.id, word.word)}
-                className="w-full grid grid-cols-12 gap-4 p-4 text-left items-center"
+                className="w-full text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--turquoise)]"
+                onClick={() => toggle(word.id, word.word)}
+                onMouseEnter={() => setHoveredId(word.id)}
+                onMouseLeave={() => setHoveredId(null)}
+                style={{
+                  background: isExpanded
+                    ? stage.pill.bg
+                    : isHovered
+                      ? stage.glow
+                      : "transparent",
+                  boxShadow:
+                    isHovered || isExpanded
+                      ? `inset 0 0 0 1px ${stage.pill.border}, 0 0 20px ${stage.hoverGlow}`
+                      : undefined,
+                  transition: "background 0.16s ease, box-shadow 0.20s ease",
+                }}
               >
-                <div className="col-span-3">
-                  <div className="font-medium">{word.word}</div>
-                  {word.lemma !== word.word && (
-                    <div className="text-xs text-muted-foreground">
-                      ({word.lemma})
-                    </div>
-                  )}
-                </div>
-
-                <div className="col-span-2">
-                  <div
-                    className={cn(
-                      "inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs font-medium capitalize",
-                      getStatusColor(word.status),
+                <div className="grid grid-cols-[1fr_180px_110px_28px] gap-3 px-4 py-3.5 items-center">
+                  {/* Word */}
+                  <div>
+                    <span className="font-semibold text-[var(--sand)] text-sm tracking-wide">
+                      {word.word}
+                    </span>
+                    {word.lemma && word.lemma !== word.word && (
+                      <span className="ml-1.5 text-[11px] text-[var(--seafoam)]/50">
+                        ({word.lemma})
+                      </span>
                     )}
+                  </div>
+
+                  {/* Depth gauge */}
+                  <DepthGauge word={word} />
+
+                  {/* Review chip */}
+                  <ReviewChip nextReview={word.next_review} />
+
+                  {/* Chevron */}
+                  <div
+                    className="flex justify-center transition-transform duration-200"
+                    style={{
+                      color: stage.pill.text,
+                      transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                      opacity: isHovered || isExpanded ? 1 : 0.30,
+                    }}
                   >
-                    {getStatusIcon(word.status)}
-                    {word.status}
-                  </div>
-                </div>
-
-                <div className="col-span-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className={cn(
-                            "h-full transition-all",
-                            word.status === "mastered"
-                              ? "bg-purple-500"
-                              : word.status === "known"
-                                ? "bg-green-500"
-                                : word.status === "learning"
-                                  ? "bg-yellow-500"
-                                  : "bg-blue-500",
-                          )}
-                          style={{
-                            width: `${Math.min(100, (word.ease_factor / 2.5) * 100)}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {word.ease_factor.toFixed(1)}
-                    </span>
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {word.repetitions} review{word.repetitions !== 1 ? "s" : ""}
-                  </div>
-                </div>
-
-                <div className="col-span-2">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className={cn("h-3 w-3", reviewStatus.color)} />
-                    <span className={cn("text-xs", reviewStatus.color)}>
-                      {reviewStatus.text}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="col-span-2">
-                  <div className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(word.created_at), {
-                      addSuffix: true,
-                    })}
-                  </div>
-                </div>
-
-                <div className="col-span-1 flex justify-end">
-                  {isExpanded ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
                     <ChevronDown className="h-4 w-4" />
-                  )}
+                  </div>
                 </div>
               </button>
 
-              {/* Expanded details */}
+              {/* Expanded detail panel */}
               {isExpanded && (
-                <div className="px-4 pb-4 grid grid-cols-2 gap-4 bg-muted/30">
-                  <div>
-                    <div className="text-xs font-medium text-muted-foreground mb-1">
+                <div
+                  className="px-4 pb-4 pt-2 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b"
+                  style={{
+                    background: `linear-gradient(180deg, ${stage.pill.bg} 0%, transparent 120%)`,
+                    borderColor: stage.pill.border,
+                  }}
+                >
+                  {/* Translation */}
+                  <div className="col-span-2 sm:col-span-1">
+                    <div className="text-[10px] uppercase tracking-wider text-[var(--seafoam)]/45 mb-1.5">
                       Translation
                     </div>
-                    <div className="text-sm">
-                      {isLoadingTranslation ? (
-                        <span className="text-muted-foreground">
-                          Loading...
+                    <div className="text-sm font-medium text-[var(--sand)]">
+                      {loadingIds.has(word.id) ? (
+                        <span className="flex items-center gap-1.5 text-[var(--seafoam)]/50">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Loading…
                         </span>
                       ) : (
-                        translations[word.id] || "Click to load translation"
+                        translations[word.id] ?? "—"
                       )}
                     </div>
                   </div>
 
+                  {/* Stage badge */}
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-[var(--seafoam)]/45 mb-1.5">
+                      Stage
+                    </div>
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border"
+                      style={{
+                        background: stage.pill.bg,
+                        borderColor: stage.pill.border,
+                        color: stage.pill.text,
+                      }}
+                    >
+                      {stage.emoji} {stage.label}
+                    </span>
+                    <div className="text-[10px] text-[var(--seafoam)]/50 mt-1">{stage.desc}</div>
+                  </div>
+
+                  {/* Reviews */}
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-[var(--seafoam)]/45 mb-1.5">
+                      Sessions
+                    </div>
+                    <div className="text-sm text-[var(--sand)]">
+                      {word.repetitions} review{word.repetitions !== 1 ? "s" : ""}
+                    </div>
+                  </div>
+
+                  {/* Part of speech */}
                   {word.part_of_speech && (
                     <div>
-                      <div className="text-xs font-medium text-muted-foreground mb-1">
-                        Part of Speech
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--seafoam)]/45 mb-1.5">
+                        Type
                       </div>
-                      <div className="text-sm capitalize">
-                        {word.part_of_speech}
-                      </div>
+                      <div className="text-sm capitalize text-[var(--sand)]">{word.part_of_speech}</div>
                     </div>
                   )}
-
-                  <div>
-                    <div className="text-xs font-medium text-muted-foreground mb-1">
-                      Ease Factor
-                    </div>
-                    <div className="text-sm">
-                      {word.ease_factor.toFixed(2)} (
-                      {word.ease_factor >= 2.2
-                        ? "Excellent"
-                        : word.ease_factor >= 1.8
-                          ? "Good"
-                          : "Needs practice"}
-                      )
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="text-xs font-medium text-muted-foreground mb-1">
-                      Interval
-                    </div>
-                    <div className="text-sm">
-                      {word.interval < 1
-                        ? `${Math.round(word.interval * 24)} hours`
-                        : `${Math.round(word.interval)} days`}
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
           );
         })}
       </div>
-    </Card>
+    </div>
   );
 }

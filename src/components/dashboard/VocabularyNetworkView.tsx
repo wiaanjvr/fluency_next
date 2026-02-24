@@ -90,13 +90,13 @@ export function VocabularyNetworkView({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "new":
-        return "#3b82f6"; // blue
+        return "#f59e0b"; // amber — surfacing
       case "learning":
-        return "#eab308"; // yellow
+        return "#10b981"; // emerald — drifting
       case "known":
-        return "#22c55e"; // green
+        return "#06b6d4"; // cyan — diving
       case "mastered":
-        return "#a855f7"; // purple
+        return "#818cf8"; // indigo — abyssal
       default:
         return "#6b7280"; // gray
     }
@@ -154,79 +154,147 @@ export function VocabularyNetworkView({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Network visualization */}
-      <Card className="lg:col-span-2 p-4 overflow-hidden">
+      <Card
+        className="lg:col-span-2 p-4 overflow-hidden"
+        style={{
+          background: "rgba(2,20,48,0.80)",
+          border: "1px solid rgba(61,214,181,0.12)",
+        }}
+      >
         <div className="mb-4">
-          <h3 className="font-semibold mb-2">Vocabulary Network</h3>
-          <p className="text-sm text-muted-foreground">
-            Words are clustered by learning status. Click a word to see details.
+          <h3 className="font-semibold mb-2 text-[var(--sand)]">
+            Word Currents
+          </h3>
+          <p className="text-sm" style={{ color: "rgba(125,214,197,0.65)" }}>
+            Words cluster by depth stage. Click any node to inspect it.
           </p>
         </div>
 
-        <div className="relative bg-muted/30 rounded-lg overflow-hidden">
+        <div
+          className="relative overflow-hidden rounded-xl"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(2,55,90,0.60) 0%, rgba(5,14,50,0.80) 100%)",
+          }}
+        >
           <svg
             viewBox="0 0 800 600"
             className="w-full h-auto"
             style={{ minHeight: "400px" }}
           >
-            {/* Status region labels */}
-            <text x="150" y="30" className="fill-blue-500 text-xs font-medium">
-              New ({stats.new})
+            {/* Ambient background glow per zone */}
+            <defs>
+              <radialGradient id="glow-new" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.12" />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+              </radialGradient>
+              <radialGradient id="glow-learning" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.12" />
+                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+              </radialGradient>
+              <radialGradient id="glow-known" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.12" />
+                <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
+              </radialGradient>
+              <radialGradient id="glow-mastered" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#818cf8" stopOpacity="0.15" />
+                <stop offset="100%" stopColor="#818cf8" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+
+            {/* Zone blob backgrounds */}
+            <circle cx="150" cy="100" r="130" fill="url(#glow-new)" />
+            <circle cx="650" cy="100" r="130" fill="url(#glow-learning)" />
+            <circle cx="150" cy="500" r="130" fill="url(#glow-known)" />
+            <circle cx="650" cy="500" r="130" fill="url(#glow-mastered)" />
+
+            {/* Zone border rings */}
+            <circle
+              cx="150"
+              cy="100"
+              r="120"
+              fill="none"
+              stroke="#f59e0b"
+              strokeWidth="1"
+              strokeDasharray="3 6"
+              strokeOpacity="0.25"
+            />
+            <circle
+              cx="650"
+              cy="100"
+              r="120"
+              fill="none"
+              stroke="#10b981"
+              strokeWidth="1"
+              strokeDasharray="3 6"
+              strokeOpacity="0.25"
+            />
+            <circle
+              cx="150"
+              cy="500"
+              r="120"
+              fill="none"
+              stroke="#06b6d4"
+              strokeWidth="1"
+              strokeDasharray="3 6"
+              strokeOpacity="0.25"
+            />
+            <circle
+              cx="650"
+              cy="500"
+              r="120"
+              fill="none"
+              stroke="#818cf8"
+              strokeWidth="1"
+              strokeDasharray="3 6"
+              strokeOpacity="0.25"
+            />
+
+            {/* Zone labels */}
+            <text
+              x="150"
+              y="28"
+              textAnchor="middle"
+              fill="#fbbf24"
+              fontSize="10"
+              fontWeight="600"
+              opacity="0.75"
+            >
+              🪸 Surfacing ({stats.new})
             </text>
             <text
               x="650"
-              y="30"
-              className="fill-yellow-500 text-xs font-medium"
+              y="28"
+              textAnchor="middle"
+              fill="#34d399"
+              fontSize="10"
+              fontWeight="600"
+              opacity="0.75"
             >
-              Learning ({stats.learning})
+              🐠 Drifting ({stats.learning})
             </text>
             <text
               x="150"
-              y="580"
-              className="fill-green-500 text-xs font-medium"
+              y="578"
+              textAnchor="middle"
+              fill="#22d3ee"
+              fontSize="10"
+              fontWeight="600"
+              opacity="0.75"
             >
-              Known ({stats.known})
+              🐋 Diving ({stats.known})
             </text>
             <text
               x="650"
-              y="580"
-              className="fill-purple-500 text-xs font-medium"
+              y="578"
+              textAnchor="middle"
+              fill="#c4b5fd"
+              fontSize="10"
+              fontWeight="600"
+              opacity="0.75"
             >
-              Mastered ({stats.mastered})
+              ✨ Abyssal ({stats.mastered})
             </text>
-
-            {/* Status region backgrounds */}
-            <circle
-              cx="150"
-              cy="100"
-              r="120"
-              className="fill-blue-500/5 stroke-blue-500/20"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-            />
-            <circle
-              cx="650"
-              cy="100"
-              r="120"
-              className="fill-yellow-500/5 stroke-yellow-500/20"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-            />
-            <circle
-              cx="150"
-              cy="500"
-              r="120"
-              className="fill-green-500/5 stroke-green-500/20"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-            />
-            <circle
-              cx="650"
-              cy="500"
-              r="120"
-              className="fill-purple-500/5 stroke-purple-500/20"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-            />
 
             {/* Word nodes */}
             {nodes.map((node) => {
@@ -269,27 +337,47 @@ export function VocabularyNetworkView({
 
         {/* Legend */}
         <div className="mt-4 flex flex-wrap gap-4 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span>New</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-500" />
-            <span>Learning</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500" />
-            <span>Known</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-purple-500" />
-            <span>Mastered</span>
-          </div>
+          {[
+            {
+              color: "#f59e0b",
+              glow: "rgba(245,158,11,0.6)",
+              label: "🪸 Surfacing",
+            },
+            {
+              color: "#10b981",
+              glow: "rgba(16,185,129,0.6)",
+              label: "🐠 Drifting",
+            },
+            {
+              color: "#06b6d4",
+              glow: "rgba(6,182,212,0.6)",
+              label: "🐋 Diving",
+            },
+            {
+              color: "#818cf8",
+              glow: "rgba(129,140,248,0.6)",
+              label: "✨ Abyssal",
+            },
+          ].map(({ color, glow, label }) => (
+            <div key={label} className="flex items-center gap-2">
+              <div
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ background: color, boxShadow: `0 0 6px ${glow}` }}
+              />
+              <span style={{ color: color, opacity: 0.85 }}>{label}</span>
+            </div>
+          ))}
         </div>
       </Card>
 
       {/* Details panel */}
-      <Card className="p-4">
+      <Card
+        className="p-4"
+        style={{
+          background: "rgba(2,20,48,0.80)",
+          border: "1px solid rgba(61,214,181,0.12)",
+        }}
+      >
         {selectedWord ? (
           <div className="space-y-4">
             <div>
@@ -320,13 +408,13 @@ export function VocabularyNetworkView({
                 className={cn(
                   "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize",
                   selectedWord.status === "new" &&
-                    "bg-blue-500/10 text-blue-500",
+                    "bg-amber-500/10 text-amber-400",
                   selectedWord.status === "learning" &&
-                    "bg-yellow-500/10 text-yellow-500",
+                    "bg-emerald-500/10 text-emerald-400",
                   selectedWord.status === "known" &&
-                    "bg-green-500/10 text-green-500",
+                    "bg-cyan-500/10 text-cyan-400",
                   selectedWord.status === "mastered" &&
-                    "bg-purple-500/10 text-purple-500",
+                    "bg-indigo-400/10 text-indigo-400",
                 )}
               >
                 {selectedWord.status}
@@ -340,7 +428,13 @@ export function VocabularyNetworkView({
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 via-green-500 to-purple-500"
+                    className="h-full"
+                    style={
+                      {
+                        background:
+                          "linear-gradient(90deg, #d97706 0%, #10b981 33%, #06b6d4 65%, #818cf8 100%)",
+                      } as any
+                    }
                     style={{
                       width: `${Math.min(100, (selectedWord.ease_factor / 2.5) * 100)}%`,
                     }}

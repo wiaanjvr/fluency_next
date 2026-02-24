@@ -81,28 +81,28 @@ export function VocabularyCardView({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "new":
-        return "border-blue-500 bg-blue-500/5";
+        return "border-amber-500/40 bg-amber-500/[0.06]";
       case "learning":
-        return "border-yellow-500 bg-yellow-500/5";
+        return "border-emerald-500/40 bg-emerald-500/[0.06]";
       case "known":
-        return "border-green-500 bg-green-500/5";
+        return "border-cyan-500/40 bg-cyan-500/[0.06]";
       case "mastered":
-        return "border-purple-500 bg-purple-500/5";
+        return "border-indigo-400/40 bg-indigo-400/[0.06]";
       default:
-        return "border-gray-500 bg-gray-500/5";
+        return "border-white/10 bg-white/[0.03]";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "new":
-        return <AlertCircle className="h-5 w-5 text-blue-500" />;
+        return <AlertCircle className="h-5 w-5 text-amber-400" />;
       case "learning":
-        return <TrendingUp className="h-5 w-5 text-yellow-500" />;
+        return <TrendingUp className="h-5 w-5 text-emerald-400" />;
       case "known":
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+        return <CheckCircle2 className="h-5 w-5 text-cyan-400" />;
       case "mastered":
-        return <Sparkles className="h-5 w-5 text-purple-500" />;
+        return <Sparkles className="h-5 w-5 text-indigo-400" />;
       default:
         return null;
     }
@@ -141,9 +141,8 @@ export function VocabularyCardView({
           <Card
             key={word.id}
             className={cn(
-              "relative cursor-pointer transition-all hover:shadow-lg border-2",
+              "relative cursor-pointer transition-all hover:shadow-lg border-2 hover:scale-[1.02]",
               getStatusColor(word.status),
-              reviewStatus.isPast && "ring-2 ring-red-500 ring-offset-2",
             )}
             onClick={() => toggleFlip(word.id, word.word)}
           >
@@ -154,8 +153,15 @@ export function VocabularyCardView({
                   <div className="flex items-start justify-between mb-3">
                     {getStatusIcon(word.status)}
                     {reviewStatus.isPast && (
-                      <div className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-                        Due
+                      <div
+                        className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                        style={{
+                          background: "rgba(248,113,113,0.15)",
+                          color: "#fca5a5",
+                          border: "1px solid rgba(248,113,113,0.28)",
+                        }}
+                      >
+                        ⚡ Ready
                       </div>
                     )}
                   </div>
@@ -183,12 +189,12 @@ export function VocabularyCardView({
                           className={cn(
                             "h-full transition-all",
                             word.status === "mastered"
-                              ? "bg-purple-500"
+                              ? "bg-indigo-400"
                               : word.status === "known"
-                                ? "bg-green-500"
+                                ? "bg-cyan-400"
                                 : word.status === "learning"
-                                  ? "bg-yellow-500"
-                                  : "bg-blue-500",
+                                  ? "bg-emerald-400"
+                                  : "bg-amber-400",
                           )}
                           style={{
                             width: `${Math.min(100, (word.ease_factor / 2.5) * 100)}%`,
@@ -199,7 +205,18 @@ export function VocabularyCardView({
 
                     {/* Status badge */}
                     <div className="flex items-center justify-between text-xs">
-                      <span className="capitalize font-medium">
+                      <span
+                        className={cn(
+                          "capitalize font-medium",
+                          word.status === "new"
+                            ? "text-amber-400"
+                            : word.status === "learning"
+                              ? "text-emerald-400"
+                              : word.status === "known"
+                                ? "text-cyan-400"
+                                : "text-indigo-400",
+                        )}
+                      >
                         {word.status}
                       </span>
                       <span className="text-muted-foreground">
@@ -236,7 +253,18 @@ export function VocabularyCardView({
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Status:</span>
-                        <span className="capitalize font-medium">
+                        <span
+                          className={cn(
+                            "capitalize font-medium",
+                            word.status === "new"
+                              ? "text-amber-400"
+                              : word.status === "learning"
+                                ? "text-emerald-400"
+                                : word.status === "known"
+                                  ? "text-cyan-400"
+                                  : "text-indigo-400",
+                          )}
+                        >
                           {word.status}
                         </span>
                       </div>
