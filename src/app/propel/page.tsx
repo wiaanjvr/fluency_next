@@ -26,6 +26,7 @@ import {
   Mic,
   Compass,
   MessageCircle,
+  Swords,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
@@ -84,6 +85,13 @@ const PRACTICE_MODES = [
     name: "Live Conversation",
     description: "Speak freely. An AI listens, responds, corrects.",
     Icon: MessageCircle,
+    gradient: "from-[#0d2137]/80 to-[#0a1628]/90",
+  },
+  {
+    slug: "duel",
+    name: "Duel",
+    description: "Challenge a friend. Prove your depth.",
+    Icon: Swords,
     gradient: "from-[#0d2137]/80 to-[#0a1628]/90",
   },
 ] as const;
