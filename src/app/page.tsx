@@ -1,898 +1,860 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import {
-  Mic,
-  Brain,
-  ArrowRight,
-  Play,
-  Volume2,
-  RotateCcw,
-  Check,
-  Quote,
-  Waves,
-  Anchor,
-  Menu,
-  X,
-} from "lucide-react";
 
 /* =============================================================================
-   FLUENSEA DESIGN SYSTEM
-   
-   Visual Direction: "Ocean Immersion" - Deep sea depths, turquoise currents, sandy warmth
-   
-   BRAND PHILOSOPHY:
-   - Learning as immersion: Dive into language like exploring the ocean
-   - Flow & waves: Language ebbs and flows like ocean currents
-   - Depth & discovery: The deeper you go, the more richness you uncover
-   - Currents & guidance: The app guides users along structured learning currents
-   
-   COLOR PHILOSOPHY:
-   - Background: Deep midnight navy (#0B1C2C) - ocean depths
-   - Text: Warm sand (#F5E6D3) - never pure white
-   - Primary: Turquoise (#2AA9A0) - clarity, energy, learning
-   - Secondary: Teal (#1D6F6F) - balance, calm, comprehension
-   - Accent: Sand/coral - warmth, used sparingly for emphasis
-   - Never more than 3 colors visible at once
-   
-   TYPOGRAPHY:
-   - Headlines: font-light (300) for elegance, tracking-tight
-   - Body: serif font for classic feel with modern twist
-   - Accents: font-serif italic for emotional moments
-   - Scale: 14px base, 1.5 line height
-   - Hero headlines: 72-96px, single powerful statement
-   
-   SPACING RULES (8px base unit):
-   - Section padding: 160px (20 units) vertical
-   - Element gaps: 32-64px (4-8 units)
-   - Card padding: 48-64px (6-8 units)
-   - Never less than 24px between elements
-   - Borders: 1.5-2px for tactile, substantial feel
-   
-   MOTION SYSTEM:
-   - Easing: cubic-bezier(0.16, 1, 0.3, 1) - Apple's ease-out
-   - Duration: 600-1000ms for reveals, 300ms for interactions
-   - Wave-like staggering for sequential elements
-   - Ocean-inspired transitions: dive-in, ripple, current-flow
-   
-   OCEAN METAPHORS IN UX:
-   - Wave-like lesson progression
-   - Currents for AI-guided paths
-   - Dive animation when starting lessons
-   - Bubble/ripple effects for feedback
-   - Depth levels: surface → mid-water → deep ocean
-   
-   UI COPY TONE:
-   - Calming, immersive, encouraging
-   - Ocean metaphors where natural
-   - Short, flowing sentences
-   - Action-oriented CTAs
+   FLUENSEA LANDING PAGE — Ocean Descent Experience
+
+   An immersive, award-worthy landing page built on the metaphor of descending
+   through ocean depth zones. Users scroll "deeper" into fluency.
+
+   Sections:
+   1. Navigation (frosted glass)
+   2. Hero (caustic light, serif/sans headline, vignette)
+   3. Philosophy (watermark, gradient bg)
+   4. Four Waves — dive timeline (depth markers + floating preview card)
+   5. Social Proof Strip (ambient marquee)
+   6. Depth Zones (CEFR levels as ocean zones)
+   7. Testimonials (frosted glass cards)
+   8. Pricing Teaser (Free / Pro)
+   9. Final CTA
+   10. Footer (wave divider, 3 columns)
+
+   Persistent elements:
+   - Depth indicator (fixed right side)
+   - Custom cursor (desktop only, teal glow dot with lerp)
 ============================================================================= */
+
+/* ---------- Data ---------- */
+
+const DEPTH_MARKERS = [
+  { label: "0m", position: 0 },
+  { label: "10m", position: 0.15 },
+  { label: "50m", position: 0.45 },
+  { label: "200m", position: 1 },
+];
+
+const FOUR_WAVES = [
+  {
+    depth: "0m",
+    title: "Listen & absorb",
+    desc: "Let the language wash over you first. Immerse in comprehensible input — 95% familiar, 5% new.",
+    icon: "M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8",
+  },
+  {
+    depth: "15m",
+    title: "Flow with context",
+    desc: "Meaning emerges naturally from rich context. Ride the current of understanding without translation.",
+    icon: "M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 1.3 0 1.9-.5 2.5-1M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.4 2 5 2c1.3 0 1.9-.5 2.5-1M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.4 2 5 2c1.3 0 1.9-.5 2.5-1",
+  },
+  {
+    depth: "40m",
+    title: "Surface & speak",
+    desc: "Express what you truly understand. Speaking emerges from real comprehension, not memorized phrases.",
+    icon: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  },
+  {
+    depth: "100m",
+    title: "Dive deeper",
+    desc: "Spaced repetition guides you to permanent memory. Each review takes you deeper into true fluency.",
+    icon: "M12 2L12 22M12 22L6 16M12 22L18 16M4 8L20 8",
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    name: "Marie Laurent",
+    context: "Learning French → B2",
+    quote:
+      "I went from barely understanding menus to watching French films without subtitles. The depth-based progression made it feel natural, not forced.",
+    initials: "ML",
+    color: "#0D9488",
+  },
+  {
+    name: "Kenji Tanaka",
+    context: "Learning Spanish → B1",
+    quote:
+      "Other apps felt like homework. Fluensea feels like discovering something. The spaced repetition keeps everything fresh without the grind.",
+    initials: "KT",
+    color: "#2DD4BF",
+  },
+  {
+    name: "Sarah Chen",
+    context: "Learning Japanese → A2",
+    quote:
+      "I love how the listening-first approach works. I started understanding patterns before I even studied grammar. It just clicks.",
+    initials: "SC",
+    color: "#0D9488",
+  },
+];
+
+const DEPTH_ZONES = [
+  {
+    zone: "Sunlight Zone",
+    depth: "0 – 200m",
+    level: "A1 – A2",
+    label: "BEGINNER",
+    desc: "First contact. High-frequency words, simple patterns, survival phrases.",
+    bg: "linear-gradient(180deg, #0A3040 0%, #072838 100%)",
+  },
+  {
+    zone: "Twilight Zone",
+    depth: "200 – 1,000m",
+    level: "B1 – B2",
+    label: "INTERMEDIATE",
+    desc: "The breakthrough zone. Complex sentences, abstract ideas, real conversations.",
+    bg: "linear-gradient(180deg, #052030 0%, #041828 100%)",
+  },
+  {
+    zone: "Midnight Zone",
+    depth: "1,000 – 4,000m",
+    level: "C1 – C2",
+    label: "ADVANCED",
+    desc: "Native-level nuance. Idioms, cultural subtleties, professional fluency.",
+    bg: "linear-gradient(180deg, #03141E 0%, #020F16 100%)",
+  },
+  {
+    zone: "Abyssal Zone",
+    depth: "4,000m+",
+    level: "MASTERY",
+    label: "EXPERT",
+    desc: "Complete immersion. Think, dream, and create in your new language.",
+    bg: "linear-gradient(180deg, #020C12 0%, #010A0E 100%)",
+  },
+];
+
+/* ---------- Inline SVG Components ---------- */
+
+function WaveIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className || "lp-wave-icon"}
+      viewBox="0 0 32 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        className="lp-wave-path lp-wave-1"
+        d="M1 8C4 5 7 5 10 8C13 11 16 11 19 8C22 5 25 5 28 8"
+        stroke="#0D9488"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        className="lp-wave-path lp-wave-2"
+        d="M1 14C4 11 7 11 10 14C13 17 16 17 19 14C22 11 25 11 28 14"
+        stroke="#0D9488"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.5"
+      />
+      <path
+        className="lp-wave-path lp-wave-3"
+        d="M1 20C4 17 7 17 10 20C13 23 16 23 19 20C22 17 25 17 28 20"
+        stroke="#0D9488"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.25"
+      />
+    </svg>
+  );
+}
+
+/* ---------- Page Component ---------- */
 
 export default function Home() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
+  const [isTouch, setIsTouch] = useState(true); // default true, set false on desktop
+  const [heroLoaded, setHeroLoaded] = useState(false);
+
+  const cursorRef = useRef({ x: -100, y: -100 });
+  const targetRef = useRef({ x: -100, y: -100 });
+  const rafRef = useRef<number>(0);
+
+  /* --- Page-load hero fade-in --- */
+  useEffect(() => {
+    const t = setTimeout(() => setHeroLoaded(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+
+  /* --- Scroll tracking for depth indicator --- */
+  useEffect(() => {
+    const onScroll = () => {
+      const top = window.scrollY;
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(total > 0 ? top / total : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* --- Custom cursor (desktop only) --- */
+  useEffect(() => {
+    const touch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    setIsTouch(touch);
+    if (touch) return;
+
+    const onMove = (e: MouseEvent) => {
+      targetRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+    const tick = () => {
+      cursorRef.current = {
+        x: lerp(cursorRef.current.x, targetRef.current.x, 0.12),
+        y: lerp(cursorRef.current.y, targetRef.current.y, 0.12),
+      };
+      setCursorPos({ x: cursorRef.current.x, y: cursorRef.current.y });
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    rafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  /* --- IntersectionObserver for section reveals --- */
+  useEffect(() => {
+    if (!heroLoaded) return;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    const els = document.querySelectorAll(".lp-reveal");
+    if (reduced) {
+      els.forEach((el) => el.classList.add("lp-revealed"));
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("lp-revealed");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
+    );
+
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [heroLoaded]);
+
+  /* --- Staggered reveal for dive timeline steps --- */
+  useEffect(() => {
+    if (!heroLoaded) return;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const items = document.querySelectorAll(".dive-step");
+
+    if (reduced) {
+      items.forEach((el) => el.classList.add("dive-step-visible"));
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            const el = e.target as HTMLElement;
+            const delay = parseInt(el.dataset.delay || "0", 10);
+            setTimeout(() => el.classList.add("dive-step-visible"), delay);
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.15 },
+    );
+
+    items.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [heroLoaded]);
+
+  /* ====================================================================
+     RENDER
+     ==================================================================== */
   return (
-    <main className="bg-background text-foreground antialiased with-swim-bg">
-      {/* ========== NAVIGATION ========== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-background/80 border-b border-ocean-turquoise/10 shadow-[0_1px_0_rgba(42,169,160,0.06)]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(42,169,160,0.2)] bg-background/90 border-b border-ocean-turquoise/20 flex items-center justify-center">
-                <Image
-                  src="/logo.png"
-                  alt="Fluensea Logo"
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 object-contain"
-                  priority
-                />
-              </div>
-              <span className="text-lg font-medium text-gradient-turquoise">
-                Fluensea
-              </span>
+    <main className="lp-root">
+      {/* ============================================================
+          CUSTOM CURSOR
+          ============================================================ */}
+      {!isTouch && (
+        <div
+          className="lp-cursor"
+          style={{
+            transform: `translate(${cursorPos.x - 6}px, ${cursorPos.y - 6}px)`,
+          }}
+        />
+      )}
+
+      {/* ============================================================
+          DEPTH INDICATOR (fixed right side)
+          ============================================================ */}
+      <div className="lp-depth-indicator" aria-hidden="true">
+        <div className="lp-depth-track">
+          <div
+            className="lp-depth-dot"
+            style={{ top: `${scrollProgress * 100}%` }}
+          />
+        </div>
+        {DEPTH_MARKERS.map((m) => (
+          <span
+            key={m.label}
+            className="lp-depth-label"
+            style={{ top: `${m.position * 100}%` }}
+          >
+            {m.label}
+          </span>
+        ))}
+      </div>
+
+      {/* ============================================================
+          NAVIGATION
+          ============================================================ */}
+      <nav className="lp-nav">
+        <div className="lp-nav-inner">
+          <Link href="/" className="lp-nav-brand">
+            <WaveIcon />
+            <span className="lp-brand-text">
+              Fluen<span className="lp-brand-serif">sea</span>
+            </span>
+          </Link>
+
+          {/* Desktop links */}
+          <div className="lp-nav-links">
+            <Link href="/pricing" className="lp-nav-link">
+              Pricing
             </Link>
-
-            {/* Desktop nav */}
-            <div className="hidden sm:flex items-center gap-6">
-              <Link
-                href="/pricing"
-                className="text-sm font-medium text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/auth/login"
-                className="text-sm font-medium text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
-              >
-                Sign in
-              </Link>
-              <Link href="/auth/signup">
-                <Button size="sm" className="rounded-full px-5 font-medium">
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setMobileOpen((o) => !o)}
-              className="sm:hidden min-h-touch min-w-[44px] flex items-center justify-center rounded-xl text-muted-foreground hover:text-ocean-turquoise transition-colors"
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </button>
+            <Link href="/auth/login" className="lp-nav-link">
+              Sign in
+            </Link>
+            <Link href="/auth/signup" className="lp-nav-cta">
+              Sign Up
+            </Link>
           </div>
 
-          {/* Mobile dropdown */}
-          {mobileOpen && (
-            <div className="sm:hidden border-t border-ocean-turquoise/10 py-4 flex flex-col gap-1 animate-in fade-in slide-in-from-top-2 duration-200">
-              <Link
-                href="/pricing"
-                onClick={() => setMobileOpen(false)}
-                className="px-3 py-3 min-h-touch flex items-center rounded-xl text-sm font-medium text-muted-foreground hover:text-ocean-turquoise hover:bg-ocean-turquoise/5 transition-colors"
+          {/* Mobile toggle */}
+          <button
+            onClick={() => setMobileOpen((o) => !o)}
+            className="lp-mobile-toggle"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
               >
-                Pricing
-              </Link>
-              <Link
-                href="/auth/login"
-                onClick={() => setMobileOpen(false)}
-                className="px-3 py-3 min-h-touch flex items-center rounded-xl text-sm font-medium text-muted-foreground hover:text-ocean-turquoise hover:bg-ocean-turquoise/5 transition-colors"
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            ) : (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
               >
-                Sign in
-              </Link>
-              <Link
-                href="/auth/signup"
-                onClick={() => setMobileOpen(false)}
-                className="mt-1"
-              >
-                <Button size="sm" className="w-full rounded-full font-medium">
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-          )}
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            )}
+          </button>
         </div>
+
+        {/* Mobile dropdown */}
+        {mobileOpen && (
+          <div className="lp-mobile-menu">
+            <Link
+              href="/pricing"
+              onClick={() => setMobileOpen(false)}
+              className="lp-mobile-link"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/auth/login"
+              onClick={() => setMobileOpen(false)}
+              className="lp-mobile-link"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/auth/signup"
+              onClick={() => setMobileOpen(false)}
+              className="lp-mobile-cta"
+            >
+              Sign Up
+            </Link>
+          </div>
+        )}
       </nav>
 
-      {/* ========== HERO SECTION ========== */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 pt-16 overflow-hidden">
-        {/* Ocean ambient background — layered depth orbs */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/4 left-1/5 w-[700px] h-[700px] bg-ocean-turquoise/[0.04] rounded-full blur-[150px] animate-pulse-glow" />
-          <div
-            className="absolute bottom-1/3 right-1/5 w-[550px] h-[550px] bg-ocean-teal/[0.05] rounded-full blur-[130px]"
-            style={{ animationDelay: "2s" }}
+      {/* ============================================================
+          HERO SECTION
+          ============================================================ */}
+      <section className={`lp-hero ${heroLoaded ? "lp-hero-loaded" : ""}`}>
+        {/* Caustic light patterns */}
+        <div className="lp-caustic-layer" aria-hidden="true">
+          <div className="lp-caustic lp-caustic-1" />
+          <div className="lp-caustic lp-caustic-2" />
+          <div className="lp-caustic lp-caustic-3" />
+        </div>
+
+        {/* Rising bubbles */}
+        <div className="lp-bubbles" aria-hidden="true">
+          <div className="lp-bubble lp-bubble-1" />
+          <div className="lp-bubble lp-bubble-2" />
+          <div className="lp-bubble lp-bubble-3" />
+          <div className="lp-bubble lp-bubble-4" />
+        </div>
+
+        <div className="lp-hero-content">
+          <p className="lp-hero-overline">Immersive Language Learning</p>
+
+          <h1 className="lp-hero-headline">
+            Dive into <em className="lp-hero-brand">fluensea.</em>
+          </h1>
+
+          <p className="lp-hero-sub">
+            Go from first words to fluent&nbsp;&mdash; one depth at a time.
+          </p>
+
+          <div className="lp-hero-ctas">
+            <Link href="/auth/signup" className="lp-cta-primary">
+              Begin your descent
+            </Link>
+            <Link href="/pricing" className="lp-cta-ghost">
+              Explore plans
+            </Link>
+          </div>
+
+          <p className="lp-hero-trust">No credit card required</p>
+        </div>
+
+        {/* Depth-of-field blur vignette */}
+        <div className="lp-hero-vignette" aria-hidden="true" />
+      </section>
+
+      {/* ============================================================
+          WATERLINE DIVIDER
+          ============================================================ */}
+      <div className="lp-waterline" aria-hidden="true">
+        <svg
+          viewBox="0 0 1440 24"
+          preserveAspectRatio="none"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M0 12C120 4 240 20 360 12C480 4 600 20 720 12C840 4 960 20 1080 12C1200 4 1320 20 1440 12"
+            stroke="rgba(13,148,136,0.15)"
+            strokeWidth="1"
+            fill="none"
           />
-          <div className="absolute top-2/3 right-1/3 w-[350px] h-[350px] bg-ocean-turquoise/[0.03] rounded-full blur-[100px] animate-float" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-ocean-turquoise/[0.015] rounded-full blur-[200px]" />
+        </svg>
+      </div>
+
+      {/* ============================================================
+          PHILOSOPHY SECTION
+          ============================================================ */}
+      <section className="lp-philosophy lp-reveal">
+        <div className="lp-watermark" aria-hidden="true">
+          IMMERSE
         </div>
 
-        <div className="max-w-4xl mx-auto text-center">
-          <ScrollReveal delay={100}>
-            <p className="text-overline text-ocean-turquoise mb-10 tracking-[0.25em]">
-              Immersive Language Learning
-            </p>
-          </ScrollReveal>
+        <div className="lp-philosophy-inner">
+          <p className="lp-section-label">THE PHILOSOPHY</p>
 
-          <ScrollReveal delay={200}>
-            <h1 className="text-display-xl mb-10">
-              Dive into
-              <br />
-              <span className="font-serif italic text-gradient-turquoise">
-                fluensea.
-              </span>
-            </h1>
-          </ScrollReveal>
+          <h2 className="lp-philosophy-headline">
+            Language flows like the ocean.
+            <br />
+            <span className="lp-highlight">Immerse yourself completely.</span>
+          </h2>
 
-          <ScrollReveal delay={400}>
-            <p className="text-body-lg text-muted-foreground max-w-xl mx-auto mb-14 leading-[1.7]">
-              Immerse yourself in language. Flow with the currents of
-              comprehension. Surface with confidence.
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={600}>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
-              <Link href="/auth/signup">
-                <Button
-                  size="lg"
-                  className="h-14 px-10 text-base font-medium rounded-full group shadow-[0_0_30px_rgba(42,169,160,0.2)]"
-                >
-                  Start your journey
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1.5" />
-                </Button>
-              </Link>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-14 px-10 text-base font-medium rounded-full group transition-all duration-400"
-              >
-                <Play className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
-                Watch demo
-              </Button>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={800}>
-            <p className="text-caption text-muted-foreground/50 mt-10">
-              No credit card required
-            </p>
-          </ScrollReveal>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
-          <ScrollReveal delay={1200}>
-            <div className="w-6 h-10 rounded-full border border-border/40 flex justify-center pt-2 hover:border-ocean-turquoise/40 transition-colors duration-500">
-              <div className="w-1 h-2 bg-muted-foreground/30 rounded-full animate-bounce" />
-            </div>
-          </ScrollReveal>
+          <p className="lp-philosophy-body">
+            Fluensea is built on the{" "}
+            <span className="lp-accent-text">science of immersion</span>. Just
+            like diving into the ocean, you&rsquo;ll be surrounded by{" "}
+            <span className="lp-accent-text">comprehensible input</span>. The
+            waves of practice ebb and flow, and with each session, you{" "}
+            <span className="lp-accent-text">dive deeper into fluency</span>.
+          </p>
         </div>
       </section>
 
-      {/* ========== PHILOSOPHY SECTION ========== */}
-      <section className="py-40 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <ScrollReveal>
-            <p className="text-overline text-ocean-turquoise mb-10 tracking-[0.25em]">
-              The Philosophy
-            </p>
-          </ScrollReveal>
+      {/* ============================================================
+          FOUR WAVES — How It Works (Dive Timeline)
+          ============================================================ */}
+      <section className="lp-four-waves lp-reveal">
+        <p className="lp-section-label">HOW IT WORKS</p>
+        <h2 className="lp-section-headline">
+          The four <span className="lp-highlight">waves</span> of fluency.
+        </h2>
 
-          <ScrollReveal delay={100}>
-            <h2 className="text-display-md leading-[1.25] mb-10">
-              Language flows like the ocean.
-              <br />
-              <span className="text-muted-foreground">
-                Immerse yourself completely.
-              </span>
-            </h2>
-          </ScrollReveal>
-
-          <ScrollReveal delay={200}>
-            <p className="text-body-lg text-muted-foreground leading-[1.75] max-w-2xl mx-auto">
-              Fluensea is built on the science of immersion. Just like diving
-              into the ocean, you’ll be surrounded by comprehensible input. The
-              waves of practice ebb and flow, and with each session, you dive
-              deeper into fluency.
-            </p>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ========== DEMO SECTION ========== */}
-      <section className="py-40 px-6 bg-muted/20">
-        <div className="max-w-5xl mx-auto">
-          <ScrollReveal>
-            <p className="text-overline text-ocean-turquoise mb-10 text-center tracking-[0.25em]">
-              How It Works
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={100}>
-            <h2 className="text-display-md text-center mb-20">
-              Four waves. Every lesson.
-            </h2>
-          </ScrollReveal>
-
-          {/* Interactive Demo Card */}
-          <ScrollReveal delay={200}>
-            <div className="relative">
-              {/* Demo Preview */}
-              <div className="bg-card/80 backdrop-blur-xl border border-ocean-turquoise/15 rounded-3xl p-8 md:p-12 shadow-elevation-3 overflow-hidden">
-                <div className="grid lg:grid-cols-2 gap-12 items-center">
-                  {/* Left: Steps */}
-                  <div className="space-y-8">
-                    {[
-                      {
-                        icon: Volume2,
-                        title: "Listen & absorb",
-                        desc: "Let the language wash over you first",
-                      },
-                      {
-                        icon: Brain,
-                        title: "Flow with context",
-                        desc: "95% familiar, 5% new — ride the current",
-                      },
-                      {
-                        icon: Mic,
-                        title: "Surface & speak",
-                        desc: "Express from real understanding",
-                      },
-                      {
-                        icon: RotateCcw,
-                        title: "Dive deeper",
-                        desc: "Spaced repetition guides your depth",
-                      },
-                    ].map((step, i) => (
-                      <ScrollReveal
-                        key={i}
-                        delay={300 + i * 100}
-                        direction="left"
-                      >
-                        <div className="flex items-start gap-5 group">
-                          <div className="w-12 h-12 rounded-2xl bg-ocean-turquoise/8 border border-ocean-turquoise/10 flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-ocean-turquoise/15 group-hover:border-ocean-turquoise/25 group-hover:shadow-[0_0_24px_rgba(42,169,160,0.15)] group-hover:scale-105">
-                            <step.icon className="h-5 w-5 text-ocean-turquoise transition-transform duration-300 group-hover:scale-110" />
-                          </div>
-                          <div>
-                            <h3 className="text-subheading mb-1.5">
-                              {step.title}
-                            </h3>
-                            <p className="text-body text-muted-foreground">
-                              {step.desc}
-                            </p>
-                          </div>
-                        </div>
-                      </ScrollReveal>
-                    ))}
-                  </div>
-
-                  {/* Right: Lesson Preview */}
-                  <ScrollReveal delay={400} direction="right">
-                    <div className="bg-background/80 backdrop-blur-lg rounded-2xl border border-ocean-turquoise/15 p-6 shadow-elevation-2">
-                      <div className="flex items-center justify-between mb-6">
-                        <span className="text-xs font-light tracking-wider uppercase text-muted-foreground">
-                          Lesson Preview
-                        </span>
-                        <span className="text-xs text-ocean-turquoise">
-                          A1 • Beginner
-                        </span>
-                      </div>
-
-                      <div className="space-y-4 mb-6">
-                        <div className="h-3 bg-muted rounded-full w-full" />
-                        <div className="h-3 bg-muted rounded-full w-4/5" />
-                        <div className="h-3 bg-muted rounded-full w-3/4" />
-                      </div>
-
-                      <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
-                        <div className="w-10 h-10 rounded-full bg-ocean-turquoise flex items-center justify-center">
-                          <Play className="h-4 w-4 text-ocean-midnight ml-0.5" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="h-1.5 bg-muted-foreground/20 rounded-full">
-                            <div className="h-1.5 bg-ocean-turquoise rounded-full w-1/3" />
-                          </div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          0:47
-                        </span>
-                      </div>
-                    </div>
-                  </ScrollReveal>
+        <div className="lp-waves-grid">
+          {/* Left column: Dive timeline */}
+          <div className="lp-dive-timeline">
+            {FOUR_WAVES.map((wave, i) => (
+              <div key={i} className="dive-step" data-delay={String(i * 150)}>
+                <div className="dive-step-depth">
+                  <span className="dive-depth-label">{wave.depth}</span>
                 </div>
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ========== VALUE PROP SECTION ========== */}
-      <section className="py-40 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
-            <div>
-              <ScrollReveal>
-                <p className="text-overline text-muted-foreground mb-10 tracking-[0.2em]">
-                  The Difference
-                </p>
-              </ScrollReveal>
-
-              <ScrollReveal delay={100}>
-                <h2 className="text-display-md leading-[1.2] mb-10">
-                  Put in the reps.
-                  <br />
-                  <span className="font-serif italic text-ocean-turquoise">
-                    Earn the results.
-                  </span>
-                </h2>
-              </ScrollReveal>
-
-              <ScrollReveal delay={200}>
-                <p className="text-body-lg text-muted-foreground leading-[1.75] mb-10">
-                  Each lesson builds on what you know, adding carefully measured
-                  challenges. Track your streak. Complete your daily sessions.
-                  Watch your vocabulary expand. Consistency turns effort into
-                  fluency.
-                </p>
-              </ScrollReveal>
-
-              <ScrollReveal delay={300}>
-                <div className="flex items-center gap-6 pt-4">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-ocean-turquoise" />
-                    <span className="text-sm font-light">
-                      Comprehensible input
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-ocean-turquoise" />
-                    <span className="text-sm font-light">
-                      Spaced repetition
-                    </span>
-                  </div>
+                <div className="dive-step-line">
+                  <div className="dive-step-dot" />
+                  {i < FOUR_WAVES.length - 1 && (
+                    <div className="dive-step-connector" />
+                  )}
                 </div>
-              </ScrollReveal>
-            </div>
-
-            <ScrollReveal delay={200} direction="right">
-              <div className="relative">
-                <div className="bg-card/80 backdrop-blur-lg border border-white/[0.06] rounded-2xl p-8 shadow-elevation-2">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-2 h-2 rounded-full bg-ocean-turquoise" />
-                    <span className="text-sm text-muted-foreground font-light">
-                      Your progress
-                    </span>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="font-light">Known vocabulary</span>
-                        <span className="text-ocean-turquoise">847 words</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full">
-                        <div className="h-2 bg-ocean-turquoise rounded-full w-3/4 transition-all duration-1000" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="font-light">Comprehension</span>
-                        <span className="text-ocean-turquoise">A2</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full">
-                        <div className="h-2 bg-ocean-turquoise rounded-full w-1/2 transition-all duration-1000" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="font-light">Speaking confidence</span>
-                        <span className="text-ocean-turquoise">72%</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full">
-                        <div className="h-2 bg-ocean-turquoise rounded-full w-[72%] transition-all duration-1000" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Decorative glow */}
-                <div className="absolute -inset-4 bg-ocean-turquoise/5 rounded-3xl blur-2xl -z-10" />
-              </div>
-            </ScrollReveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ========== THE SCIENCE SECTION ========== */}
-      <section className="py-40 px-6 bg-muted/20">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-24">
-            <ScrollReveal>
-              <p className="text-overline text-muted-foreground mb-10 tracking-[0.25em]">
-                The Science
-              </p>
-            </ScrollReveal>
-
-            <ScrollReveal delay={100}>
-              <h2 className="text-display-md leading-[1.2] mb-10">
-                Decades of research.
-                <br />
-                <span className="font-serif italic text-ocean-turquoise">
-                  One proven method.
-                </span>
-              </h2>
-            </ScrollReveal>
-
-            <ScrollReveal delay={200}>
-              <p className="text-body-lg text-muted-foreground leading-[1.75] max-w-3xl mx-auto">
-                The most proven approach combines comprehensible input immersion
-                (via Krashen’s i+1 principle), spaced repetition for vocabulary,
-                and early speaking practice like shadowing. This yields superior
-                fluency and retention backed by decades of research.
-              </p>
-            </ScrollReveal>
-          </div>
-
-          {/* Core Principles Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mb-24">
-            <ScrollReveal delay={300}>
-              <div className="bg-card/60 backdrop-blur-lg border border-ocean-teal/15 rounded-3xl p-8 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-ocean-teal/35 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.2),0_0_0_1px_rgba(42,169,160,0.1)] group">
-                <div className="text-4xl font-light text-ocean-teal mb-5 transition-transform duration-500 group-hover:scale-105">
-                  95-98%
-                </div>
-                <h3 className="text-subheading mb-3">Comprehensible Input</h3>
-                <p className="text-body text-muted-foreground leading-relaxed">
-                  Content at the sweet spot — mostly familiar with just enough
-                  new material (i+1) to stretch your understanding naturally.
-                </p>
-              </div>
-            </ScrollReveal>
-
-            <ScrollReveal delay={400}>
-              <div className="bg-card/60 backdrop-blur-lg border border-white/[0.06] rounded-3xl p-8 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-ocean-turquoise/25 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.2),0_0_0_1px_rgba(42,169,160,0.1)] group">
-                <div className="text-4xl font-light text-ocean-turquoise mb-5 transition-transform duration-500 group-hover:scale-105">
-                  95%+
-                </div>
-                <h3 className="text-subheading mb-3">Retention Rate</h3>
-                <p className="text-body text-muted-foreground leading-relaxed">
-                  Spaced repetition times reviews against the forgetting curve,
-                  keeping vocabulary accessible long-term.
-                </p>
-              </div>
-            </ScrollReveal>
-
-            <ScrollReveal delay={500}>
-              <div className="bg-card/60 backdrop-blur-lg border border-ocean-teal/15 rounded-3xl p-8 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-ocean-teal/35 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.2),0_0_0_1px_rgba(42,169,160,0.1)] group">
-                <div className="text-4xl font-light text-ocean-teal mb-5 transition-transform duration-500 group-hover:scale-105">
-                  3x
-                </div>
-                <h3 className="text-subheading mb-3">Faster Proficiency</h3>
-                <p className="text-body text-muted-foreground leading-relaxed">
-                  Immersion programs with early output practice achieve higher
-                  speaking and listening scores than classroom-only methods.
-                </p>
-              </div>
-            </ScrollReveal>
-          </div>
-
-          {/* Forgetting Curve Visualization */}
-          <ScrollReveal delay={600}>
-            <div className="bg-card/70 backdrop-blur-lg border border-white/[0.06] rounded-3xl p-8 md:p-12 shadow-elevation-2">
-              <div className="mb-8">
-                <h3 className="text-2xl font-light mb-2">
-                  The{" "}
-                  <span className="font-serif italic text-ocean-turquoise">
-                    forgetting curve
-                  </span>
-                </h3>
-                <p className="text-sm text-muted-foreground font-light">
-                  Without reinforcement, memory decays rapidly. Spaced
-                  repetition interrupts this decline at optimal intervals.
-                </p>
-              </div>
-
-              <div className="relative h-80 md:h-96">
-                {/* SVG Forgetting Curve */}
-                <svg
-                  viewBox="0 0 800 400"
-                  className="w-full h-full"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  {/* Grid lines */}
-                  <g
-                    stroke="currentColor"
-                    strokeWidth="0.5"
-                    className="text-border opacity-30"
-                  >
-                    <line x1="80" y1="50" x2="80" y2="350" />
-                    <line x1="80" y1="350" x2="750" y2="350" />
-                    {[100, 150, 200, 250, 300].map((y) => (
-                      <line
-                        key={y}
-                        x1="80"
-                        y1={y}
-                        x2="750"
-                        y2={y}
-                        strokeDasharray="4 4"
-                      />
-                    ))}
-                  </g>
-
-                  {/* Axis labels */}
-                  <text
-                    x="40"
-                    y="55"
-                    className="text-[10px] fill-muted-foreground font-light"
-                  >
-                    100%
-                  </text>
-                  <text
-                    x="40"
-                    y="180"
-                    className="text-[10px] fill-muted-foreground font-light"
-                  >
-                    50%
-                  </text>
-                  <text
-                    x="40"
-                    y="355"
-                    className="text-[10px] fill-muted-foreground font-light"
-                  >
-                    0%
-                  </text>
-
-                  <text
-                    x="80"
-                    y="380"
-                    className="text-[10px] fill-muted-foreground font-light"
-                  >
-                    Day 1
-                  </text>
-                  <text
-                    x="250"
-                    y="380"
-                    className="text-[10px] fill-muted-foreground font-light"
-                  >
-                    Day 3
-                  </text>
-                  <text
-                    x="420"
-                    y="380"
-                    className="text-[10px] fill-muted-foreground font-light"
-                  >
-                    Week 2
-                  </text>
-                  <text
-                    x="590"
-                    y="380"
-                    className="text-[10px] fill-muted-foreground font-light"
-                  >
-                    Month 1
-                  </text>
-
-                  {/* Without spaced repetition - declining curve */}
-                  <path
-                    d="M 80 50 Q 200 120, 320 220 T 750 340"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="text-muted-foreground opacity-40"
-                    strokeDasharray="6 4"
-                  />
-
-                  {/* With spaced repetition - maintained curves */}
-                  <g>
-                    {/* First learning */}
-                    <path
-                      d="M 80 50 Q 140 80, 200 140"
+                <div className="dive-step-content">
+                  <div className="dive-step-icon">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
                       fill="none"
-                      stroke="hsl(var(--ocean-turquoise))"
-                      strokeWidth="3"
-                      className="opacity-80"
-                    />
-                    {/* First review */}
-                    <path
-                      d="M 200 140 L 200 55 Q 280 85, 360 145"
-                      fill="none"
-                      stroke="hsl(var(--ocean-turquoise))"
-                      strokeWidth="3"
-                      className="opacity-80"
-                    />
-                    {/* Second review */}
-                    <path
-                      d="M 360 145 L 360 60 Q 460 90, 540 150"
-                      fill="none"
-                      stroke="hsl(var(--ocean-turquoise))"
-                      strokeWidth="3"
-                      className="opacity-80"
-                    />
-                    {/* Third review */}
-                    <path
-                      d="M 540 150 L 540 65 Q 640 85, 720 115"
-                      fill="none"
-                      stroke="hsl(var(--ocean-turquoise))"
-                      strokeWidth="3"
-                      className="opacity-80"
-                    />
-                  </g>
-
-                  {/* Review point markers */}
-                  <circle cx="200" cy="55" r="4" className="fill-ocean-teal" />
-                  <circle cx="360" cy="60" r="4" className="fill-ocean-teal" />
-                  <circle cx="540" cy="65" r="4" className="fill-ocean-teal" />
-
-                  {/* Annotations */}
-                  <g className="text-[11px] fill-ocean-teal font-light">
-                    <text x="210" y="45">
-                      Review 1
-                    </text>
-                    <text x="370" y="50">
-                      Review 2
-                    </text>
-                    <text x="550" y="55">
-                      Review 3
-                    </text>
-                  </g>
-
-                  {/* Legend */}
-                  <g transform="translate(520, 20)">
-                    <line
-                      x1="0"
-                      y1="0"
-                      x2="30"
-                      y2="0"
-                      stroke="hsl(var(--ocean-turquoise))"
-                      strokeWidth="3"
-                    />
-                    <text
-                      x="40"
-                      y="5"
-                      className="text-[11px] fill-foreground font-light"
-                    >
-                      With spaced repetition
-                    </text>
-
-                    <line
-                      x1="0"
-                      y1="20"
-                      x2="30"
-                      y2="20"
                       stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-muted-foreground opacity-40"
-                      strokeDasharray="6 4"
-                    />
-                    <text
-                      x="40"
-                      y="25"
-                      className="text-[11px] fill-muted-foreground font-light"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      Without review
-                    </text>
-                  </g>
+                      <path d={wave.icon} />
+                    </svg>
+                  </div>
+                  <h3 className="dive-step-title">{wave.title}</h3>
+                  <p className="dive-step-desc">{wave.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Right column: Floating lesson preview card */}
+          <div className="lp-preview-card lp-reveal">
+            <div className="lp-preview-header">
+              <span className="lp-preview-tag">LESSON PREVIEW</span>
+              <span className="lp-preview-level">A2 · Week 3</span>
+            </div>
+            <div className="lp-preview-body">
+              <p className="lp-preview-label">ACTIVE MODE — FREE READING</p>
+              <p className="lp-preview-sentence">
+                Le petit prince <span className="lp-word-hl">demanda</span> au
+                renard de jouer avec lui.
+              </p>
+              <p className="lp-preview-translation">
+                The little prince asked the fox to play with him.
+              </p>
+              <div className="lp-preview-vocab">
+                <span className="lp-vocab-chip">
+                  demanda <span className="lp-chip-def">· asked</span>
+                </span>
+                <span className="lp-vocab-chip">
+                  renard <span className="lp-chip-def">· fox</span>
+                </span>
+              </div>
+            </div>
+            <div className="lp-preview-audio">
+              <div className="lp-play-btn">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <polygon points="5,3 19,12 5,21" />
                 </svg>
               </div>
-
-              <div className="mt-8 pt-8 border-t border-border">
-                <p className="text-sm text-muted-foreground font-light text-center max-w-2xl mx-auto">
-                  Fluensea automatically schedules vocabulary reviews at
-                  scientifically optimal intervals — right before you'd forget.
-                  This keeps words accessible while minimizing review time.
-                </p>
+              <div className="lp-audio-track">
+                <div className="lp-audio-fill" style={{ width: "35%" }} />
               </div>
+              <span className="lp-audio-time">0:12 / 0:34</span>
             </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ========== ACCOUNTABILITY SECTION ========== */}
-      <section className="py-40 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <ScrollReveal>
-            <p className="text-overline text-muted-foreground mb-10 tracking-[0.25em]">
-              Accountability
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={100}>
-            <h2 className="text-display-md leading-[1.2] mb-10">
-              Your commitment matters.
-              <br />
-              <span className="font-serif italic text-ocean-turquoise">
-                We reward it.
-              </span>
-            </h2>
-          </ScrollReveal>
-
-          <ScrollReveal delay={200}>
-            <p className="text-body-lg text-muted-foreground leading-[1.75] mb-14 max-w-xl mx-auto">
-              Set monthly targets. Show up consistently. Hit your milestones.
-              We’ll give you 50% back because your discipline deserves
-              recognition.
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={300}>
-            <div className="inline-flex flex-col sm:flex-row items-center gap-8 p-8 bg-card/60 backdrop-blur-lg border border-white/[0.06] rounded-3xl shadow-elevation-2 transition-all duration-400 hover:shadow-ocean-glow hover:-translate-y-0.5">
-              <div className="text-center sm:text-left">
-                <p className="text-caption text-muted-foreground mb-2">
-                  Your effort
-                </p>
-                <p className="text-heading font-light">Consistent practice</p>
-              </div>
-              <div className="hidden sm:block w-px h-14 bg-gradient-to-b from-transparent via-ocean-turquoise/20 to-transparent" />
-              <div className="text-center sm:text-left">
-                <p className="text-caption text-muted-foreground mb-2">
-                  Your reward
-                </p>
-                <p className="text-heading font-light text-ocean-turquoise">
-                  50% cashback
-                </p>
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* Testimonial removed */}
-
-      {/* ========== FINAL CTA SECTION ========== */}
-      <section className="py-48 px-6 relative overflow-hidden">
-        {/* Ambient background — multiple glow layers */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-ocean-turquoise/[0.025] rounded-full blur-[180px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-ocean-turquoise/[0.04] rounded-full blur-[100px] animate-pulse-glow" />
-        </div>
-
-        <div className="max-w-3xl mx-auto text-center">
-          <ScrollReveal>
-            <h2 className="text-display-lg leading-[1.15] mb-10">
-              Ready to dive in?
-              <br />
-              <span className="font-serif italic text-gradient-turquoise">
-                Take the plunge.
-              </span>
-            </h2>
-          </ScrollReveal>
-
-          <ScrollReveal delay={200}>
-            <p className="text-body-lg text-muted-foreground mb-14 max-w-lg mx-auto leading-[1.7]">
-              Your first lesson awaits beneath the surface. No credit card
-              required.
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={400}>
-            <Link href="/auth/signup">
-              <Button
-                size="lg"
-                className="h-16 px-14 text-lg font-light rounded-full group shadow-[0_0_40px_rgba(42,169,160,0.2)] hover:shadow-[0_0_60px_rgba(42,169,160,0.35)] transition-shadow duration-500"
-              >
-                Begin your journey
-                <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1.5" />
-              </Button>
-            </Link>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ========== FOOTER ========== */}
-      <footer className="py-20 px-6 border-t border-ocean-turquoise/10">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-10">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg overflow-hidden bg-background flex items-center justify-center">
-                <Image
-                  src="/logo.png"
-                  alt="Fluensea Logo"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6 object-contain"
-                  priority
-                />
-              </div>
-              <span className="font-light text-gradient-turquoise">
-                Fluensea
-              </span>
-            </div>
-
-            <div className="flex items-center gap-10">
-              <Link
-                href="/about"
-                className="text-caption text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
-              >
-                About
-              </Link>
-              <Link
-                href="/pricing"
-                className="text-caption text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/support"
-                className="text-caption text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
-              >
-                Support
-              </Link>
-            </div>
-
-            <p className="text-caption text-muted-foreground/50">
-              © 2026 Fluensea
-            </p>
           </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          SOCIAL PROOF STRIP
+          ============================================================ */}
+      <section className="lp-social-strip">
+        <div className="lp-marquee">
+          <div className="lp-marquee-inner">
+            {[1, 2].map((set) => (
+              <div key={set} className="lp-marquee-set">
+                <span className="lp-marquee-flag">🇫🇷</span>
+                <span className="lp-marquee-stat">
+                  1,200+ learners diving today
+                </span>
+                <span className="lp-marquee-dot">·</span>
+                <span className="lp-marquee-flag">🇪🇸</span>
+                <span className="lp-marquee-stat">
+                  50,000+ sessions completed
+                </span>
+                <span className="lp-marquee-dot">·</span>
+                <span className="lp-marquee-flag">🇯🇵</span>
+                <span className="lp-marquee-stat">12 languages available</span>
+                <span className="lp-marquee-dot">·</span>
+                <span className="lp-marquee-flag">🇩🇪</span>
+                <span className="lp-marquee-stat">4.9★ average rating</span>
+                <span className="lp-marquee-dot">·</span>
+                <span className="lp-marquee-flag">🇮🇹</span>
+                <span className="lp-marquee-stat">
+                  92% continue after week 1
+                </span>
+                <span className="lp-marquee-dot">·</span>
+                <span className="lp-marquee-flag">🇧🇷</span>
+                <span className="lp-marquee-stat">
+                  Built on immersion science
+                </span>
+                <span className="lp-marquee-dot">·</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          DEPTH ZONES — Ocean zone progression / CEFR mapping
+          ============================================================ */}
+      <section className="lp-depth-zones lp-reveal">
+        <p className="lp-section-label">DEPTH ZONES</p>
+        <h2 className="lp-section-headline">
+          Your journey from <span className="lp-highlight">surface</span> to{" "}
+          <span className="lp-highlight">abyss</span>.
+        </h2>
+
+        <div className="lp-zones-container">
+          {DEPTH_ZONES.map((zone, i) => (
+            <div
+              key={i}
+              className="lp-zone-band lp-reveal"
+              style={{ background: zone.bg }}
+            >
+              <div className="lp-zone-inner">
+                <div className="lp-zone-left">
+                  <span className="lp-zone-name">{zone.zone}</span>
+                  <span className="lp-zone-depth">{zone.depth}</span>
+                </div>
+                <div className="lp-zone-center">
+                  <span className="lp-zone-level">{zone.level}</span>
+                  <span className="lp-zone-label">{zone.label}</span>
+                </div>
+                <div className="lp-zone-right">
+                  <p className="lp-zone-desc">{zone.desc}</p>
+                </div>
+              </div>
+              {/* Bioluminescent particles in deeper zones */}
+              {i >= 2 && (
+                <div className="lp-zone-particles" aria-hidden="true">
+                  <div className="lp-zone-particle lp-zone-particle-1" />
+                  <div className="lp-zone-particle lp-zone-particle-2" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ============================================================
+          TESTIMONIALS
+          ============================================================ */}
+      <section className="lp-testimonials lp-reveal">
+        <p className="lp-section-label">WHAT DIVERS SAY</p>
+        <h2 className="lp-section-headline">
+          Stories from the <span className="lp-highlight">deep</span>.
+        </h2>
+
+        <div className="lp-testimonials-grid">
+          {TESTIMONIALS.map((t, i) => (
+            <div key={i} className="lp-testimonial-card lp-reveal">
+              <div className="lp-testimonial-header">
+                <div
+                  className="lp-testimonial-avatar"
+                  style={{ background: t.color }}
+                >
+                  {t.initials}
+                </div>
+                <div>
+                  <p className="lp-testimonial-name">{t.name}</p>
+                  <p className="lp-testimonial-context">{t.context}</p>
+                </div>
+              </div>
+              <p className="lp-testimonial-quote">&ldquo;{t.quote}&rdquo;</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ============================================================
+          PRICING TEASER
+          ============================================================ */}
+      <section className="lp-pricing lp-reveal">
+        <p className="lp-section-label">PLANS</p>
+        <h2 className="lp-section-headline">
+          Choose your <span className="lp-highlight">depth</span>.
+        </h2>
+
+        <div className="lp-pricing-grid">
+          {/* Free tier */}
+          <div className="lp-price-card">
+            <span className="lp-price-tier">Free</span>
+            <p className="lp-price-amount">
+              $0<span className="lp-price-period">/forever</span>
+            </p>
+            <ul className="lp-price-features">
+              <li>3 lessons per day</li>
+              <li>Sunlight Zone content (A1–A2)</li>
+              <li>Basic spaced repetition</li>
+              <li>Community access</li>
+            </ul>
+            <Link href="/auth/signup" className="lp-price-btn">
+              Start free
+            </Link>
+          </div>
+
+          {/* Pro tier */}
+          <div className="lp-price-card lp-price-pro">
+            <span className="lp-price-badge">MOST POPULAR</span>
+            <span className="lp-price-tier">Pro</span>
+            <p className="lp-price-amount">
+              $9<span className="lp-price-period">/month</span>
+            </p>
+            <ul className="lp-price-features">
+              <li>Unlimited lessons</li>
+              <li>All depth zones (A1–C2)</li>
+              <li>AI conversation partner</li>
+              <li>Advanced analytics</li>
+              <li>Priority support</li>
+              <li>50% cashback on milestones</li>
+            </ul>
+            <Link href="/auth/signup" className="lp-price-btn lp-price-btn-pro">
+              Dive deep
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          FINAL CTA
+          ============================================================ */}
+      <section className="lp-final-cta lp-reveal">
+        <div className="lp-final-glow" aria-hidden="true" />
+
+        <h2 className="lp-final-headline">
+          Ready to dive in?
+          <br />
+          <em className="lp-final-brand">Take the plunge.</em>
+        </h2>
+
+        <p className="lp-final-sub">
+          Your first lesson awaits beneath the surface. No credit card required.
+        </p>
+
+        <Link href="/auth/signup" className="lp-cta-primary lp-cta-large">
+          Begin your journey
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </Link>
+      </section>
+
+      {/* ============================================================
+          FOOTER WAVE DIVIDER
+          ============================================================ */}
+      <div className="lp-footer-wave" aria-hidden="true">
+        <svg viewBox="0 0 1440 48" preserveAspectRatio="none" fill="none">
+          <path
+            d="M0 24C80 8 160 40 240 24C320 8 400 40 480 24C560 8 640 40 720 24C800 8 880 40 960 24C1040 8 1120 40 1200 24C1280 8 1360 40 1440 24"
+            stroke="rgba(13,148,136,0.12)"
+            strokeWidth="1"
+            fill="none"
+          >
+            <animate
+              attributeName="d"
+              dur="4s"
+              repeatCount="indefinite"
+              values="M0 24C80 8 160 40 240 24C320 8 400 40 480 24C560 8 640 40 720 24C800 8 880 40 960 24C1040 8 1120 40 1200 24C1280 8 1360 40 1440 24;M0 24C80 16 160 32 240 24C320 16 400 32 480 24C560 16 640 32 720 24C800 16 880 32 960 24C1040 16 1120 32 1200 24C1280 16 1360 32 1440 24;M0 24C80 8 160 40 240 24C320 8 400 40 480 24C560 8 640 40 720 24C800 8 880 40 960 24C1040 8 1120 40 1200 24C1280 8 1360 40 1440 24"
+            />
+          </path>
+        </svg>
+      </div>
+
+      {/* ============================================================
+          FOOTER
+          ============================================================ */}
+      <footer className="lp-footer">
+        <div className="lp-footer-inner">
+          <div className="lp-footer-brand">
+            <WaveIcon />
+            <span className="lp-footer-name">Fluensea</span>
+            <p className="lp-footer-tagline">Surface with confidence.</p>
+          </div>
+
+          <div className="lp-footer-links">
+            <Link href="/about">About</Link>
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/support">Support</Link>
+            <Link href="/privacy">Privacy</Link>
+          </div>
+
+          <div className="lp-footer-social">
+            <a href="#" aria-label="Twitter">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </a>
+            <a href="#" aria-label="GitHub">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <div className="lp-footer-bottom">
+          <p>&copy; 2025 Fluensea &mdash; Surface with confidence.</p>
         </div>
       </footer>
     </main>
