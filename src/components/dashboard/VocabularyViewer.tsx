@@ -18,6 +18,10 @@ import { VocabularyNetworkView } from "./VocabularyNetworkView";
 import { VocabularyCardView } from "./VocabularyCardView";
 import { cn } from "@/lib/utils";
 
+// ============================================================================
+// Vocabulary Viewer — Pill toggles, frosted search bar, teal design system
+// ============================================================================
+
 type ViewMode = "list" | "network" | "cards";
 
 interface VocabularyViewerProps {
@@ -40,7 +44,6 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
     const fetchVocabulary = async () => {
       setLoading(true);
       try {
-        // Fetch from both tables to get a unified vocabulary view (scoped to the active language)
         const [{ data: learnerData, error: learnerErr }, { data: propelData }] =
           await Promise.all([
             supabase
@@ -63,7 +66,6 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
 
         if (learnerErr) throw learnerErr;
 
-        // Map learner_words_v2 rows to the UserWord shape expected by child views
         const now = new Date().toISOString();
         const seenLemmas = new Set<string>();
 
@@ -76,7 +78,6 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             word: w.word,
             language,
             lemma: w.lemma,
-            // Map v2 status values to legacy WordStatus values
             status: (w.status === "introduced" ? "new" : w.status) as any,
             ease_factor: 2.5,
             repetitions: w.total_reviews ?? 0,
@@ -90,7 +91,6 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
           };
         });
 
-        // Add words from user_words (Propel) that don't exist in learner_words_v2
         const propelOnly: UserWord[] = (propelData || [])
           .filter((w: any) => {
             const lemma = (w.lemma || w.word || "").toLowerCase();
@@ -117,9 +117,6 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             };
           });
 
-        // For words in BOTH tables, upgrade learner_words_v2 status if Propel
-        // has a more advanced status (e.g. user practiced in flashcards → "known"
-        // but learner_words_v2 still says "introduced")
         const statusRank: Record<string, number> = {
           new: 0,
           introduced: 0,
@@ -156,7 +153,6 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
     fetchVocabulary();
   }, [userId, language, supabase]);
 
-  // Filter and search words
   const filteredWords = useMemo(() => {
     return words.filter((word) => {
       const matchesSearch =
@@ -169,7 +165,6 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
     });
   }, [words, searchQuery, filterStatus]);
 
-  // Reset to page 1 whenever filters or page size change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, filterStatus, pageSize]);
@@ -189,39 +184,92 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
   if (loading) {
     return (
       <div className="w-full p-8 flex items-center justify-center">
-        <div className="flex items-center gap-2 text-[var(--seafoam)]">
-          <Loader2 className="h-5 w-5 animate-spin text-[var(--turquoise)]" />
-          <span>Loading your vocabulary...</span>
+        <div
+          className="flex items-center gap-2"
+          style={{ color: "var(--text-secondary, #7BA8A0)" }}
+        >
+          <Loader2
+            className="h-5 w-5 animate-spin"
+            style={{ color: "var(--teal-surface, #0D9488)" }}
+          />
+          <span
+            style={{
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontSize: 13,
+            }}
+          >
+            Loading vocabulary...
+          </span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full flex flex-col gap-4">
-      {/* ── ROW 1: Title + view-mode switcher ── */}
+    <div className="vocab-section w-full flex flex-col gap-4">
+      {/* ── ROW 1: Title + pill toggle group ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold text-[var(--sand)]">
-            Your Vocabulary
+        <div className="flex items-center gap-3">
+          <h2
+            style={{
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+              fontSize: 20,
+              fontWeight: 600,
+              color: "var(--text-primary, #F0FDFA)",
+              margin: 0,
+            }}
+          >
+            Vocabulary
           </h2>
-          <p className="text-sm mt-0.5 text-[var(--seafoam)]">
-            {filteredWords.length} of {words.length} words
-          </p>
+          {/* Count chip */}
+          <span
+            style={{
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontSize: 11,
+              color: "var(--text-ghost, #2D5A52)",
+              padding: "2px 8px",
+              borderRadius: 100,
+              background: "rgba(13, 148, 136, 0.06)",
+              border: "1px solid rgba(13, 148, 136, 0.12)",
+            }}
+          >
+            {filteredWords.length} / {words.length}
+          </span>
         </div>
 
-        {/* View-mode buttons */}
-        <div className="flex gap-2">
+        {/* Pill toggle group */}
+        <div
+          className="pill-toggle-group flex"
+          style={{
+            background: "rgba(4, 24, 36, 0.6)",
+            borderRadius: 10,
+            padding: 3,
+            border: "1px solid rgba(255, 255, 255, 0.06)",
+          }}
+        >
           {viewButtons.map(({ mode, icon: Icon, label }) => (
             <button
               key={mode}
               onClick={() => setViewMode(mode)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 min-h-touch rounded-xl text-xs font-medium transition-all duration-200 border",
-                viewMode === mode
-                  ? "bg-ocean-turquoise/[0.18] text-[var(--turquoise)] border-ocean-turquoise/40"
-                  : "bg-white/5 text-[var(--seafoam)] border-white/10",
+                "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all duration-200",
               )}
+              style={{
+                borderRadius: 8,
+                border: "none",
+                cursor: "pointer",
+                background:
+                  viewMode === mode
+                    ? "rgba(13, 148, 136, 0.15)"
+                    : "transparent",
+                color:
+                  viewMode === mode
+                    ? "var(--teal-glow, #2DD4BF)"
+                    : "var(--text-ghost, #2D5A52)",
+                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                fontSize: 11,
+                letterSpacing: "0.02em",
+              }}
             >
               <Icon className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">{label}</span>
@@ -230,29 +278,60 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         </div>
       </div>
 
-      {/* ── ROW 2: Search + Status filter + Per-page + Pagination ── */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl px-4 py-3 bg-ocean-turquoise/[0.06] border border-ocean-turquoise/[0.22]">
+      {/* ── ROW 2: Frosted search / filter bar ── */}
+      <div
+        className="vocab-filter-bar flex flex-wrap items-center gap-3 px-4 py-3"
+        style={{
+          borderRadius: 14,
+          background: "rgba(4, 24, 36, 0.5)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(255, 255, 255, 0.06)",
+        }}
+      >
         {/* Search */}
         <div className="relative flex-1 min-w-[160px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none text-[var(--turquoise)]" />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
+            style={{ color: "var(--text-ghost, #2D5A52)" }}
+          />
           <input
             type="text"
             placeholder="Search vocabulary..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-xl text-sm outline-none bg-white/[0.07] border border-ocean-turquoise/25 text-[var(--sand)] caret-[var(--turquoise)]"
+            className="w-full pl-9 pr-3 py-2 text-sm outline-none"
+            style={{
+              borderRadius: 10,
+              background: "rgba(255, 255, 255, 0.04)",
+              border: "1px solid rgba(255, 255, 255, 0.06)",
+              color: "var(--text-primary, #F0FDFA)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+              fontSize: 13,
+            }}
           />
         </div>
 
         {/* Status filter */}
         <div className="flex items-center gap-1.5">
-          <SlidersHorizontal className="h-4 w-4 shrink-0 text-[var(--turquoise)]" />
+          <SlidersHorizontal
+            className="h-4 w-4 shrink-0"
+            style={{ color: "var(--text-ghost, #2D5A52)" }}
+          />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="rounded-xl text-sm outline-none cursor-pointer px-3 py-2 bg-white/[0.07] border border-ocean-turquoise/25 text-[var(--sand)]"
+            className="text-sm outline-none cursor-pointer"
+            style={{
+              borderRadius: 10,
+              padding: "6px 12px",
+              background: "rgba(255, 255, 255, 0.04)",
+              border: "1px solid rgba(255, 255, 255, 0.06)",
+              color: "var(--text-secondary, #7BA8A0)",
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontSize: 11,
+            }}
           >
-            <option value="all">All Status</option>
+            <option value="all">All</option>
             <option value="new">New</option>
             <option value="learning">Learning</option>
             <option value="known">Known</option>
@@ -262,13 +341,30 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
 
         {/* Per-page selector */}
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-medium whitespace-nowrap text-[var(--seafoam)]">
-            Per page
+          <span
+            className="text-xs whitespace-nowrap"
+            style={{
+              color: "var(--text-ghost, #2D5A52)",
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontSize: 10,
+            }}
+          >
+            Show
           </span>
           <select
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
-            className="rounded-xl text-sm outline-none cursor-pointer px-3 py-2 font-semibold bg-ocean-turquoise/15 border border-ocean-turquoise/40 text-[var(--turquoise)]"
+            className="text-sm outline-none cursor-pointer"
+            style={{
+              borderRadius: 8,
+              padding: "4px 8px",
+              background: "rgba(13, 148, 136, 0.08)",
+              border: "1px solid rgba(13, 148, 136, 0.2)",
+              color: "var(--teal-surface, #0D9488)",
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontSize: 11,
+              fontWeight: 600,
+            }}
           >
             {[10, 25, 50, 100].map((n) => (
               <option key={n} value={n}>
@@ -279,53 +375,81 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         </div>
 
         {/* Divider */}
-        <div className="hidden sm:block w-px h-6 bg-white/10" />
+        <div
+          className="hidden sm:block w-px h-5"
+          style={{ background: "rgba(255, 255, 255, 0.06)" }}
+        />
 
-        {/* Pagination controls — inline, always visible */}
+        {/* Pagination controls */}
         <div className="flex items-center gap-2 ml-auto">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="flex items-center gap-1 px-3 py-1.5 min-h-touch rounded-xl text-xs font-semibold transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed bg-ocean-turquoise/[0.12] text-[var(--turquoise)] border border-ocean-turquoise/30"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
+            style={{
+              borderRadius: 8,
+              border: "1px solid rgba(13, 148, 136, 0.15)",
+              background: "rgba(13, 148, 136, 0.06)",
+              color: "var(--teal-surface, #0D9488)",
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontSize: 11,
+              cursor: currentPage === 1 ? "not-allowed" : "pointer",
+            }}
           >
-            <ChevronLeft className="h-3.5 w-3.5" />
+            <ChevronLeft className="h-3 w-3" />
             Prev
           </button>
 
-          <span className="text-xs font-semibold px-1 tabular-nums text-[var(--turquoise)]">
+          <span
+            className="tabular-nums px-1"
+            style={{
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontSize: 11,
+              color: "var(--text-ghost, #2D5A52)",
+            }}
+          >
             {currentPage} / {totalPages}
           </span>
 
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="flex items-center gap-1 px-3 py-1.5 min-h-touch rounded-xl text-xs font-semibold transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed bg-ocean-turquoise/[0.12] text-[var(--turquoise)] border border-ocean-turquoise/30"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
+            style={{
+              borderRadius: 8,
+              border: "1px solid rgba(13, 148, 136, 0.15)",
+              background: "rgba(13, 148, 136, 0.06)",
+              color: "var(--teal-surface, #0D9488)",
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontSize: 11,
+              cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+            }}
           >
             Next
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-3 w-3" />
           </button>
         </div>
       </div>
 
       {/* ── ROW 3: Scrollable word list ── */}
-      <div className="max-h-[520px] overflow-y-scroll overflow-x-hidden rounded-2xl [scrollbar-width:thin] [scrollbar-color:rgba(61,214,181,0.5)_rgba(255,255,255,0.04)]">
-        <style>{`
-          .vocab-scroll::-webkit-scrollbar { width: 6px; }
-          .vocab-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 3px; }
-          .vocab-scroll::-webkit-scrollbar-thumb { background: rgba(61,214,181,0.5); border-radius: 3px; }
-          .vocab-scroll::-webkit-scrollbar-thumb:hover { background: rgba(61,214,181,0.8); }
-        `}</style>
-        <div className="vocab-scroll h-full">
-          {viewMode === "list" && (
-            <VocabularyListView words={paginatedWords} language={language} />
-          )}
-          {viewMode === "network" && (
-            <VocabularyNetworkView words={paginatedWords} language={language} />
-          )}
-          {viewMode === "cards" && (
-            <VocabularyCardView words={paginatedWords} language={language} />
-          )}
-        </div>
+      <div
+        className="dashboard-scroll overflow-y-auto overflow-x-hidden"
+        style={{
+          maxHeight: 520,
+          borderRadius: 14,
+          border: "1px solid rgba(255, 255, 255, 0.04)",
+          background: "rgba(2, 15, 20, 0.4)",
+        }}
+      >
+        {viewMode === "list" && (
+          <VocabularyListView words={paginatedWords} language={language} />
+        )}
+        {viewMode === "network" && (
+          <VocabularyNetworkView words={paginatedWords} language={language} />
+        )}
+        {viewMode === "cards" && (
+          <VocabularyCardView words={paginatedWords} language={language} />
+        )}
       </div>
     </div>
   );

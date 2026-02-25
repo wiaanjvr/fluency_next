@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -11,14 +11,13 @@ import type { GameboardStatus, GameboardTier } from "@/types/gameboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { UsageLimitBanner } from "@/components/ui/UsageLimitBanner";
 import {
-  OceanBackground,
   OceanNavigation,
   NextLessonHero,
   DiveTransitionProvider,
   useDiveTransition,
   DepthSidebar,
 } from "@/components/ocean";
-import { VocabularyViewer } from "@/components/dashboard";
+import { VocabularyViewer, DashboardRightPanel } from "@/components/dashboard";
 import { SoundContainer } from "@/components/ambient";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 import { Check, Crown, ArrowRight } from "lucide-react";
@@ -29,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { getTierConfig, hasAccess, type TierSlug } from "@/lib/tiers";
 
 import "@/styles/ocean-theme.css";
+import "@/styles/dashboard-theme.css";
 
 interface VocabularyStats {
   new: number;
@@ -93,40 +93,25 @@ function DashboardContent({
   const { triggerDive } = useDiveTransition();
   const { ambientView } = useAmbientPlayer();
   const contentRef = useRef<HTMLDivElement>(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   const depthInfo = getDepthInfo(stats.wordsEncountered);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!contentRef.current) return;
-    const rect = contentRef.current.getBoundingClientRect();
-    setMousePosition({
-      x: (e.clientX - rect.left - rect.width / 2) / rect.width,
-      y: (e.clientY - rect.top - rect.height / 2) / rect.height,
-    });
-  }, []);
-
-  useEffect(() => {
-    const container = contentRef.current;
-    if (container) {
-      container.addEventListener("mousemove", handleMouseMove);
-      return () => container.removeEventListener("mousemove", handleMouseMove);
-    }
-  }, [handleMouseMove]);
 
   const handleDiveClick = () => {
     triggerDive(depthInfo.path);
   };
 
   return (
-    <OceanBackground>
+    <div
+      className="dashboard-shell min-h-screen"
+      style={{ background: "var(--bg-deep, #020F14)" }}
+    >
       {/* Depth sidebar — always visible on desktop */}
       <DepthSidebar
         wordCount={stats.wordsEncountered}
         totalMinutes={stats.totalTime}
       />
 
-      {/* Navigation — Immerse, Settings */}
+      {/* Navigation */}
       <OceanNavigation
         wordsEncountered={stats.wordsEncountered}
         totalMinutes={stats.totalTime}
@@ -137,38 +122,81 @@ function DashboardContent({
         isAdmin={isAdmin}
         isProgressView={isProgressView}
         targetLanguage={targetLanguage}
+        depthName={depthInfo.name}
       />
 
-      {/* Main Content — offset right for depth sidebar */}
+      {/* Right panel */}
+      <DashboardRightPanel
+        wordsToday={
+          stats.wordsEncountered > 0 ? Math.min(stats.wordsEncountered, 30) : 0
+        }
+        dailyGoal={30}
+        minutesToday={stats.totalTime > 0 ? Math.min(stats.totalTime, 60) : 0}
+        streak={stats.streak}
+        spotlightWord={{
+          word: "lumière",
+          translation: "light",
+          partOfSpeech: "noun (f)",
+          example: "La lumière du soleil danse sur l\u2019eau.",
+        }}
+      />
+
+      {/* Main Content — three-column offset */}
       <div
         ref={contentRef}
         className={cn(
           "relative z-10 min-h-screen pt-24 pb-16 px-6",
-          isProgressView ? "lg:pl-[570px]" : "lg:pl-[350px]",
+          "lg:ml-[220px] xl:mr-[280px]",
         )}
       >
         {/* Payment Success Notification */}
         {showPaymentSuccess && (
           <div className="fixed top-20 right-6 z-50 max-w-md">
-            <div className="ocean-card p-4 bg-ocean-turquoise/10">
+            <div
+              className="glass-card p-4"
+              style={{
+                background: "rgba(13, 148, 136, 0.1)",
+                border: "1px solid rgba(13, 148, 136, 0.2)",
+                borderRadius: 16,
+              }}
+            >
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-ocean-turquoise/20">
-                  <Check className="w-5 h-5 text-[var(--turquoise)]" />
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: "rgba(13, 148, 136, 0.2)" }}
+                >
+                  <Check
+                    className="w-5 h-5"
+                    style={{ color: "var(--teal-surface, #0D9488)" }}
+                  />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-display font-semibold mb-1 text-[var(--turquoise)]">
+                  <h3
+                    className="font-semibold mb-1"
+                    style={{
+                      color: "var(--teal-glow, #2DD4BF)",
+                      fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                      fontSize: 15,
+                    }}
+                  >
                     Welcome aboard!
                   </h3>
-                  <p className="text-sm font-body text-[var(--seafoam)]">
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: "var(--text-secondary, #7BA8A0)",
+                    }}
+                  >
                     Your{" "}
                     {getTierConfig(subscriptionTier as TierSlug)?.displayName ||
                       "subscription"}{" "}
-                    plan is active. Go deeper.
+                    plan is active.
                   </p>
                 </div>
                 <button
                   onClick={() => setShowPaymentSuccess(false)}
-                  className="transition-opacity hover:opacity-100 opacity-60 text-[var(--sand)]"
+                  className="transition-opacity hover:opacity-100 opacity-60"
+                  style={{ color: "var(--text-ghost, #2D5A52)" }}
                 >
                   ×
                 </button>
@@ -185,16 +213,33 @@ function DashboardContent({
           />
         )}
 
-        <div className="max-w-5xl mx-auto space-y-12">
+        <div className="max-w-4xl mx-auto space-y-10">
           {/* Usage Limit Banner */}
           <UsageLimitBanner className="mb-4" />
 
           {/* Tier Badge */}
           {hasAccess(subscriptionTier as TierSlug, "diver") && (
             <div className="flex justify-center">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full ocean-card bg-[rgba(255,179,0,0.1)]">
-                <Crown className="w-4 h-4 text-[#ffb300]" />
-                <span className="text-sm font-body font-medium text-[#ffb300]">
+              <div
+                className="flex items-center gap-2 px-4 py-2 rounded-full"
+                style={{
+                  background: "rgba(13, 148, 136, 0.08)",
+                  border: "1px solid rgba(13, 148, 136, 0.15)",
+                }}
+              >
+                <Crown
+                  className="w-4 h-4"
+                  style={{ color: "var(--teal-surface, #0D9488)" }}
+                />
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: "var(--teal-surface, #0D9488)",
+                    fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                    letterSpacing: "0.04em",
+                  }}
+                >
                   {getTierConfig(subscriptionTier as TierSlug)?.displayName ||
                     "Pro"}
                 </span>
@@ -202,13 +247,8 @@ function DashboardContent({
             </div>
           )}
 
-          {/* ========== SESSION HERO — Single entry to immersion ========== */}
-          <section
-            style={{
-              transform: `translate(${mousePosition.x * -4}px, ${mousePosition.y * -4}px)`,
-              transition: "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
-            }}
-          >
+          {/* ========== SESSION HERO ========== */}
+          <section>
             {ambientView === "container" ? (
               <SoundContainer />
             ) : (
@@ -223,36 +263,60 @@ function DashboardContent({
 
           {/* ========== VOCABULARY VIEWER ========== */}
           {userId && (
-            <section
-              className="ocean-card p-6 ocean-card-animate backdrop-blur-lg"
-              style={{ animationDelay: "0.5s" }}
-            >
+            <section>
               <VocabularyViewer userId={userId} language={targetLanguage} />
             </section>
           )}
 
-          {/* ========== UPGRADE CTA (for Snorkeler users after depth 2) ========== */}
+          {/* ========== UPGRADE CTA ========== */}
           {stats.wordsEncountered >= 50 &&
             !hasAccess(subscriptionTier as TierSlug, "diver") && (
               <section
-                className="ocean-card ocean-card-animate p-8 backdrop-blur-lg bg-gradient-to-br from-[rgba(255,179,0,0.06)] to-[rgba(255,140,0,0.03)]"
-                style={{ animationDelay: "0.6s" }}
+                className="glass-card p-8"
+                style={{
+                  borderRadius: 20,
+                  background:
+                    "linear-gradient(135deg, rgba(13, 148, 136, 0.04) 0%, rgba(4, 24, 36, 0.6) 100%)",
+                  border: "1px solid rgba(13, 148, 136, 0.1)",
+                }}
               >
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <h3 className="font-display text-xl font-semibold mb-1 text-[var(--sand)]">
+                    <h3
+                      style={{
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                        fontSize: 18,
+                        fontWeight: 600,
+                        color: "var(--text-primary, #F0FDFA)",
+                        margin: 0,
+                      }}
+                    >
                       Go deeper
                     </h3>
-                    <p className="text-sm font-body text-[var(--seafoam)]">
+                    <p
+                      style={{
+                        fontSize: 14,
+                        color: "var(--text-secondary, #7BA8A0)",
+                      }}
+                    >
                       Unlimited immersion time, longer stories, and advanced
-                      shadowing tools.
+                      tools.
                     </p>
                   </div>
                   <Link href="/pricing">
                     <button
-                      className="ocean-cta px-6 py-3 text-sm font-semibold flex items-center gap-2 transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,179,0,0.3)]"
+                      className="dive-cta flex items-center gap-2"
                       style={{
-                        background: "linear-gradient(135deg, #ffb300, #ff8c00)",
+                        padding: "10px 24px",
+                        borderRadius: 100,
+                        border: "none",
+                        cursor: "pointer",
+                        background: "var(--teal-surface, #0D9488)",
+                        color: "#020F14",
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        boxShadow: "0 0 24px rgba(13, 148, 136, 0.2)",
                       }}
                     >
                       Start Diving
@@ -264,7 +328,7 @@ function DashboardContent({
             )}
         </div>
       </div>
-    </OceanBackground>
+    </div>
   );
 }
 

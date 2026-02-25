@@ -18,9 +18,8 @@ import { useNextActivity } from "@/hooks/useNextActivity";
 import type { ActivityRecommendation } from "@/lib/recommendation/nextActivityEngine";
 
 // ============================================================================
-// Session Hero Card — Intelligent "Next Activity" recommendation
-// Consumes useNextActivity() and renders the recommendation with ocean theming.
-// Preserves all existing caustic / ocean-card animations.
+// Hero Dive Card — Full-width ocean depth instrument
+// Layered gradient background with caustic shimmer, depth gauge, floating chips
 // ============================================================================
 
 interface SessionHeroProps {
@@ -29,11 +28,9 @@ interface SessionHeroProps {
   sessionPath: string;
   onDiveClick?: () => void;
   className?: string;
+  divesRemaining?: number;
 }
 
-// ---------------------------------------------------------------------------
-// Activity icon + label mapping
-// ---------------------------------------------------------------------------
 const ACTIVITY_META: Record<
   ActivityRecommendation["activityType"],
   { icon: React.ElementType; label: string }
@@ -47,42 +44,16 @@ const ACTIVITY_META: Record<
   conversation: { icon: MessageCircle, label: "Live Conversation" },
 };
 
-// ---------------------------------------------------------------------------
-// Urgency-driven glow style
-// ---------------------------------------------------------------------------
-function getGlowStyle(urgency: number) {
-  if (urgency >= 80) {
-    return {
-      boxShadow:
-        "0 0 30px rgba(61, 214, 181, 0.25), inset 0 0 60px rgba(61, 214, 181, 0.06)",
-      borderColor: "rgba(61, 214, 181, 0.35)",
-    };
-  }
-  if (urgency >= 50) {
-    return {
-      boxShadow:
-        "0 0 20px rgba(61, 214, 181, 0.15), inset 0 0 40px rgba(61, 214, 181, 0.04)",
-      borderColor: "rgba(61, 214, 181, 0.2)",
-    };
-  }
-  return {
-    boxShadow:
-      "0 0 12px rgba(61, 214, 181, 0.08), inset 0 0 30px rgba(61, 214, 181, 0.02)",
-    borderColor: "rgba(61, 214, 181, 0.12)",
-  };
-}
-
-// Generates a poetic depth prompt based on word count (fallback only)
 function getDepthMessage(words: number): { heading: string; sub: string } {
   if (words === 0) {
     return {
-      heading: "Begin your immersion",
+      heading: "Let\u2019s find your depth",
       sub: "Listen. Echo. Let the language wash over you.",
     };
   }
   if (words < 50) {
     return {
-      heading: "The first sounds",
+      heading: "Let\u2019s find your depth",
       sub: "Words are taking shape beneath the surface.",
     };
   }
@@ -110,12 +81,29 @@ function getDepthMessage(words: number): { heading: string; sub: string } {
   };
 }
 
+function getDepthMeters(words: number): number {
+  if (words >= 5000) return 200;
+  if (words >= 2000) return 100 + Math.round(((words - 2000) / 3000) * 100);
+  if (words >= 500) return 50 + Math.round(((words - 500) / 1500) * 50);
+  if (words >= 50) return 10 + Math.round(((words - 50) / 450) * 40);
+  return Math.round((words / 50) * 10);
+}
+
+function getZoneProgress(words: number): number {
+  if (words >= 5000) return Math.min(100, ((words - 5000) / 5000) * 100);
+  if (words >= 2000) return ((words - 2000) / 3000) * 100;
+  if (words >= 500) return ((words - 500) / 1500) * 100;
+  if (words >= 50) return ((words - 50) / 450) * 100;
+  return (words / 50) * 100;
+}
+
 export function NextLessonHero({
   depthName,
   wordsAbsorbed,
   sessionPath,
   onDiveClick,
   className,
+  divesRemaining = 5,
 }: SessionHeroProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [pillarsVisible, setPillarsVisible] = useState(false);
@@ -123,18 +111,13 @@ export function NextLessonHero({
   const fallbackMessage = getDepthMessage(wordsAbsorbed);
 
   useEffect(() => {
-    const timer = setTimeout(() => setPillarsVisible(true), 800);
+    const timer = setTimeout(() => setPillarsVisible(true), 400);
     return () => clearTimeout(timer);
   }, []);
 
-  // Determine what to show
   const hasRecommendation = !isLoading && !error && recommendation;
-  const urgency = recommendation?.urgencyScore ?? 0;
-  const glowStyle = hasRecommendation ? getGlowStyle(urgency) : getGlowStyle(0);
-
-  // CTA destination
   const ctaHref = hasRecommendation ? recommendation.route : sessionPath;
-  const ctaLabel = hasRecommendation ? "Dive in" : "Enter the water";
+  const ctaLabel = hasRecommendation ? "Dive in →" : "Dive in →";
 
   const handleDiveClick = (e: React.MouseEvent) => {
     if (!hasRecommendation && onDiveClick) {
@@ -143,356 +126,385 @@ export function NextLessonHero({
     }
   };
 
-  // Activity meta
   const activityInfo = hasRecommendation
     ? ACTIVITY_META[recommendation.activityType]
     : null;
-  const ActivityIcon = activityInfo?.icon ?? BookOpen;
+  const ActivityIcon = activityInfo?.icon ?? Layers;
+
+  const depthMeters = getDepthMeters(wordsAbsorbed);
+  const zoneProgress = getZoneProgress(wordsAbsorbed);
+  const circumference = 2 * Math.PI * 54; // radius 54
+  const strokeOffset = circumference - (zoneProgress / 100) * circumference;
 
   return (
     <div
       className={cn(
-        "ocean-card caustic-bg relative overflow-hidden w-full",
-        "ocean-card-animate",
-        "border border-solid",
-        "transition-shadow duration-500",
+        "hero-dive-card relative overflow-hidden w-full",
         className,
       )}
       style={{
-        background: `linear-gradient(135deg, rgba(13, 27, 42, 0.95) 0%, rgba(10, 15, 30, 0.9) 100%)`,
-        minHeight: "320px",
-        ...glowStyle,
+        minHeight: 220,
+        borderRadius: 20,
+        background:
+          "radial-gradient(ellipse at 30% 40%, rgba(13,148,136,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 60%, rgba(6,61,56,0.2) 0%, transparent 50%), linear-gradient(160deg, #062030 0%, #041420 50%, #020F14 100%)",
+        border: "1px solid rgba(13, 148, 136, 0.1)",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Caustic light layer */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse at 70% 30%, rgba(30, 107, 114, 0.12) 0%, transparent 50%)`,
-          animation: "caustic3 18s ease-in-out infinite",
-        }}
-      />
+      {/* Caustic shimmer overlay */}
+      <div className="caustic-shimmer absolute inset-0 pointer-events-none overflow-hidden" />
 
       {/* Content */}
-      <div className="relative z-10 p-10 flex flex-col h-full min-h-[320px]">
-        {/* Depth indicator */}
-        <div className="flex items-center gap-2 mb-6">
-          <div
-            className="w-2 h-2 rounded-full"
-            style={{
-              background: "var(--turquoise)",
-              boxShadow: "0 0 8px rgba(61, 214, 181, 0.4)",
-            }}
-          />
-          <span
-            className="font-body text-sm uppercase tracking-widest"
-            style={{ color: "var(--seafoam)", opacity: 0.7 }}
-          >
-            {depthName}
-          </span>
-        </div>
-
-        {/* ── Loading state ── */}
-        {isLoading && (
-          <>
-            <div className="mb-3">
-              <div
-                className="h-10 w-3/4 rounded-lg animate-pulse"
-                style={{ background: "rgba(255,255,255,0.06)" }}
-              />
-            </div>
-            <div className="mb-8">
-              <div
-                className="h-5 w-1/2 rounded-md animate-pulse"
-                style={{ background: "rgba(255,255,255,0.04)" }}
-              />
-            </div>
-            <p
-              className="font-body text-sm italic"
-              style={{ color: "var(--seafoam)", opacity: 0.5 }}
-            >
-              Charting your course...
-            </p>
-          </>
-        )}
-
-        {/* ── Recommendation loaded state ── */}
-        {hasRecommendation && (
-          <>
-            {/* Headline */}
-            <h2
-              className={cn(
-                "font-display tracking-tight mb-3",
-                urgency >= 80
-                  ? "text-4xl md:text-5xl lg:text-6xl font-bold"
-                  : "text-4xl md:text-5xl lg:text-6xl font-semibold",
-              )}
+      <div className="relative z-10 p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-6 h-full min-h-[220px]">
+        {/* Left content */}
+        <div className="flex-1 flex flex-col gap-4">
+          {/* Dives remaining — top right of card on md+ */}
+          <div className="flex items-center justify-between">
+            {/* Zone badge pill */}
+            <div
+              className="zone-badge"
               style={{
-                color: urgency >= 80 ? "var(--sand)" : "var(--sand)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "4px 12px",
+                borderRadius: 100,
+                border: "1px solid rgba(13, 148, 136, 0.3)",
+                background: "rgba(13, 148, 136, 0.08)",
+                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                fontSize: 11,
+                fontWeight: 500,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase" as const,
+                color: "var(--teal-surface, #0D9488)",
               }}
             >
-              {recommendation.headline}
-            </h2>
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "var(--teal-surface, #0D9488)",
+                  boxShadow: "0 0 6px rgba(13, 148, 136, 0.5)",
+                  display: "inline-block",
+                }}
+              />
+              {depthName}
+            </div>
 
-            {/* Subtext */}
-            <p
-              className="font-body text-lg mb-6 max-w-md"
-              style={{ color: "var(--seafoam)" }}
+            {/* Dives remaining indicator */}
+            <div
+              className="hidden md:flex items-center gap-1.5"
+              style={{
+                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                fontSize: 10,
+                color: "var(--text-ghost, #2D5A52)",
+                letterSpacing: "0.04em",
+              }}
             >
-              {recommendation.subtext}
-            </p>
+              {Array.from({ length: 5 }, (_, i) => (
+                <span
+                  key={i}
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    background:
+                      i < divesRemaining
+                        ? "var(--teal-surface, #0D9488)"
+                        : "rgba(255, 255, 255, 0.08)",
+                    boxShadow:
+                      i < divesRemaining
+                        ? "0 0 4px rgba(13, 148, 136, 0.4)"
+                        : "none",
+                  }}
+                />
+              ))}
+              <span style={{ marginLeft: 4 }}>
+                {divesRemaining} dives remaining
+              </span>
+            </div>
+          </div>
 
-            {/* Activity info pills */}
+          {/* Loading state */}
+          {isLoading && (
+            <>
+              <div className="h-10 w-3/4 rounded-lg skeleton-shimmer" />
+              <div className="h-5 w-1/2 rounded-md skeleton-shimmer" />
+            </>
+          )}
+
+          {/* Recommendation loaded */}
+          {hasRecommendation && (
+            <>
+              <h2
+                style={{
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                  fontSize: "clamp(1.6rem, 2.5vw, 2.2rem)",
+                  fontWeight: 600,
+                  color: "var(--text-primary, #F0FDFA)",
+                  lineHeight: 1.15,
+                  margin: 0,
+                }}
+              >
+                {recommendation.headline}
+              </h2>
+              <p
+                style={{
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                  fontSize: 16,
+                  color: "var(--text-secondary, #7BA8A0)",
+                  margin: 0,
+                  maxWidth: 400,
+                  lineHeight: 1.5,
+                }}
+              >
+                {recommendation.subtext}
+              </p>
+            </>
+          )}
+
+          {/* Fallback state */}
+          {!isLoading && (error || !recommendation) && (
+            <>
+              <h2
+                style={{
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                  fontSize: "clamp(1.6rem, 2.5vw, 2.2rem)",
+                  fontWeight: 600,
+                  color: "var(--text-primary, #F0FDFA)",
+                  lineHeight: 1.15,
+                  margin: 0,
+                }}
+              >
+                {fallbackMessage.heading}
+              </h2>
+              <p
+                style={{
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                  fontSize: 16,
+                  color: "var(--text-secondary, #7BA8A0)",
+                  margin: 0,
+                  maxWidth: 400,
+                  lineHeight: 1.5,
+                }}
+              >
+                {fallbackMessage.sub}
+              </p>
+            </>
+          )}
+
+          {/* Meta chips row */}
+          {!isLoading && (
             <div
               className={cn(
-                "flex flex-wrap items-center gap-3 mb-10 transition-all duration-700",
+                "flex flex-wrap items-center gap-2 transition-all duration-500",
                 pillarsVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-2",
               )}
             >
-              {/* Activity type pill */}
+              {/* Activity type chip */}
               <div
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full"
-                style={{ background: "rgba(61, 214, 181, 0.1)" }}
+                className="meta-chip"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "4px 10px",
+                  borderRadius: 100,
+                  background: "rgba(4, 24, 36, 0.7)",
+                  backdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255, 255, 255, 0.06)",
+                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  fontSize: 11,
+                  color: "var(--text-secondary, #7BA8A0)",
+                }}
               >
                 <ActivityIcon
-                  className="w-4 h-4"
-                  style={{ color: "var(--turquoise)" }}
-                />
-                <span
-                  className="text-sm font-body font-medium"
-                  style={{ color: "var(--sand)" }}
-                >
-                  {activityInfo?.label}
-                </span>
-              </div>
-
-              {/* Estimated time pill */}
-              <div
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-                style={{ background: "rgba(255, 255, 255, 0.05)" }}
-              >
-                <Clock
                   className="w-3.5 h-3.5"
-                  style={{ color: "var(--seafoam)", opacity: 0.7 }}
+                  style={{ color: "var(--teal-surface, #0D9488)" }}
                 />
-                <span
-                  className="text-sm font-body"
-                  style={{ color: "var(--sand)", opacity: 0.7 }}
-                >
-                  ~{recommendation.estimatedMinutes} min
-                </span>
+                <span>{activityInfo?.label || "Flashcards"}</span>
               </div>
 
-              {/* Item count pill */}
-              {recommendation.itemCount && (
-                <div
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-                  style={{ background: "rgba(255, 255, 255, 0.05)" }}
-                >
-                  <span
-                    className="text-sm font-body"
-                    style={{ color: "var(--sand)", opacity: 0.7 }}
-                  >
-                    {recommendation.itemCount} items ready
-                  </span>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* ── Error / fallback state ── */}
-        {!isLoading && (error || !recommendation) && (
-          <>
-            <h2
-              className="font-display text-4xl md:text-5xl lg:text-6xl font-semibold mb-3 tracking-tight"
-              style={{ color: "var(--sand)" }}
-            >
-              {fallbackMessage.heading}
-            </h2>
-            <p
-              className="font-body text-lg mb-8 max-w-md"
-              style={{ color: "var(--seafoam)" }}
-            >
-              {fallbackMessage.sub}
-            </p>
-          </>
-        )}
-
-        {/* Cold start wave animation (subtle) */}
-        {hasRecommendation && recommendation.reason === "cold_start" && (
-          <div
-            className="absolute bottom-0 left-0 right-0 h-1 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, rgba(61, 214, 181, 0.3), transparent)",
-              animation: "coldStartWave 3s ease-in-out infinite",
-            }}
-          />
-        )}
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Dive In CTA — sonar idle ripple + submerge on hover */}
-        <div className="relative inline-flex">
-          {/* Expanding sonar rings radiating outward when idle */}
-          {!isHovered &&
-            [0, 1, 2].map((i) => (
+              {/* Time chip */}
               <div
-                key={i}
-                className="absolute inset-0 rounded-full pointer-events-none"
+                className="meta-chip"
                 style={{
-                  border: "1px solid rgba(0,229,204,0.28)",
-                  animation: `cta-sonar ${2.8 + i * 0.4}s ease-out ${
-                    i * 0.85
-                  }s infinite`,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "4px 10px",
+                  borderRadius: 100,
+                  background: "rgba(4, 24, 36, 0.7)",
+                  backdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255, 255, 255, 0.06)",
+                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  fontSize: 11,
+                  color: "var(--text-secondary, #7BA8A0)",
+                }}
+              >
+                <Clock className="w-3 h-3" style={{ opacity: 0.6 }} />
+                <span>
+                  ~{hasRecommendation ? recommendation.estimatedMinutes : 5} min
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* CTA button */}
+          {!isLoading && (
+            <div className="mt-2">
+              <Link href={ctaHref} onClick={handleDiveClick}>
+                <button
+                  className={cn(
+                    "dive-cta dive-cta-pulse",
+                    "relative flex items-center gap-2",
+                  )}
+                  style={{
+                    padding: "12px 28px",
+                    borderRadius: 100,
+                    border: "none",
+                    cursor: "pointer",
+                    background: "var(--teal-surface, #0D9488)",
+                    color: "#020F14",
+                    fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                    fontSize: 15,
+                    fontWeight: 600,
+                    boxShadow: isHovered
+                      ? "0 0 40px rgba(13, 148, 136, 0.4)"
+                      : "0 0 24px rgba(13, 148, 136, 0.25)",
+                    transition: "all 300ms cubic-bezier(0.4, 0, 0.2, 1)",
+                    transform: isHovered ? "translateY(-1px)" : "translateY(0)",
+                  }}
+                >
+                  <span>Dive in</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Right content — Depth gauge circle + floating word chips */}
+        <div className="hidden md:flex flex-col items-center gap-4 relative">
+          {/* Circular depth gauge */}
+          <div
+            style={{
+              position: "relative",
+              width: 140,
+              height: 140,
+              flexShrink: 0,
+            }}
+          >
+            <svg
+              width="140"
+              height="140"
+              viewBox="0 0 140 140"
+              style={{ transform: "rotate(-90deg)" }}
+            >
+              {/* Outer ring */}
+              <circle
+                cx="70"
+                cy="70"
+                r="54"
+                fill="none"
+                stroke="rgba(13, 148, 136, 0.2)"
+                strokeWidth="3"
+              />
+              {/* Progress arc */}
+              <circle
+                cx="70"
+                cy="70"
+                r="54"
+                fill="none"
+                stroke="var(--teal-surface, #0D9488)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeOffset}
+                style={{
+                  transition:
+                    "stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
               />
-            ))}
-          <Link href={ctaHref} onClick={handleDiveClick}>
-            <button
-              className={cn(
-                "ocean-cta relative px-8 py-4 text-lg font-semibold flex items-center gap-3 group",
-                "transition-all duration-300",
-                hasRecommendation && urgency >= 80 && "animate-gentle-pulse",
-              )}
-              style={{
-                transform: isHovered
-                  ? "translateY(4px) scale(0.98)"
-                  : "translateY(0) scale(1)",
-                boxShadow: isHovered
-                  ? "0 2px 16px rgba(0,229,204,0.2), inset 0 2px 8px rgba(0,0,0,0.25)"
-                  : undefined,
-                transition:
-                  "transform 0.25s cubic-bezier(0.23,1,0.32,1), box-shadow 0.25s ease",
-              }}
-            >
-              <span>{ctaLabel}</span>
-              <ArrowRight
-                className={cn(
-                  "w-5 h-5 transition-transform duration-300",
-                  isHovered ? "translate-x-1" : "",
-                )}
-              />
-            </button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Sonar depth pulse — bottom right ambient animation */}
-      <div
-        className="absolute pointer-events-none"
-        style={{ right: 44, bottom: 44 }}
-      >
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="absolute rounded-full"
-            style={{
-              width: 10,
-              height: 10,
-              top: "50%",
-              left: "50%",
-              border: "1px solid rgba(0,229,204,0.45)",
-              animation: `sonar-ping 3.6s ease-out ${i * 1.2}s infinite`,
-            }}
-          />
-        ))}
-        <div
-          className="relative w-2.5 h-2.5 rounded-full"
-          style={{
-            background: "rgba(0,229,204,0.55)",
-            boxShadow: "0 0 8px 2px rgba(0,229,204,0.4)",
-          }}
-        />
-      </div>
-
-      {/* Floating vocabulary preview — for new divers */}
-      {wordsAbsorbed < 30 && (
-        <div className="absolute top-8 right-8 flex flex-col items-end gap-2 pointer-events-none">
-          {["lumière", "mer", "vague"].map((word, i) => (
+            </svg>
+            {/* Center text */}
             <div
-              key={word}
               style={{
-                animation: `vocab-bubble-float ${
-                  2.4 + i * 0.7
-                }s ease-in-out ${i * 0.9}s infinite`,
-                background: "rgba(0,229,204,0.07)",
-                border: "1px solid rgba(0,229,204,0.18)",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
-                borderRadius: 100,
-                padding: "5px 14px",
-                fontSize: 13,
-                fontFamily: "var(--font-display)",
-                color: "rgba(0,229,204,0.78)",
-                letterSpacing: "0.03em",
-                fontStyle: "italic",
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              {word}
+              <span
+                style={{
+                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  fontSize: 28,
+                  fontWeight: 500,
+                  color: "var(--text-primary, #F0FDFA)",
+                  lineHeight: 1,
+                }}
+              >
+                {depthMeters}m
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  fontSize: 8,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase" as const,
+                  color: "var(--text-ghost, #2D5A52)",
+                  marginTop: 4,
+                }}
+              >
+                DEPTH
+              </span>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
 
-      {/* Keyframe styles for gentle pulse + cold start wave */}
+          {/* Floating word chips */}
+          <div className="flex flex-wrap gap-2 justify-center">
+            {["lumière", "mer", "vague"].map((word, i) => (
+              <span
+                key={word}
+                style={{
+                  display: "inline-block",
+                  padding: "4px 14px",
+                  borderRadius: 100,
+                  background: "rgba(13, 148, 136, 0.07)",
+                  border: "1px solid rgba(13, 148, 136, 0.18)",
+                  backdropFilter: "blur(8px)",
+                  fontFamily: "var(--font-display, 'Playfair Display', serif)",
+                  fontSize: 13,
+                  fontStyle: "italic",
+                  color: "rgba(13, 148, 136, 0.78)",
+                  letterSpacing: "0.03em",
+                  animation: `float-chip ${3 + i * 0.5}s ease-in-out ${i * 0.8}s infinite`,
+                }}
+              >
+                {word}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Keyframes */}
       <style jsx>{`
-        @keyframes gentle-pulse {
+        @keyframes float-chip {
           0%,
           100% {
-            box-shadow: 0 0 0 0 rgba(61, 214, 181, 0.3);
+            transform: translateY(0);
           }
           50% {
-            box-shadow: 0 0 0 6px rgba(61, 214, 181, 0);
-          }
-        }
-        .animate-gentle-pulse {
-          animation: gentle-pulse 2.5s ease-in-out infinite;
-        }
-        @keyframes coldStartWave {
-          0%,
-          100% {
-            transform: translateX(-100%);
-          }
-          50% {
-            transform: translateX(100%);
-          }
-        }
-        @keyframes sonar-ping {
-          0% {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 0.55;
-          }
-          100% {
-            transform: translate(-50%, -50%) scale(8);
-            opacity: 0;
-          }
-        }
-        @keyframes vocab-bubble-float {
-          0%,
-          100% {
-            transform: translateY(0px);
-            opacity: 0.75;
-          }
-          50% {
-            transform: translateY(-6px);
-            opacity: 1;
-          }
-        }
-        @keyframes cta-sonar {
-          0% {
-            transform: scale(1);
-            opacity: 0.45;
-          }
-          100% {
-            transform: scale(2.6);
-            opacity: 0;
+            transform: translateY(-4px);
           }
         }
       `}</style>

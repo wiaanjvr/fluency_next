@@ -6,67 +6,39 @@ import { ChevronDown, Loader2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 
+// ============================================================================
+// Vocabulary List View — Tonal depth bars, teal review badges
+// ============================================================================
+
 interface VocabularyListViewProps {
   words: UserWord[];
   language: string;
 }
 
-// --- Ocean depth stages -------------------------------------------------------
+// --- Depth stages (single teal color system) ----------------------------------
 const STAGE = {
   new: {
-    label: "Surfacing",
-    emoji: "🪸",
+    label: "DRIFTING",
     depthBase: 0,
     depthRange: 20,
-    glow: "rgba(245, 158, 11, 0.18)",
-    hoverGlow: "rgba(245, 158, 11, 0.40)",
-    pill: {
-      bg: "rgba(245,158,11,0.10)",
-      border: "rgba(245,158,11,0.28)",
-      text: "#fbbf24",
-    },
     desc: "Just encountered",
   },
   learning: {
-    label: "Drifting",
-    emoji: "🐠",
+    label: "SURFACING",
     depthBase: 20,
     depthRange: 32,
-    glow: "rgba(16, 185, 129, 0.16)",
-    hoverGlow: "rgba(16, 185, 129, 0.38)",
-    pill: {
-      bg: "rgba(16,185,129,0.10)",
-      border: "rgba(16,185,129,0.28)",
-      text: "#34d399",
-    },
     desc: "Building familiarity",
   },
   known: {
-    label: "Diving",
-    emoji: "🐋",
+    label: "CRUISING",
     depthBase: 52,
     depthRange: 24,
-    glow: "rgba(6, 182, 212, 0.16)",
-    hoverGlow: "rgba(6, 182, 212, 0.40)",
-    pill: {
-      bg: "rgba(6,182,212,0.10)",
-      border: "rgba(6,182,212,0.28)",
-      text: "#22d3ee",
-    },
     desc: "Solid recall",
   },
   mastered: {
-    label: "Abyssal",
-    emoji: "✨",
+    label: "ABYSS",
     depthBase: 76,
     depthRange: 24,
-    glow: "rgba(167, 139, 250, 0.18)",
-    hoverGlow: "rgba(167, 139, 250, 0.45)",
-    pill: {
-      bg: "rgba(167,139,250,0.10)",
-      border: "rgba(167,139,250,0.28)",
-      text: "#c4b5fd",
-    },
     desc: "Deep memory",
   },
 } as const;
@@ -86,37 +58,46 @@ function getDepthPercent(word: UserWord): number {
   return Math.round(stage.depthBase + easePct * stage.depthRange);
 }
 
-// --- Depth gauge --------------------------------------------------------------
+// --- Depth gauge (single teal gradient) ---------------------------------------
 function DepthGauge({ word }: { word: UserWord }) {
   const pct = getDepthPercent(word);
   const stage = getStage(word.status);
 
   return (
     <div className="flex flex-col gap-1.5 w-full">
+      {/* Track */}
       <div
-        className="relative w-full h-[5px] rounded-full overflow-hidden"
-        style={{ background: "rgba(255,255,255,0.07)" }}
+        className="depth-bar-track relative w-full h-[4px] rounded-full overflow-hidden"
+        style={{ background: "rgba(13, 148, 136, 0.08)" }}
       >
+        {/* Fill — single teal gradient */}
         <div
-          className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+          className="depth-bar-fill absolute inset-y-0 left-0 rounded-full transition-all duration-700"
           style={{
             width: `${pct}%`,
             background:
-              "linear-gradient(90deg, #d97706 0%, #10b981 33%, #06b6d4 65%, #818cf8 100%)",
+              "linear-gradient(90deg, rgba(13, 148, 136, 0.3) 0%, var(--teal-surface, #0D9488) 100%)",
           }}
         />
       </div>
+      {/* Label */}
       <span
-        className="text-[10px] font-semibold uppercase tracking-wide"
-        style={{ color: stage.pill.text }}
+        style={{
+          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+          fontSize: 9,
+          fontWeight: 500,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase" as const,
+          color: "var(--text-ghost, #2D5A52)",
+        }}
       >
-        {stage.emoji} {stage.label}
+        {stage.label}
       </span>
     </div>
   );
 }
 
-// --- Review chip --------------------------------------------------------------
+// --- Review chip (teal badges, no red) ----------------------------------------
 function ReviewChip({ nextReview }: { nextReview: string }) {
   const reviewDate = new Date(nextReview);
   const now = new Date();
@@ -126,26 +107,59 @@ function ReviewChip({ nextReview }: { nextReview: string }) {
 
   if (isDue) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[rgba(248,113,113,0.12)] border border-[rgba(248,113,113,0.28)] text-[#fca5a5]">
+      <span
+        className="review-badge review-badge-ready inline-flex items-center gap-1 px-2 py-0.5 rounded-full"
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+          background: "rgba(13, 148, 136, 0.15)",
+          border: "1px solid rgba(13, 148, 136, 0.3)",
+          color: "var(--teal-glow, #2DD4BF)",
+          letterSpacing: "0.04em",
+        }}
+      >
         <Zap className="h-2.5 w-2.5" />
-        Ready
+        READY
       </span>
     );
   }
   if (diffDays < 1)
     return (
-      <span className="text-xs text-[var(--turquoise)]">
-        in {Math.round(diffDays * 24)}h
+      <span
+        className="review-badge review-badge-soon"
+        style={{
+          fontSize: 10,
+          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+          color: "var(--teal-surface, #0D9488)",
+          letterSpacing: "0.04em",
+        }}
+      >
+        {Math.round(diffDays * 24)}h
       </span>
     );
   if (diffDays < 30)
     return (
-      <span className="text-xs text-[var(--seafoam)]">
-        in {Math.round(diffDays)}d
+      <span
+        className="review-badge review-badge-later"
+        style={{
+          fontSize: 10,
+          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+          color: "var(--text-ghost, #2D5A52)",
+          letterSpacing: "0.04em",
+        }}
+      >
+        {Math.round(diffDays)}d
       </span>
     );
   return (
-    <span className="text-xs text-[var(--seafoam)]">
+    <span
+      style={{
+        fontSize: 10,
+        fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+        color: "var(--text-ghost, #2D5A52)",
+      }}
+    >
       {formatDistanceToNow(reviewDate, { addSuffix: true })}
     </span>
   );
@@ -231,7 +245,13 @@ export function VocabularyListView({
     return (
       <div className="py-16 flex flex-col items-center gap-2 text-center">
         <span className="text-4xl">🌊</span>
-        <p className="text-[var(--seafoam)] text-sm">
+        <p
+          style={{
+            color: "var(--text-ghost, #2D5A52)",
+            fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+            fontSize: 13,
+          }}
+        >
           No words found in these waters.
         </p>
       </div>
@@ -247,16 +267,26 @@ export function VocabularyListView({
   }) => (
     <button
       onClick={() => handleSort(field)}
-      className={cn(
-        "text-[11px] font-semibold uppercase tracking-wider transition-colors text-left",
-        sortField === field
-          ? "text-[var(--turquoise)]"
-          : "text-[var(--seafoam)]/50 hover:text-[var(--seafoam)]",
-      )}
+      className="text-left transition-colors"
+      style={{
+        fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+        fontSize: 9,
+        fontWeight: 600,
+        letterSpacing: "0.12em",
+        textTransform: "uppercase" as const,
+        color:
+          sortField === field
+            ? "var(--teal-surface, #0D9488)"
+            : "var(--text-ghost, #2D5A52)",
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: 0,
+      }}
     >
       {children}
       {sortField === field && (
-        <span className="ml-0.5 opacity-70">
+        <span style={{ marginLeft: 2, opacity: 0.7 }}>
           {sortDir === "asc" ? " ↑" : " ↓"}
         </span>
       )}
@@ -266,16 +296,19 @@ export function VocabularyListView({
   return (
     <div className="w-full">
       {/* Column headers */}
-      <div className="grid grid-cols-[1fr_180px_110px_28px] gap-3 px-4 py-2.5 border-b border-white/[0.06]">
+      <div
+        className="grid grid-cols-[1fr_180px_110px_28px] gap-3 px-4 py-2.5"
+        style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.04)" }}
+      >
         <ColHeader field="word">Word</ColHeader>
         <ColHeader field="status">Depth</ColHeader>
-        <ColHeader field="next_review">Next Review</ColHeader>
+        <ColHeader field="next_review">Review</ColHeader>
         <div />
       </div>
 
       {/* Rows */}
       <div role="list">
-        {sorted.map((word) => {
+        {sorted.map((word, idx) => {
           const stage = getStage(word.status);
           const isExpanded = expandedId === word.id;
           const isHovered = hoveredId === word.id;
@@ -284,31 +317,46 @@ export function VocabularyListView({
             <div key={word.id} role="listitem">
               {/* Row button */}
               <button
-                className="w-full text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--turquoise)]"
+                className="vocab-row w-full text-left focus:outline-none focus-visible:ring-1"
                 onClick={() => toggle(word.id, word.word)}
                 onMouseEnter={() => setHoveredId(word.id)}
                 onMouseLeave={() => setHoveredId(null)}
                 style={{
                   background: isExpanded
-                    ? stage.pill.bg
+                    ? "rgba(13, 148, 136, 0.06)"
                     : isHovered
-                      ? stage.glow
-                      : "transparent",
-                  boxShadow:
+                      ? "rgba(13, 148, 136, 0.03)"
+                      : idx % 2 === 0
+                        ? "transparent"
+                        : "rgba(255, 255, 255, 0.01)",
+                  borderLeft:
                     isHovered || isExpanded
-                      ? `inset 0 0 0 1px ${stage.pill.border}, 0 0 20px ${stage.hoverGlow}`
-                      : undefined,
-                  transition: "background 0.16s ease, box-shadow 0.20s ease",
+                      ? "2px solid var(--teal-surface, #0D9488)"
+                      : "2px solid transparent",
+                  transition: "background 0.15s ease, border-left 0.15s ease",
                 }}
               >
-                <div className="grid grid-cols-[1fr_180px_110px_28px] gap-3 px-4 py-3.5 items-center">
+                <div className="grid grid-cols-[1fr_180px_110px_28px] gap-3 px-4 py-3 items-center">
                   {/* Word */}
                   <div>
-                    <span className="font-semibold text-[var(--sand)] text-sm tracking-wide">
+                    <span
+                      style={{
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                        fontWeight: 500,
+                        color: "var(--text-primary, #F0FDFA)",
+                        fontSize: 14,
+                      }}
+                    >
                       {word.word}
                     </span>
                     {word.lemma && word.lemma !== word.word && (
-                      <span className="ml-1.5 text-[11px] text-[var(--seafoam)]/50">
+                      <span
+                        style={{
+                          marginLeft: 6,
+                          fontSize: 11,
+                          color: "var(--text-ghost, #2D5A52)",
+                        }}
+                      >
                         ({word.lemma})
                       </span>
                     )}
@@ -324,9 +372,9 @@ export function VocabularyListView({
                   <div
                     className="flex justify-center transition-transform duration-200"
                     style={{
-                      color: stage.pill.text,
+                      color: "var(--text-ghost, #2D5A52)",
                       transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                      opacity: isHovered || isExpanded ? 1 : 0.3,
+                      opacity: isHovered || isExpanded ? 0.8 : 0.25,
                     }}
                   >
                     <ChevronDown className="h-4 w-4" />
@@ -337,20 +385,40 @@ export function VocabularyListView({
               {/* Expanded detail panel */}
               {isExpanded && (
                 <div
-                  className="px-4 pb-4 pt-2 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b"
+                  className="px-4 pb-4 pt-2 grid grid-cols-2 sm:grid-cols-4 gap-4"
                   style={{
-                    background: `linear-gradient(180deg, ${stage.pill.bg} 0%, transparent 120%)`,
-                    borderColor: stage.pill.border,
+                    background:
+                      "linear-gradient(180deg, rgba(13, 148, 136, 0.04) 0%, transparent 100%)",
+                    borderBottom: "1px solid rgba(13, 148, 136, 0.1)",
                   }}
                 >
                   {/* Translation */}
                   <div className="col-span-2 sm:col-span-1">
-                    <div className="text-[10px] uppercase tracking-wider text-[var(--seafoam)]/45 mb-1.5">
+                    <div
+                      style={{
+                        fontFamily:
+                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                        fontSize: 9,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase" as const,
+                        color: "var(--text-ghost, #2D5A52)",
+                        marginBottom: 6,
+                      }}
+                    >
                       Translation
                     </div>
-                    <div className="text-sm font-medium text-[var(--sand)]">
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: "var(--text-primary, #F0FDFA)",
+                      }}
+                    >
                       {loadingIds.has(word.id) ? (
-                        <span className="flex items-center gap-1.5 text-[var(--seafoam)]/50">
+                        <span
+                          className="flex items-center gap-1.5"
+                          style={{ color: "var(--text-ghost, #2D5A52)" }}
+                        >
                           <Loader2 className="h-3 w-3 animate-spin" />
                           Loading…
                         </span>
@@ -362,30 +430,68 @@ export function VocabularyListView({
 
                   {/* Stage badge */}
                   <div>
-                    <div className="text-[10px] uppercase tracking-wider text-[var(--seafoam)]/45 mb-1.5">
+                    <div
+                      style={{
+                        fontFamily:
+                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                        fontSize: 9,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase" as const,
+                        color: "var(--text-ghost, #2D5A52)",
+                        marginBottom: 6,
+                      }}
+                    >
                       Stage
                     </div>
                     <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
                       style={{
-                        background: stage.pill.bg,
-                        borderColor: stage.pill.border,
-                        color: stage.pill.text,
+                        fontSize: 10,
+                        fontWeight: 600,
+                        fontFamily:
+                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                        letterSpacing: "0.06em",
+                        background: "rgba(13, 148, 136, 0.1)",
+                        border: "1px solid rgba(13, 148, 136, 0.2)",
+                        color: "var(--teal-surface, #0D9488)",
                       }}
                     >
-                      {stage.emoji} {stage.label}
+                      {stage.label}
                     </span>
-                    <div className="text-[10px] text-[var(--seafoam)]/50 mt-1">
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: "var(--text-ghost, #2D5A52)",
+                        marginTop: 4,
+                      }}
+                    >
                       {stage.desc}
                     </div>
                   </div>
 
                   {/* Reviews */}
                   <div>
-                    <div className="text-[10px] uppercase tracking-wider text-[var(--seafoam)]/45 mb-1.5">
+                    <div
+                      style={{
+                        fontFamily:
+                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                        fontSize: 9,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase" as const,
+                        color: "var(--text-ghost, #2D5A52)",
+                        marginBottom: 6,
+                      }}
+                    >
                       Sessions
                     </div>
-                    <div className="text-sm text-[var(--sand)]">
+                    <div
+                      style={{
+                        fontSize: 14,
+                        color: "var(--text-secondary, #7BA8A0)",
+                        fontFamily:
+                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                      }}
+                    >
                       {word.repetitions} review
                       {word.repetitions !== 1 ? "s" : ""}
                     </div>
@@ -394,10 +500,26 @@ export function VocabularyListView({
                   {/* Part of speech */}
                   {word.part_of_speech && (
                     <div>
-                      <div className="text-[10px] uppercase tracking-wider text-[var(--seafoam)]/45 mb-1.5">
+                      <div
+                        style={{
+                          fontFamily:
+                            "var(--font-mono, 'JetBrains Mono', monospace)",
+                          fontSize: 9,
+                          letterSpacing: "0.1em",
+                          textTransform: "uppercase" as const,
+                          color: "var(--text-ghost, #2D5A52)",
+                          marginBottom: 6,
+                        }}
+                      >
                         Type
                       </div>
-                      <div className="text-sm capitalize text-[var(--sand)]">
+                      <div
+                        style={{
+                          fontSize: 14,
+                          color: "var(--text-secondary, #7BA8A0)",
+                          textTransform: "capitalize" as const,
+                        }}
+                      >
                         {word.part_of_speech}
                       </div>
                     </div>

@@ -13,14 +13,14 @@ import {
   BarChart,
   Users,
   Map,
+  Flame,
 } from "lucide-react";
 import { AmbientLauncher } from "@/components/ambient";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 
 // ============================================================================
-// Ocean Navigation - Simplified immersive nav
-// Three destinations: Course, Immerse, Settings
-// No modes. No levels. Just depth.
+// Ocean Navigation — Frosted glass top bar
+// Logo + breadcrumb (language + depth zone) + streak/XP/avatar
 // ============================================================================
 
 interface OceanNavigationProps {
@@ -34,7 +34,7 @@ interface OceanNavigationProps {
   isAdmin?: boolean;
   isProgressView?: boolean;
   targetLanguage?: string;
-  /** When provided, outbound link clicks call this instead of native navigation */
+  depthName?: string;
   onBeforeNavigate?: (href: string) => void;
 }
 
@@ -43,6 +43,30 @@ const navItems = [
   { href: "/propel", label: "Propel", icon: Waves },
   { href: "/goals", label: "Chart", icon: Map },
 ];
+
+// Language flag emoji and name
+const LANG_META: Record<string, { flag: string; name: string }> = {
+  fr: { flag: "🇫🇷", name: "French" },
+  es: { flag: "🇪🇸", name: "Spanish" },
+  de: { flag: "🇩🇪", name: "German" },
+  it: { flag: "🇮🇹", name: "Italian" },
+  pt: { flag: "🇵🇹", name: "Portuguese" },
+  ja: { flag: "🇯🇵", name: "Japanese" },
+  ko: { flag: "🇰🇷", name: "Korean" },
+  zh: { flag: "🇨🇳", name: "Chinese" },
+  ru: { flag: "🇷🇺", name: "Russian" },
+  ar: { flag: "🇸🇦", name: "Arabic" },
+  nl: { flag: "🇳🇱", name: "Dutch" },
+  sv: { flag: "🇸🇪", name: "Swedish" },
+};
+
+function getDepthZoneName(wordCount: number): string {
+  if (wordCount >= 5000) return "The Abyss";
+  if (wordCount >= 2000) return "The Deep";
+  if (wordCount >= 500) return "Twilight Zone";
+  if (wordCount >= 50) return "Sunlit Zone";
+  return "Shallows";
+}
 
 export function OceanNavigation({
   streak = 0,
@@ -55,6 +79,7 @@ export function OceanNavigation({
   isAdmin = false,
   isProgressView = false,
   targetLanguage,
+  depthName,
   onBeforeNavigate,
 }: OceanNavigationProps) {
   const [scrolled, setScrolled] = useState(false);
@@ -63,7 +88,12 @@ export function OceanNavigation({
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const { ambientView, setAmbientView } = useAmbientPlayer();
 
-  // Close account menu on outside click
+  const zoneName = depthName || getDepthZoneName(wordsEncountered);
+  const langMeta = LANG_META[targetLanguage || "fr"] || {
+    flag: "🌍",
+    name: targetLanguage || "Language",
+  };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -79,7 +109,6 @@ export function OceanNavigation({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [accountMenuOpen]);
 
-  // Intercept link clicks for transition loading screens
   const handleLinkClick = useCallback(
     (e: React.MouseEvent, href: string) => {
       if (onBeforeNavigate && !currentPath.startsWith(href)) {
@@ -125,296 +154,314 @@ export function OceanNavigation({
   return (
     <nav
       className={cn(
-        "ocean-nav fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled ? "py-3" : "py-4",
+        "dashboard-topnav fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         className,
       )}
+      style={{
+        height: 64,
+        background: scrolled ? "rgba(4, 24, 36, 0.85)" : "rgba(4, 24, 36, 0.7)",
+        backdropFilter: "blur(24px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(24px) saturate(1.2)",
+        borderBottom: `1px solid rgba(13, 148, 136, ${scrolled ? "0.12" : "0.06"})`,
+      }}
     >
-      <div
-        className={cn(
-          "max-w-7xl mx-auto px-6 flex items-center justify-between transition-all duration-300",
-          isProgressView ? "md:ml-[360px]" : "md:ml-[385px]",
-        )}
-      >
+      <div className="w-full h-full px-6 flex items-center justify-between">
         {/* Left: Logo & Wordmark */}
         <Link
           href="/dashboard"
-          className="flex items-center gap-3 group"
+          className="flex items-center gap-2.5 group"
           onClick={(e) => handleLinkClick(e, "/dashboard")}
         >
-          <div className="w-10 h-10 rounded-lg overflow-hidden transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
-            <Image
-              src="/logo.png"
-              alt="Fluensea"
-              width={40}
-              height={40}
-              className="w-10 h-10 object-contain"
-              priority
-            />
+          {/* Wave SVG icon */}
+          <div className="w-8 h-8 flex items-center justify-center">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <path
+                d="M4 16C6 13 8.5 12 11 14C13.5 16 16 15 18 13C20 11 22.5 12 24 14"
+                stroke="#0D9488"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M4 20C6 17 8.5 16 11 18C13.5 20 16 19 18 17C20 15 22.5 16 24 18"
+                stroke="#0D9488"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity="0.5"
+              />
+            </svg>
           </div>
           <span
-            className="text-xl font-display font-semibold tracking-wide"
-            style={{ color: "var(--sand)" }}
+            style={{
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+              fontWeight: 600,
+              fontSize: 18,
+              letterSpacing: "0.02em",
+              color: "var(--text-primary, #F0FDFA)",
+            }}
           >
             Fluensea
           </span>
         </Link>
 
-        {/* Center: Three Destinations */}
-        <div className="hidden md:flex items-center gap-4">
-          {navItems.map((item) => {
-            const isActive =
-              item.href === "/dashboard"
-                ? (currentPath === "/dashboard" &&
-                    !currentPath.includes("progress")) ||
-                  currentPath.startsWith("/learn") ||
-                  currentPath.startsWith("/lesson")
-                : item.href === "/dashboard?view=progress"
-                  ? currentPath.includes("progress")
-                  : currentPath.startsWith(item.href);
-            const Icon = item.icon;
+        {/* Center: Breadcrumb — language + depth zone */}
+        <div className="hidden md:flex items-center gap-6">
+          {/* Breadcrumb */}
+          <div
+            className="flex items-center gap-2"
+            style={{
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontSize: 12,
+              letterSpacing: "0.06em",
+              color: "var(--text-secondary, #7BA8A0)",
+            }}
+          >
+            <span style={{ fontSize: 16 }}>{langMeta.flag}</span>
+            <span>{langMeta.name}</span>
+            <span style={{ color: "var(--text-ghost, #2D5A52)", fontSize: 14 }}>
+              ›
+            </span>
+            <span style={{ color: "var(--teal-surface, #0D9488)" }}>
+              {zoneName}
+            </span>
+          </div>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="nav-tab relative group"
-                onClick={(e) => {
-                  if (ambientView === "container") {
-                    setAmbientView("soundbar");
-                  } else if (ambientView === "soundbar") {
-                    setAmbientView(null);
-                  }
-                  handleLinkClick(e, item.href);
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon
-                    className="w-4 h-4 transition-colors duration-200"
-                    style={{
-                      color: isActive ? "var(--turquoise)" : "var(--seafoam)",
-                      opacity: isActive ? 1 : 0.6,
-                    }}
-                  />
-                  <span
-                    className={cn(
-                      "text-sm font-body font-medium transition-colors duration-200",
-                    )}
-                    style={{
-                      color: isActive ? "var(--turquoise)" : "var(--sand)",
-                      opacity: isActive ? 1 : 0.7,
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-                {/* Active indicator */}
-                <div
-                  className={cn(
-                    "mt-1 h-0.5 rounded-full transition-all duration-300",
-                    isActive
-                      ? "w-full opacity-100"
-                      : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
-                  )}
-                  style={{
-                    background: isActive
-                      ? "var(--turquoise)"
-                      : "var(--seafoam)",
+          {/* Nav items */}
+          <div className="flex items-center gap-1">
+            {navItems.map((item) => {
+              const isActive =
+                item.href === "/dashboard"
+                  ? (currentPath === "/dashboard" &&
+                      !currentPath.includes("progress")) ||
+                    currentPath.startsWith("/learn") ||
+                    currentPath.startsWith("/lesson")
+                  : item.href === "/dashboard?view=progress"
+                    ? currentPath.includes("progress")
+                    : currentPath.startsWith(item.href);
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="group"
+                  onClick={(e) => {
+                    if (ambientView === "container") {
+                      setAmbientView("soundbar");
+                    } else if (ambientView === "soundbar") {
+                      setAmbientView(null);
+                    }
+                    handleLinkClick(e, item.href);
                   }}
-                />
-              </Link>
-            );
-          })}
-          {/* Immerse — between Course and admin, nav-tab style */}
-          <AmbientLauncher variant="nav" />
-
-          {/* Community */}
-          {(() => {
-            const communityHref = "/community";
-            const isActive = currentPath.startsWith(communityHref);
-            return (
-              <Link
-                key={communityHref}
-                href={communityHref}
-                className="nav-tab relative group"
-                onClick={(e) => handleLinkClick(e, communityHref)}
-              >
-                <div className="flex items-center gap-2">
-                  <Users
-                    className="w-4 h-4 transition-colors duration-200"
+                >
+                  <div
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200"
                     style={{
-                      color: isActive ? "var(--turquoise)" : "var(--seafoam)",
-                      opacity: isActive ? 1 : 0.6,
-                    }}
-                  />
-                  <span
-                    className={cn(
-                      "text-sm font-body font-medium transition-colors duration-200",
-                    )}
-                    style={{
-                      color: isActive ? "var(--turquoise)" : "var(--sand)",
-                      opacity: isActive ? 1 : 0.7,
+                      background: isActive
+                        ? "rgba(13, 148, 136, 0.1)"
+                        : "transparent",
                     }}
                   >
-                    Community
-                  </span>
-                </div>
-                {/* Active indicator */}
-                <div
-                  className={cn(
-                    "mt-1 h-0.5 rounded-full transition-all duration-300",
-                    isActive
-                      ? "w-full opacity-100"
-                      : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
-                  )}
-                  style={{
-                    background: isActive
-                      ? "var(--turquoise)"
-                      : "var(--seafoam)",
-                  }}
-                />
-              </Link>
-            );
-          })()}
-
-          {/* Admin nav item */}
-          {isAdmin && (
-            <>
-              {/* Donations */}
-              {(() => {
-                const adminHref = "/admin/donations";
-                const isActive = currentPath.startsWith(adminHref);
-                return (
-                  <Link
-                    key={adminHref}
-                    href={adminHref}
-                    className="nav-tab relative group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Settings
-                        className="w-4 h-4 transition-colors duration-200"
-                        style={{
-                          color: isActive
-                            ? "var(--turquoise)"
-                            : "var(--seafoam)",
-                          opacity: isActive ? 1 : 0.6,
-                        }}
-                      />
-                      <span
-                        className={cn(
-                          "text-sm font-body font-medium transition-colors duration-200",
-                        )}
-                        style={{
-                          color: isActive ? "var(--turquoise)" : "var(--sand)",
-                          opacity: isActive ? 1 : 0.7,
-                        }}
-                      >
-                        Donations
-                      </span>
-                    </div>
-                    <div
-                      className={cn(
-                        "mt-1 h-0.5 rounded-full transition-all duration-300",
-                        isActive
-                          ? "w-full opacity-100"
-                          : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
-                      )}
+                    <Icon
+                      className="w-3.5 h-3.5"
                       style={{
-                        background: isActive
-                          ? "var(--turquoise)"
-                          : "var(--seafoam)",
+                        color: isActive
+                          ? "var(--teal-surface, #0D9488)"
+                          : "var(--text-ghost, #2D5A52)",
                       }}
                     />
-                  </Link>
-                );
-              })()}
-
-              {/* Costs */}
-              {(() => {
-                const costsHref = "/admin/costs";
-                const isActive = currentPath.startsWith(costsHref);
-                return (
-                  <Link
-                    key={costsHref}
-                    href={costsHref}
-                    className="nav-tab relative group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <BarChart
-                        className="w-4 h-4 transition-colors duration-200"
-                        style={{
-                          color: isActive
-                            ? "var(--turquoise)"
-                            : "var(--seafoam)",
-                          opacity: isActive ? 1 : 0.6,
-                        }}
-                      />
-                      <span
-                        className={cn(
-                          "text-sm font-body font-medium transition-colors duration-200",
-                        )}
-                        style={{
-                          color: isActive ? "var(--turquoise)" : "var(--sand)",
-                          opacity: isActive ? 1 : 0.7,
-                        }}
-                      >
-                        Costs
-                      </span>
-                    </div>
-                    <div
-                      className={cn(
-                        "mt-1 h-0.5 rounded-full transition-all duration-300",
-                        isActive
-                          ? "w-full opacity-100"
-                          : "w-0 group-hover:w-full opacity-0 group-hover:opacity-30",
-                      )}
+                    <span
+                      className="text-xs font-medium"
                       style={{
-                        background: isActive
-                          ? "var(--turquoise)"
-                          : "var(--seafoam)",
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                        color: isActive
+                          ? "var(--teal-surface, #0D9488)"
+                          : "var(--text-secondary, #7BA8A0)",
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+
+            <AmbientLauncher variant="nav" />
+
+            {/* Community */}
+            {(() => {
+              const communityHref = "/community";
+              const isActive = currentPath.startsWith(communityHref);
+              return (
+                <Link
+                  key={communityHref}
+                  href={communityHref}
+                  className="group"
+                  onClick={(e) => handleLinkClick(e, communityHref)}
+                >
+                  <div
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200"
+                    style={{
+                      background: isActive
+                        ? "rgba(13, 148, 136, 0.1)"
+                        : "transparent",
+                    }}
+                  >
+                    <Users
+                      className="w-3.5 h-3.5"
+                      style={{
+                        color: isActive
+                          ? "var(--teal-surface, #0D9488)"
+                          : "var(--text-ghost, #2D5A52)",
                       }}
                     />
-                  </Link>
-                );
-              })()}
-            </>
-          )}
+                    <span
+                      className="text-xs font-medium"
+                      style={{
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                        color: isActive
+                          ? "var(--teal-surface, #0D9488)"
+                          : "var(--text-secondary, #7BA8A0)",
+                      }}
+                    >
+                      Community
+                    </span>
+                  </div>
+                </Link>
+              );
+            })()}
+
+            {/* Admin nav items */}
+            {isAdmin && (
+              <>
+                {(() => {
+                  const adminHref = "/admin/donations";
+                  const isActive = currentPath.startsWith(adminHref);
+                  return (
+                    <Link key={adminHref} href={adminHref} className="group">
+                      <div
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200"
+                        style={{
+                          background: isActive
+                            ? "rgba(13, 148, 136, 0.1)"
+                            : "transparent",
+                        }}
+                      >
+                        <Settings
+                          className="w-3.5 h-3.5"
+                          style={{
+                            color: isActive
+                              ? "var(--teal-surface, #0D9488)"
+                              : "var(--text-ghost, #2D5A52)",
+                          }}
+                        />
+                        <span
+                          className="text-xs font-medium"
+                          style={{
+                            fontFamily:
+                              "var(--font-inter, 'Inter', sans-serif)",
+                            color: isActive
+                              ? "var(--teal-surface, #0D9488)"
+                              : "var(--text-secondary, #7BA8A0)",
+                          }}
+                        >
+                          Donations
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })()}
+                {(() => {
+                  const costsHref = "/admin/costs";
+                  const isActive = currentPath.startsWith(costsHref);
+                  return (
+                    <Link key={costsHref} href={costsHref} className="group">
+                      <div
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200"
+                        style={{
+                          background: isActive
+                            ? "rgba(13, 148, 136, 0.1)"
+                            : "transparent",
+                        }}
+                      >
+                        <BarChart
+                          className="w-3.5 h-3.5"
+                          style={{
+                            color: isActive
+                              ? "var(--teal-surface, #0D9488)"
+                              : "var(--text-ghost, #2D5A52)",
+                          }}
+                        />
+                        <span
+                          className="text-xs font-medium"
+                          style={{
+                            fontFamily:
+                              "var(--font-inter, 'Inter', sans-serif)",
+                            color: isActive
+                              ? "var(--teal-surface, #0D9488)"
+                              : "var(--text-secondary, #7BA8A0)",
+                          }}
+                        >
+                          Costs
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })()}
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Right: Stats & Avatar */}
+        {/* Right: Streak + XP chip + Avatar */}
         <div className="flex items-center gap-3">
-          {/* Daily streak */}
+          {/* Streak */}
           {streak > 0 && (
-            <div className="flex items-center gap-1.5" title="Daily streak">
-              <span className="text-base leading-none">🔥</span>
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+              style={{
+                background: "rgba(13, 148, 136, 0.08)",
+                border: "1px solid rgba(13, 148, 136, 0.15)",
+              }}
+              title="Daily streak"
+            >
+              <Flame
+                className="w-3.5 h-3.5"
+                style={{ color: "var(--teal-glow, #2DD4BF)" }}
+              />
               <span
-                className="text-sm font-body font-semibold tabular-nums"
-                style={{ color: "var(--sand)" }}
+                className="text-xs font-semibold tabular-nums"
+                style={{
+                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  color: "var(--teal-surface, #0D9488)",
+                }}
               >
                 {streak}
               </span>
             </div>
           )}
 
-          {/* Language flag (image-based for cross-platform reliability) */}
-          {targetLanguage && (
-            <div
-              className="flex items-center justify-center shrink-0"
-              title={`Learning: ${targetLanguage.toUpperCase()}`}
+          {/* XP / progress chip */}
+          <div
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+            style={{
+              background: "rgba(13, 148, 136, 0.08)",
+              border: "1px solid rgba(13, 148, 136, 0.15)",
+            }}
+          >
+            <span
+              className="text-xs font-medium tabular-nums"
+              style={{
+                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                color: "var(--text-secondary, #7BA8A0)",
+              }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`https://flagcdn.com/24x18/${targetLanguage.toLowerCase()}.png`}
-                srcSet={`https://flagcdn.com/48x36/${targetLanguage.toLowerCase()}.png 2x`}
-                width={24}
-                height={18}
-                alt={targetLanguage.toUpperCase()}
-                style={{ borderRadius: 2, display: "block" }}
-              />
-            </div>
-          )}
+              {wordsCount} words
+            </span>
+          </div>
 
-          {/* Avatar — account dropdown trigger */}
+          {/* Avatar dropdown trigger */}
           <div ref={accountMenuRef} className="relative">
             <button
               onClick={() => setAccountMenuOpen((prev) => !prev)}
@@ -423,27 +470,25 @@ export function OceanNavigation({
               aria-haspopup="true"
             >
               <div
-                className="w-9 h-9 rounded-full overflow-hidden border-2 transition-all duration-300 group-hover:scale-105"
+                className="w-8 h-8 rounded-full overflow-hidden transition-all duration-300 group-hover:scale-105"
                 style={{
-                  borderColor: accountMenuOpen
-                    ? "rgba(61, 214, 181, 0.5)"
-                    : "rgba(255, 255, 255, 0.1)",
-                  background: "var(--ocean-mid)",
+                  border: `2px solid ${accountMenuOpen ? "rgba(13, 148, 136, 0.5)" : "rgba(255, 255, 255, 0.08)"}`,
+                  background: "var(--bg-surface, #041824)",
                 }}
               >
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
                     alt="Avatar"
-                    width={36}
-                    height={36}
+                    width={32}
+                    height={32}
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <User
-                      className="w-5 h-5"
-                      style={{ color: "var(--seafoam)" }}
+                      className="w-4 h-4"
+                      style={{ color: "var(--text-ghost, #2D5A52)" }}
                     />
                   </div>
                 )}
@@ -453,20 +498,20 @@ export function OceanNavigation({
                   "w-3 h-3 transition-transform duration-200",
                   accountMenuOpen ? "rotate-180" : "",
                 )}
-                style={{ color: "var(--seafoam)", opacity: 0.7 }}
+                style={{ color: "var(--text-ghost, #2D5A52)" }}
               />
             </button>
 
             {/* Dropdown */}
             {accountMenuOpen && (
               <div
-                className="absolute right-0 top-full mt-3 min-w-max rounded-2xl border overflow-hidden z-50"
+                className="absolute right-0 top-full mt-3 min-w-max rounded-xl border overflow-hidden z-50"
                 style={{
-                  background: "var(--ocean-deep, #0a1628)",
-                  borderColor: "rgba(61, 214, 181, 0.2)",
+                  background: "var(--bg-elevated, #062030)",
+                  borderColor: "rgba(13, 148, 136, 0.15)",
                   boxShadow:
-                    "0 12px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(61,214,181,0.12)",
-                  backdropFilter: "blur(8px)",
+                    "0 12px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(13,148,136,0.08)",
+                  backdropFilter: "blur(16px)",
                 }}
               >
                 {(
@@ -479,15 +524,21 @@ export function OceanNavigation({
                   <Link
                     key={href}
                     href={href}
-                    className="flex items-center px-5 py-4 text-base font-body font-medium transition-all duration-150 border-b border-white/5 last:border-b-0 hover:bg-white/5 whitespace-nowrap"
-                    style={{ color: "var(--sand)" }}
+                    className="flex items-center px-5 py-3 text-sm font-medium transition-all duration-150 border-b last:border-b-0 whitespace-nowrap"
+                    style={{
+                      fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                      color: "var(--text-primary, #F0FDFA)",
+                      borderColor: "rgba(255, 255, 255, 0.04)",
+                    }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.color = "var(--turquoise)";
+                      e.currentTarget.style.color =
+                        "var(--teal-surface, #0D9488)";
                       e.currentTarget.style.backgroundColor =
-                        "rgba(61, 214, 181, 0.08)";
+                        "rgba(13, 148, 136, 0.08)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.color = "var(--sand)";
+                      e.currentTarget.style.color =
+                        "var(--text-primary, #F0FDFA)";
                       e.currentTarget.style.backgroundColor = "transparent";
                     }}
                     onClick={() => setAccountMenuOpen(false)}
@@ -501,12 +552,13 @@ export function OceanNavigation({
         </div>
       </div>
 
-      {/* Shimmer line on scroll */}
+      {/* Bottom shimmer line on scroll */}
       {scrolled && (
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
           style={{
-            background: `linear-gradient(90deg, transparent 0%, rgba(61, 214, 181, 0.2) 50%, transparent 100%)`,
+            background:
+              "linear-gradient(90deg, transparent 0%, rgba(13, 148, 136, 0.2) 50%, transparent 100%)",
           }}
         />
       )}

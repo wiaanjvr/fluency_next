@@ -1,5 +1,6 @@
 export { LeftSidebar } from "./LeftSidebar";
 export { RightSidebar } from "./RightSidebar";
+export { DashboardRightPanel } from "./DashboardRightPanel";
 export { VocabularyViewer } from "./VocabularyViewer";
 export { VocabularyListView } from "./VocabularyListView";
 export { VocabularyNetworkView } from "./VocabularyNetworkView";
