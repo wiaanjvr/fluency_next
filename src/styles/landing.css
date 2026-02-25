@@ -21,7 +21,7 @@
   --lp-surface: #041824;
   --lp-shallow: #052030;
   --lp-deep: #03141e;
-  --lp-accent: #0d9488;
+  --lp-accent: #0f9b8e;
   --lp-glow: #2dd4bf;
   --lp-text: #f0fdfa;
   --lp-text-secondary: #94a3b8;
@@ -29,7 +29,7 @@
   --lp-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --lp-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-  background: var(--lp-bg);
+  background: var(--lp-scroll-bg, #020f14);
   color: var(--lp-text);
   font-family:
     "Inter",
@@ -230,7 +230,7 @@
 }
 
 .lp-nav-cta:hover {
-  box-shadow: 0 0 20px rgba(13, 148, 136, 0.4);
+  box-shadow: 0 0 40px rgba(15, 155, 142, 0.2);
   transform: translateY(-1px);
 }
 
@@ -294,11 +294,23 @@
   justify-content: center;
   padding: 96px 24px 0;
   overflow: hidden;
-  background: radial-gradient(
-    ellipse at 50% 30%,
-    #0a2535 0%,
-    var(--lp-bg) 100%
-  );
+  background:
+    radial-gradient(
+      ellipse 120% 35% at 50% -5%,
+      rgba(20, 80, 100, 0.65) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 30% 20%,
+      rgba(15, 155, 142, 0.07) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 70% 25%,
+      rgba(15, 155, 142, 0.05) 0%,
+      transparent 55%
+    ),
+    radial-gradient(ellipse at 50% 40%, #082535 0%, #020f14 100%);
   opacity: 0;
   transition: opacity 600ms ease;
 }
@@ -328,7 +340,7 @@
   top: 5%;
   left: 10%;
   border-radius: 42% 58% 55% 45% / 48% 52% 48% 52%;
-  background: rgba(13, 148, 136, 0.06);
+  background: rgba(15, 155, 142, 0.1);
   animation: lpCaustic1 12s ease-in-out infinite;
 }
 
@@ -338,7 +350,7 @@
   bottom: 20%;
   right: 10%;
   border-radius: 55% 45% 60% 40% / 40% 60% 40% 60%;
-  background: rgba(13, 148, 136, 0.04);
+  background: rgba(15, 155, 142, 0.07);
   animation: lpCaustic2 10s ease-in-out infinite;
 }
 
@@ -348,8 +360,126 @@
   top: 40%;
   left: 40%;
   border-radius: 60% 40% 50% 50% / 55% 45% 55% 45%;
-  background: rgba(45, 212, 191, 0.03);
+  background: rgba(45, 212, 191, 0.05);
   animation: lpCaustic3 14s ease-in-out infinite;
+}
+
+/* --- Water-surface light rays (narrow shafts from above) --- */
+.lp-ray {
+  position: absolute;
+  top: -5%;
+  width: 80px;
+  height: 85%;
+  filter: blur(28px);
+  transform-origin: top center;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.lp-ray-1 {
+  left: 11%;
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 155, 142, 0.18) 0%,
+    transparent 75%
+  );
+  animation: lpRay1 9s ease-in-out infinite;
+}
+.lp-ray-2 {
+  left: 27%;
+  width: 55px;
+  background: linear-gradient(
+    to bottom,
+    rgba(45, 212, 191, 0.1) 0%,
+    transparent 65%
+  );
+  animation: lpRay2 11s ease-in-out infinite;
+}
+.lp-ray-3 {
+  left: 50%;
+  width: 110px;
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 155, 142, 0.14) 0%,
+    transparent 70%
+  );
+  animation: lpRay3 13s ease-in-out infinite;
+}
+.lp-ray-4 {
+  left: 67%;
+  width: 60px;
+  background: linear-gradient(
+    to bottom,
+    rgba(45, 212, 191, 0.09) 0%,
+    transparent 65%
+  );
+  animation: lpRay4 10s ease-in-out infinite 2s;
+}
+.lp-ray-5 {
+  left: 83%;
+  width: 50px;
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 155, 142, 0.12) 0%,
+    transparent 60%
+  );
+  animation: lpRay5 12s ease-in-out infinite 4s;
+}
+
+@keyframes lpRay1 {
+  0%,
+  100% {
+    transform: rotate(-13deg) scaleX(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: rotate(-7deg) scaleX(1.15);
+    opacity: 1;
+  }
+}
+@keyframes lpRay2 {
+  0%,
+  100% {
+    transform: rotate(-4deg) scaleX(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: rotate(2deg) scaleX(0.85);
+    opacity: 0.9;
+  }
+}
+@keyframes lpRay3 {
+  0%,
+  100% {
+    transform: rotate(4deg) scaleX(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: rotate(9deg) scaleX(1.12);
+    opacity: 1;
+  }
+}
+@keyframes lpRay4 {
+  0%,
+  100% {
+    transform: rotate(11deg) scaleX(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: rotate(5deg) scaleX(0.9);
+    opacity: 0.8;
+  }
+}
+@keyframes lpRay5 {
+  0%,
+  100% {
+    transform: rotate(16deg) scaleX(1);
+    opacity: 0.65;
+  }
+  50% {
+    transform: rotate(21deg) scaleX(1.18);
+    opacity: 0.95;
+  }
 }
 
 @keyframes lpCaustic1 {
@@ -546,8 +676,8 @@
 
 .lp-cta-primary:hover {
   box-shadow:
-    0 0 20px rgba(45, 212, 191, 0.3),
-    0 0 40px rgba(13, 148, 136, 0.15);
+    0 0 40px rgba(15, 155, 142, 0.2),
+    0 0 80px rgba(15, 155, 142, 0.08);
   transform: translateY(-2px);
 }
 
@@ -575,8 +705,8 @@
 }
 
 .lp-cta-ghost:hover {
-  border-color: rgba(45, 212, 191, 0.4);
-  box-shadow: 0 0 20px rgba(45, 212, 191, 0.15);
+  border-color: rgba(45, 212, 191, 0.35);
+  box-shadow: 0 0 40px rgba(15, 155, 142, 0.1);
 }
 
 .lp-hero-trust {
@@ -670,7 +800,7 @@
    ===================================================================== */
 .lp-philosophy {
   position: relative;
-  padding: 120px 24px 140px;
+  padding: 90px 24px 100px;
   background: linear-gradient(
     180deg,
     var(--lp-surface) 0%,
@@ -726,7 +856,7 @@
    FOUR WAVES — "How It Works" dive timeline
    ===================================================================== */
 .lp-four-waves {
-  padding: 140px 24px;
+  padding: 100px 24px;
   background: var(--lp-shallow);
 }
 
@@ -736,7 +866,7 @@
   gap: 80px;
   max-width: 1100px;
   margin: 0 auto;
-  align-items: center;
+  align-items: start;
 }
 
 /* Dive timeline (left column) */
@@ -838,15 +968,20 @@
 /* Floating lesson preview card (right column) */
 .lp-preview-card {
   background: rgba(4, 24, 36, 0.9);
-  border: 1px solid rgba(13, 148, 136, 0.15);
+  border: 1px solid rgba(15, 155, 142, 0.15);
   border-radius: 16px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   padding: 28px;
   box-shadow:
-    0 20px 60px rgba(13, 148, 136, 0.15),
-    0 0 0 1px rgba(13, 148, 136, 0.05);
+    0 20px 60px rgba(15, 155, 142, 0.12),
+    0 0 0 1px rgba(15, 155, 142, 0.05);
   animation: lpFloatCard 4s ease-in-out infinite alternate;
+  position: sticky;
+  top: 108px;
+  align-self: start;
+  /* anchor visually near the 3rd step — Surface & speak */
+  margin-top: 260px;
 }
 
 @keyframes lpFloatCard {
@@ -976,13 +1111,13 @@
 }
 
 /* =====================================================================
-   SOCIAL PROOF STRIP — ambient marquee ticker
+   SOCIAL PROOF STRIP — dive-computer telemetry readout
    ===================================================================== */
 .lp-social-strip {
-  padding: 20px 0;
-  background: rgba(2, 15, 20, 0.8);
-  border-top: 1px solid rgba(13, 148, 136, 0.06);
-  border-bottom: 1px solid rgba(13, 148, 136, 0.06);
+  padding: 14px 0;
+  background: rgba(2, 15, 20, 0.92);
+  border-top: 1px solid rgba(15, 155, 142, 0.08);
+  border-bottom: 1px solid rgba(15, 155, 142, 0.08);
   overflow: hidden;
 }
 
@@ -994,14 +1129,14 @@
 .lp-marquee-inner {
   display: flex;
   width: max-content;
-  animation: lpMarquee 45s linear infinite;
+  animation: lpMarquee 55s linear infinite;
 }
 
 .lp-marquee-set {
   display: flex;
   align-items: center;
-  gap: 32px;
-  padding-right: 32px;
+  gap: 0;
+  padding-right: 0;
   flex-shrink: 0;
 }
 
@@ -1014,26 +1149,32 @@
   }
 }
 
-.lp-marquee-flag {
-  font-size: 1.15rem;
-}
-
-.lp-marquee-stat {
-  font-size: 0.8rem;
-  color: rgba(148, 163, 184, 0.45);
-  letter-spacing: 0.02em;
+.lp-tele-item {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.35);
+  padding: 0 22px;
   white-space: nowrap;
 }
 
-.lp-marquee-dot {
-  color: rgba(148, 163, 184, 0.2);
+.lp-tele-value {
+  color: rgba(15, 155, 142, 0.75);
+}
+
+.lp-tele-sep {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  color: rgba(15, 155, 142, 0.18);
+  flex-shrink: 0;
 }
 
 /* =====================================================================
    DEPTH ZONES — ocean zone visualization with CEFR mapping
    ===================================================================== */
 .lp-depth-zones {
-  padding: 140px 24px;
+  padding: 104px 24px;
   background: var(--lp-deep);
 }
 
@@ -1169,15 +1310,15 @@
    TESTIMONIALS — frosted glass cards with gradient border hover
    ===================================================================== */
 .lp-testimonials {
-  padding: 140px 24px;
+  padding: 100px 24px;
   background: var(--lp-deep);
 }
 
 .lp-testimonials-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  max-width: 1000px;
+  gap: 28px;
+  max-width: 1060px;
   margin: 0 auto;
 }
 
@@ -1185,7 +1326,7 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
-  padding: 32px;
+  padding: 48px 40px;
   position: relative;
   transition: all 0.25s var(--lp-ease);
 }
@@ -1228,13 +1369,13 @@
 }
 
 .lp-testimonial-avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #020f14;
   flex-shrink: 0;
@@ -1256,9 +1397,9 @@
 }
 
 .lp-testimonial-quote {
-  font-size: clamp(0.87rem, 1.3vw, 0.95rem);
+  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
   color: var(--lp-text-secondary);
-  line-height: 1.7;
+  line-height: 1.75;
   margin: 0;
   font-style: italic;
 }
@@ -1267,16 +1408,17 @@
    PRICING TEASER — Free / Pro frosted glass cards
    ===================================================================== */
 .lp-pricing {
-  padding: 140px 24px;
+  padding: 100px 24px;
   background: linear-gradient(180deg, var(--lp-deep) 0%, #020c12 100%);
 }
 
 .lp-pricing-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  max-width: 700px;
+  gap: 28px;
+  max-width: 720px;
   margin: 0 auto;
+  align-items: start;
 }
 
 .lp-price-card {
@@ -1290,10 +1432,25 @@
 }
 
 .lp-price-pro {
-  border-color: rgba(45, 212, 191, 0.25);
+  /* gradient border via background-clip */
+  background:
+    linear-gradient(rgba(3, 18, 28, 0.97), rgba(3, 18, 28, 0.97)) padding-box,
+    linear-gradient(
+        145deg,
+        rgba(15, 155, 142, 0.8) 0%,
+        rgba(45, 212, 191, 0.55) 35%,
+        rgba(15, 155, 142, 0.2) 65%,
+        rgba(45, 212, 191, 0.6) 100%
+      )
+      border-box;
+  border: 1px solid transparent;
   box-shadow:
-    0 0 40px rgba(13, 148, 136, 0.12),
-    0 0 80px rgba(13, 148, 136, 0.06);
+    0 0 60px rgba(15, 155, 142, 0.18),
+    0 0 120px rgba(15, 155, 142, 0.07),
+    inset 0 1px 0 rgba(45, 212, 191, 0.08);
+  transform: scale(1.04);
+  padding: 44px 36px;
+  z-index: 1;
 }
 
 .lp-price-badge {
@@ -1387,8 +1544,8 @@
 
 .lp-price-btn-pro:hover {
   box-shadow:
-    0 0 20px rgba(45, 212, 191, 0.3),
-    0 0 40px rgba(13, 148, 136, 0.15);
+    0 0 40px rgba(15, 155, 142, 0.25),
+    0 0 80px rgba(15, 155, 142, 0.1);
 }
 
 /* =====================================================================
@@ -1621,6 +1778,7 @@
    ===================================================================== */
 @media (prefers-reduced-motion: reduce) {
   .lp-caustic,
+  .lp-ray,
   .lp-bubble {
     animation: none !important;
   }

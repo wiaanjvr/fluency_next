@@ -183,12 +183,19 @@ export default function Home() {
     return () => clearTimeout(t);
   }, []);
 
-  /* --- Scroll tracking for depth indicator --- */
+  /* --- Scroll tracking for depth indicator + scroll-driven background --- */
   useEffect(() => {
     const onScroll = () => {
       const top = window.scrollY;
       const total = document.documentElement.scrollHeight - window.innerHeight;
-      setScrollProgress(total > 0 ? top / total : 0);
+      const progress = total > 0 ? top / total : 0;
+      setScrollProgress(progress);
+      // Interpolate background: #041824 (surface) → #010C10 (abyss)
+      const r = Math.round(4 + (1 - 4) * progress);
+      const g = Math.round(24 + (12 - 24) * progress);
+      const b = Math.round(36 + (10 - 36) * progress);
+      const root = document.querySelector(".lp-root") as HTMLElement;
+      if (root) root.style.setProperty("--lp-scroll-bg", `rgb(${r},${g},${b})`);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -422,6 +429,12 @@ export default function Home() {
           <div className="lp-caustic lp-caustic-1" />
           <div className="lp-caustic lp-caustic-2" />
           <div className="lp-caustic lp-caustic-3" />
+          {/* Water-surface light rays */}
+          <div className="lp-ray lp-ray-1" />
+          <div className="lp-ray lp-ray-2" />
+          <div className="lp-ray lp-ray-3" />
+          <div className="lp-ray lp-ray-4" />
+          <div className="lp-ray lp-ray-5" />
         </div>
 
         {/* Rising bubbles */}
@@ -596,39 +609,37 @@ export default function Home() {
       </section>
 
       {/* ============================================================
-          SOCIAL PROOF STRIP
+          SOCIAL PROOF STRIP — dive-computer telemetry readout
           ============================================================ */}
       <section className="lp-social-strip">
         <div className="lp-marquee">
           <div className="lp-marquee-inner">
             {[1, 2].map((set) => (
               <div key={set} className="lp-marquee-set">
-                <span className="lp-marquee-flag">🇫🇷</span>
-                <span className="lp-marquee-stat">
-                  1,200+ learners diving today
+                <span className="lp-tele-item">
+                  ACTIVE_DIVERS<span className="lp-tele-value"> 1,200</span>
                 </span>
-                <span className="lp-marquee-dot">·</span>
-                <span className="lp-marquee-flag">🇪🇸</span>
-                <span className="lp-marquee-stat">
-                  50,000+ sessions completed
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+                <span className="lp-tele-item">
+                  SESSIONS_LOGGED<span className="lp-tele-value"> 50,000</span>
                 </span>
-                <span className="lp-marquee-dot">·</span>
-                <span className="lp-marquee-flag">🇯🇵</span>
-                <span className="lp-marquee-stat">12 languages available</span>
-                <span className="lp-marquee-dot">·</span>
-                <span className="lp-marquee-flag">🇩🇪</span>
-                <span className="lp-marquee-stat">4.9★ average rating</span>
-                <span className="lp-marquee-dot">·</span>
-                <span className="lp-marquee-flag">🇮🇹</span>
-                <span className="lp-marquee-stat">
-                  92% continue after week 1
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+                <span className="lp-tele-item">
+                  LANGUAGES<span className="lp-tele-value"> 12</span>
                 </span>
-                <span className="lp-marquee-dot">·</span>
-                <span className="lp-marquee-flag">🇧🇷</span>
-                <span className="lp-marquee-stat">
-                  Built on immersion science
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+                <span className="lp-tele-item">
+                  AVG_RATING<span className="lp-tele-value"> 4.9&#x2605;</span>
                 </span>
-                <span className="lp-marquee-dot">·</span>
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+                <span className="lp-tele-item">
+                  WEEK_1_RETENTION<span className="lp-tele-value"> 92%</span>
+                </span>
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+                <span className="lp-tele-item">
+                  METHOD<span className="lp-tele-value"> IMMERSION</span>
+                </span>
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
               </div>
             ))}
           </div>
