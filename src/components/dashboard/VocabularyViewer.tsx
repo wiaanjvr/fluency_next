@@ -190,7 +190,7 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         >
           <Loader2
             className="h-5 w-5 animate-spin"
-            style={{ color: "var(--teal-surface, #0D9488)" }}
+            style={{ color: "var(--text-muted, #2E5C54)" }}
           />
           <span
             style={{
@@ -226,11 +226,12 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             style={{
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               fontSize: 11,
-              color: "var(--text-ghost, #2D5A52)",
+              color: "var(--text-muted, #2E5C54)",
               padding: "2px 8px",
               borderRadius: 100,
-              background: "rgba(13, 148, 136, 0.06)",
-              border: "1px solid rgba(13, 148, 136, 0.12)",
+              background: "transparent",
+              border: "none",
+              letterSpacing: "0.06em",
             }}
           >
             {filteredWords.length} / {words.length}
@@ -256,16 +257,16 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
               )}
               style={{
                 borderRadius: 8,
-                border: "none",
+                border: viewMode === mode ? "1px solid var(--border-dim, rgba(255,255,255,0.07))" : "none",
                 cursor: "pointer",
                 background:
                   viewMode === mode
-                    ? "rgba(13, 148, 136, 0.15)"
+                    ? "var(--bg-elevated, #052030)"
                     : "transparent",
                 color:
                   viewMode === mode
-                    ? "var(--teal-glow, #2DD4BF)"
-                    : "var(--text-ghost, #2D5A52)",
+                    ? "var(--text-primary, #EDF6F4)"
+                    : "var(--text-ghost, #1A3832)",
                 fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                 fontSize: 11,
                 letterSpacing: "0.02em",
@@ -358,9 +359,9 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             style={{
               borderRadius: 8,
               padding: "4px 8px",
-              background: "rgba(13, 148, 136, 0.08)",
-              border: "1px solid rgba(13, 148, 136, 0.2)",
-              color: "var(--teal-surface, #0D9488)",
+              background: "rgba(255, 255, 255, 0.03)",
+              border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+              color: "var(--text-secondary, #6B9E96)",
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               fontSize: 11,
               fontWeight: 600,
@@ -388,9 +389,9 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
             style={{
               borderRadius: 8,
-              border: "1px solid rgba(13, 148, 136, 0.15)",
-              background: "rgba(13, 148, 136, 0.06)",
-              color: "var(--teal-surface, #0D9488)",
+              border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+              background: "rgba(255, 255, 255, 0.03)",
+              color: "var(--text-secondary, #6B9E96)",
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               fontSize: 11,
               cursor: currentPage === 1 ? "not-allowed" : "pointer",
@@ -405,7 +406,7 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             style={{
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               fontSize: 11,
-              color: "var(--text-ghost, #2D5A52)",
+              color: "var(--text-ghost, #1A3832)",
             }}
           >
             {currentPage} / {totalPages}
@@ -417,9 +418,9 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
             style={{
               borderRadius: 8,
-              border: "1px solid rgba(13, 148, 136, 0.15)",
-              background: "rgba(13, 148, 136, 0.06)",
-              color: "var(--teal-surface, #0D9488)",
+              border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+              background: "rgba(255, 255, 255, 0.03)",
+              color: "var(--text-secondary, #6B9E96)",
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               fontSize: 11,
               cursor: currentPage === totalPages ? "not-allowed" : "pointer",

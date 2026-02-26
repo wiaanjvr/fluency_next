@@ -161,34 +161,56 @@ export function UsageLimitBanner({
       <div
         className={cn("rounded-2xl p-5", className)}
         style={{
-          background: "rgba(255,100,80,0.05)",
-          border: "1px solid rgba(255,100,80,0.2)",
-          backdropFilter: "blur(8px)",
+          background: "var(--bg-surface, #031820)",
+          border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
         }}
       >
         <div className="flex items-start justify-between gap-6">
           <div className="flex-1">
             <p
-              className="font-display text-base italic mb-1"
-              style={{ color: "var(--sand)" }}
+              style={{
+                fontFamily: "var(--font-display, 'Playfair Display', serif)",
+                fontSize: 16,
+                fontStyle: "italic",
+                color: "var(--text-primary, #EDF6F4)",
+                marginBottom: 4,
+              }}
             >
               Surface reached
             </p>
             <p
-              className="text-sm font-body"
-              style={{ color: "var(--seafoam)", opacity: 0.75 }}
+              style={{
+                fontSize: 13,
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                color: "var(--text-muted, #2E5C54)",
+              }}
             >
               All dives used today. Return at dawn, or go unlimited.
             </p>
           </div>
           <Link href={isSignedIn ? "/checkout?tier=diver" : "/auth/login"}>
             <button
-              className="text-sm font-body font-medium px-4 py-2 rounded-full transition-all duration-200"
               style={{
-                background: "rgba(255,179,0,0.1)",
-                border: "1px solid rgba(255,179,0,0.3)",
-                color: "#ffb300",
+                fontSize: 12,
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                fontWeight: 500,
+                padding: "8px 16px",
+                borderRadius: 100,
+                background: "transparent",
+                border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+                color: "var(--text-secondary, #6B9E96)",
                 cursor: "pointer",
+                transition: "all 200ms ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor =
+                  "var(--teal-border, rgba(13,148,136,0.2))";
+                e.currentTarget.style.color = "var(--text-primary, #EDF6F4)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor =
+                  "var(--border-dim, rgba(255,255,255,0.07))";
+                e.currentTarget.style.color = "var(--text-secondary, #6B9E96)";
               }}
             >
               Go unlimited
@@ -200,73 +222,6 @@ export function UsageLimitBanner({
   }
 
   // Show compact summary — ocean-themed depth-meter dots
-  return (
-    <div
-      className={cn("rounded-2xl p-4", className)}
-      style={{
-        background: "rgba(0, 229, 204, 0.04)",
-        border: "1px solid rgba(0, 229, 204, 0.14)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
-      }}
-    >
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          {/* Depth-meter dots — filled = available dive */}
-          <div className="flex items-center gap-1.5">
-            {Array.from({ length: TOTAL_DAILY_FREE }).map((_, idx) => {
-              const isAvailable = idx < totalRemaining;
-              return (
-                <div
-                  key={idx}
-                  className="rounded-full transition-all duration-400"
-                  style={{
-                    width: 9,
-                    height: 9,
-                    background: isAvailable
-                      ? "#00e5cc"
-                      : "rgba(255,255,255,0.1)",
-                    boxShadow: isAvailable
-                      ? "0 0 7px rgba(0,229,204,0.55)"
-                      : "none",
-                  }}
-                />
-              );
-            })}
-          </div>
-          <span
-            className="text-sm font-body"
-            style={{ color: "var(--seafoam)" }}
-          >
-            {totalRemaining === TOTAL_DAILY_FREE
-              ? `${TOTAL_DAILY_FREE} dives available today`
-              : totalRemaining === 1
-                ? "1 dive remaining today"
-                : `${totalRemaining} dives remaining today`}
-          </span>
-        </div>
-        <Link href={isSignedIn ? "/checkout?tier=diver" : "/auth/login"}>
-          <button
-            className="text-xs font-body font-medium transition-all duration-200"
-            style={{
-              color: "rgba(0,229,204,0.55)",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              padding: "4px 0",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = "#00e5cc";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color =
-                "rgba(0,229,204,0.55)";
-            }}
-          >
-            Go unlimited →
-          </button>
-        </Link>
-      </div>
-    </div>
-  );
+  // Fix 11: Don't show on dashboard — hero card already has dives remaining
+  return null;
 }

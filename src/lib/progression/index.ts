@@ -10,6 +10,16 @@
  * - Provide progress visualization data
  */
 
+// Re-export depth level system
+export {
+  DEPTH_LEVELS,
+  getDepthLevel,
+  getProgressToNextLevel,
+  checkLevelUp,
+  type DepthLevel,
+  type DepthProgress,
+} from "./depthLevels";
+
 import {
   UserProgressionData,
   GraduationStatus,

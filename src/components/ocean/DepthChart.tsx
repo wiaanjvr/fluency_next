@@ -90,10 +90,10 @@ export function DepthChart({
             left: 11,
             top: 10,
             bottom: 10,
-            width: 2,
+            width: 1,
             borderRadius: 1,
             background:
-              "linear-gradient(180deg, var(--teal-surface, #0D9488) 0%, rgba(13, 148, 136, 0.15) 60%, transparent 100%)",
+              "linear-gradient(to bottom, var(--teal-border, rgba(13,148,136,0.2)) 0%, rgba(13, 148, 136, 0.05) 60%, transparent 100%)",
           }}
         />
 
@@ -118,7 +118,7 @@ export function DepthChart({
                 justifyContent: "center",
                 opacity: isLocked ? 0.35 : isPast ? 0.6 : 1,
                 background: isActive
-                  ? "linear-gradient(90deg, rgba(13, 148, 136, 0.08) 0%, transparent 100%)"
+                  ? "linear-gradient(90deg, rgba(13, 148, 136, 0.06) 0%, transparent 100%)"
                   : "transparent",
                 transition: "opacity 0.5s ease, background 0.4s ease",
               }}
@@ -132,7 +132,7 @@ export function DepthChart({
                   width: 14,
                   height: 1,
                   background: isActive
-                    ? "rgba(13, 148, 136, 0.4)"
+                    ? "rgba(255, 255, 255, 0.12)"
                     : "rgba(255, 255, 255, 0.06)",
                   transform: "translateY(-50%)",
                 }}
@@ -148,14 +148,12 @@ export function DepthChart({
                   width: 8,
                   height: 8,
                   borderRadius: "50%",
-                  background: isActive
-                    ? "var(--teal-surface, #0D9488)"
-                    : "transparent",
+                  background: isActive ? "var(--teal, #0D9488)" : "transparent",
                   border: isActive
                     ? "none"
-                    : `1.5px solid ${isPast ? "rgba(13, 148, 136, 0.4)" : "rgba(255, 255, 255, 0.12)"}`,
+                    : `1.5px solid ${isPast ? "rgba(255, 255, 255, 0.08)" : "#1A3832"}`,
                   boxShadow: isActive
-                    ? "0 0 12px rgba(13, 148, 136, 0.6)"
+                    ? "0 0 10px rgba(13, 148, 136, 0.5), 0 0 20px rgba(13, 148, 136, 0.2)"
                     : "none",
                   transition: "all 0.4s ease",
                 }}
@@ -169,8 +167,10 @@ export function DepthChart({
                   fontWeight: 500,
                   letterSpacing: "0.12em",
                   color: isActive
-                    ? "var(--teal-surface, #0D9488)"
-                    : "var(--text-ghost, #2D5A52)",
+                    ? "var(--text-primary, #EDF6F4)"
+                    : isLocked
+                      ? "#1E4040"
+                      : "var(--text-ghost, #1A3832)",
                   lineHeight: 1.2,
                   transition: "color 0.3s ease",
                 }}

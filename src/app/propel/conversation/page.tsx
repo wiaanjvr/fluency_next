@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { OceanBackground, DepthSidebar } from "@/components/ocean";
 import {
-  OceanBackground,
-  OceanNavigation,
-  DepthSidebar,
-} from "@/components/ocean";
+  AppNav,
+  ContextualNav,
+  MobileBottomNav,
+} from "@/components/navigation";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 import { ArrowLeft } from "lucide-react";
@@ -298,14 +299,14 @@ function ConversationContent({
 
       <DepthSidebar wordCount={wordsEncountered} scrollable={false} />
 
-      <OceanNavigation
+      <AppNav
         streak={streak}
         avatarUrl={avatarUrl}
-        currentPath="/propel/conversation"
         isAdmin={isAdmin}
-        targetLanguage={targetLanguage}
         wordsEncountered={wordsEncountered}
       />
+      <ContextualNav />
+      <MobileBottomNav wordsEncountered={wordsEncountered} />
 
       <div className="relative z-10 min-h-screen pt-20 pb-8 px-4 lg:pl-[370px]">
         {/* Back link — only show in setup & summary */}

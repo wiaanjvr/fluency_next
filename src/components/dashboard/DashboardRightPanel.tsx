@@ -46,7 +46,7 @@ function ProgressRing({
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke="rgba(13, 148, 136, 0.12)"
+        stroke="rgba(255, 255, 255, 0.05)"
         strokeWidth={strokeWidth}
       />
       {/* Progress */}
@@ -55,7 +55,7 @@ function ProgressRing({
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke="var(--teal-surface, #0D9488)"
+        stroke="var(--teal-dim, rgba(13, 148, 136, 0.5))"
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeDasharray={circumference}
@@ -84,7 +84,7 @@ export function DashboardRightPanel({
         height: "calc(100vh - 64px)",
         overflowY: "auto",
         background:
-          "linear-gradient(180deg, rgba(4, 24, 36, 0.6) 0%, rgba(2, 15, 20, 0.8) 100%)",
+          "linear-gradient(180deg, rgba(3, 24, 32, 0.4) 0%, rgba(2, 15, 20, 0.6) 100%)",
         borderLeft: "1px solid rgba(255, 255, 255, 0.04)",
       }}
     >
@@ -92,20 +92,19 @@ export function DashboardRightPanel({
       <div
         className="glass-card flex flex-col gap-4 p-5"
         style={{
-          borderRadius: 16,
-          background: "rgba(4, 24, 36, 0.5)",
-          backdropFilter: "blur(16px)",
-          border: "1px solid rgba(255, 255, 255, 0.06)",
+          borderRadius: 14,
+          background: "var(--bg-surface, #031820)",
+          border: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
         }}
       >
         <h3
           style={{
             fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: "0.12em",
+            fontSize: 9,
+            fontWeight: 500,
+            letterSpacing: "0.15em",
             textTransform: "uppercase",
-            color: "var(--text-ghost, #2D5A52)",
+            color: "var(--text-ghost, #1A3832)",
             margin: 0,
           }}
         >
@@ -186,7 +185,7 @@ export function DashboardRightPanel({
           <div className="flex items-center gap-1.5">
             <Flame
               className="w-3 h-3"
-              style={{ color: "var(--teal-surface, #0D9488)" }}
+              style={{ color: "var(--text-muted, #2E5C54)" }}
             />
             <span
               style={{
@@ -206,20 +205,19 @@ export function DashboardRightPanel({
         <div
           className="glass-card flex flex-col gap-3 p-5"
           style={{
-            borderRadius: 16,
-            background: "rgba(4, 24, 36, 0.5)",
-            backdropFilter: "blur(16px)",
-            border: "1px solid rgba(255, 255, 255, 0.06)",
+            borderRadius: 14,
+            background: "var(--bg-surface, #031820)",
+            border: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
           }}
         >
           <h3
             style={{
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: "0.12em",
+              fontSize: 9,
+              fontWeight: 500,
+              letterSpacing: "0.15em",
               textTransform: "uppercase",
-              color: "var(--text-ghost, #2D5A52)",
+              color: "var(--text-ghost, #1A3832)",
               margin: 0,
             }}
           >
@@ -273,12 +271,12 @@ export function DashboardRightPanel({
               style={{
                 padding: "8px 12px",
                 borderRadius: 10,
-                background: "rgba(13, 148, 136, 0.04)",
-                borderLeft: "2px solid rgba(13, 148, 136, 0.2)",
+                background: "transparent",
+                borderLeft: "2px solid var(--border-dim, rgba(255,255,255,0.07))",
                 fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                 fontSize: 12,
                 fontStyle: "italic",
-                color: "var(--text-ghost, #2D5A52)",
+                color: "var(--text-muted, #2E5C54)",
                 lineHeight: 1.5,
               }}
             >
@@ -295,9 +293,9 @@ export function DashboardRightPanel({
               gap: 6,
               padding: "8px 16px",
               borderRadius: 100,
-              border: "1px solid rgba(13, 148, 136, 0.2)",
-              background: "rgba(13, 148, 136, 0.08)",
-              color: "var(--teal-surface, #0D9488)",
+              border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+              background: "transparent",
+              color: "var(--text-secondary, #6B9E96)",
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               fontSize: 11,
               fontWeight: 500,
@@ -308,12 +306,12 @@ export function DashboardRightPanel({
               width: "100%",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(13, 148, 136, 0.15)";
-              e.currentTarget.style.borderColor = "rgba(13, 148, 136, 0.3)";
+              e.currentTarget.style.borderColor = "var(--teal-border, rgba(13,148,136,0.2))";
+              e.currentTarget.style.color = "var(--text-primary, #EDF6F4)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(13, 148, 136, 0.08)";
-              e.currentTarget.style.borderColor = "rgba(13, 148, 136, 0.2)";
+              e.currentTarget.style.borderColor = "var(--border-dim, rgba(255,255,255,0.07))";
+              e.currentTarget.style.color = "var(--text-secondary, #6B9E96)";
             }}
           >
             <BookOpen className="w-3.5 h-3.5" />
@@ -328,8 +326,8 @@ export function DashboardRightPanel({
         className="glass-card flex flex-col gap-2 p-4 mt-auto"
         style={{
           borderRadius: 14,
-          background: "rgba(4, 24, 36, 0.3)",
-          border: "1px solid rgba(255, 255, 255, 0.03)",
+          background: "var(--bg-surface, #031820)",
+          border: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
         }}
       >
         <span

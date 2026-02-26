@@ -5,27 +5,35 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { MilestoneCelebration } from "@/components/progression";
+import {
+  MilestoneCelebration,
+  ProgressionProvider,
+  DepthAmbience,
+} from "@/components/progression";
 import { RewardModal, GameboardRewardModal } from "@/components/rewards";
 import type { GameboardStatus, GameboardTier } from "@/types/gameboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { UsageLimitBanner } from "@/components/ui/UsageLimitBanner";
 import {
-  OceanNavigation,
   NextLessonHero,
   DiveTransitionProvider,
   useDiveTransition,
-  DepthSidebar,
 } from "@/components/ocean";
+import { DepthSidebar } from "@/components/navigation/DepthSidebar";
+import {
+  AppNav,
+  ContextualNav,
+  MobileBottomNav,
+} from "@/components/navigation";
 import { VocabularyViewer, DashboardRightPanel } from "@/components/dashboard";
-import { SoundContainer } from "@/components/ambient";
-import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
+import { useImmerse } from "@/components/immerse";
 import { Check, Crown, ArrowRight } from "lucide-react";
 import { ProficiencyLevel, WordStatus, ProgressMilestone } from "@/types";
 import { checkProficiencyUpdate } from "@/lib/srs/proficiency-calculator";
 import { checkMilestoneAchievement } from "@/lib/progression";
 import { cn } from "@/lib/utils";
 import { getTierConfig, hasAccess, type TierSlug } from "@/lib/tiers";
+import { getDepthLevel } from "@/lib/progression/depthLevels";
 
 import "@/styles/ocean-theme.css";
 import "@/styles/dashboard-theme.css";
@@ -39,18 +47,11 @@ interface VocabularyStats {
 }
 
 // ============================================================================
-// Depth level logic — internal only, never shown as "modes" to user
+// Depth level logic — uses the new depth levels system
 // ============================================================================
 function getDepthInfo(wordCount: number) {
-  if (wordCount >= 500) {
-    return { level: 4, name: "The Deep", path: "/lesson-v2" };
-  } else if (wordCount >= 200) {
-    return { level: 3, name: "Twilight Zone", path: "/lesson-v2" };
-  } else if (wordCount >= 50) {
-    return { level: 2, name: "Sunlit Zone", path: "/lesson-v2" };
-  } else {
-    return { level: 1, name: "Shallows", path: "/lesson-v2" };
-  }
+  const level = getDepthLevel(wordCount);
+  return { level: level.id, name: level.name, path: "/lesson-v2" };
 }
 
 // ============================================================================
@@ -91,7 +92,7 @@ function DashboardContent({
   isAdmin?: boolean;
 }) {
   const { triggerDive } = useDiveTransition();
-  const { ambientView } = useAmbientPlayer();
+  const { isOpen: immersePlayerOpen } = useImmerse();
   const contentRef = useRef<HTMLDivElement>(null);
 
   const depthInfo = getDepthInfo(stats.wordsEncountered);
@@ -101,234 +102,250 @@ function DashboardContent({
   };
 
   return (
-    <div
-      className="dashboard-shell min-h-screen"
-      style={{ background: "var(--bg-deep, #020F14)" }}
-    >
-      {/* Depth sidebar — always visible on desktop */}
-      <DepthSidebar
-        wordCount={stats.wordsEncountered}
-        totalMinutes={stats.totalTime}
-      />
-
-      {/* Navigation */}
-      <OceanNavigation
-        wordsEncountered={stats.wordsEncountered}
-        totalMinutes={stats.totalTime}
-        streak={stats.streak}
-        avgScore={stats.avgComprehension}
-        avatarUrl={avatarUrl}
-        currentPath="/dashboard"
-        isAdmin={isAdmin}
-        isProgressView={isProgressView}
-        targetLanguage={targetLanguage}
-        depthName={depthInfo.name}
-      />
-
-      {/* Right panel */}
-      <DashboardRightPanel
-        wordsToday={
-          stats.wordsEncountered > 0 ? Math.min(stats.wordsEncountered, 30) : 0
-        }
-        dailyGoal={30}
-        minutesToday={stats.totalTime > 0 ? Math.min(stats.totalTime, 60) : 0}
-        streak={stats.streak}
-        spotlightWord={{
-          word: "lumière",
-          translation: "light",
-          partOfSpeech: "noun (f)",
-          example: "La lumière du soleil danse sur l\u2019eau.",
-        }}
-      />
-
-      {/* Main Content — three-column offset */}
+    <ProgressionProvider initialWordCount={stats.wordsEncountered}>
       <div
-        ref={contentRef}
-        className={cn(
-          "relative z-10 min-h-screen pt-24 pb-16 px-6",
-          "lg:ml-[220px] xl:mr-[280px]",
-        )}
+        className="dashboard-shell min-h-screen relative"
+        style={{ background: "var(--bg-deep, #020F14)" }}
       >
-        {/* Payment Success Notification */}
-        {showPaymentSuccess && (
-          <div className="fixed top-20 right-6 z-50 max-w-md">
-            <div
-              className="glass-card p-4"
-              style={{
-                background: "rgba(13, 148, 136, 0.1)",
-                border: "1px solid rgba(13, 148, 136, 0.2)",
-                borderRadius: 16,
-              }}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                  style={{ background: "rgba(13, 148, 136, 0.2)" }}
-                >
-                  <Check
-                    className="w-5 h-5"
-                    style={{ color: "var(--teal-surface, #0D9488)" }}
-                  />
-                </div>
-                <div className="flex-1">
-                  <h3
-                    className="font-semibold mb-1"
-                    style={{
-                      color: "var(--teal-glow, #2DD4BF)",
-                      fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                      fontSize: 15,
-                    }}
-                  >
-                    Welcome aboard!
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: "var(--text-secondary, #7BA8A0)",
-                    }}
-                  >
-                    Your{" "}
-                    {getTierConfig(subscriptionTier as TierSlug)?.displayName ||
-                      "subscription"}{" "}
-                    plan is active.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowPaymentSuccess(false)}
-                  className="transition-opacity hover:opacity-100 opacity-60"
-                  style={{ color: "var(--text-ghost, #2D5A52)" }}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Ambient depth background */}
+        <DepthAmbience wordCount={stats.wordsEncountered} />
 
-        {/* Milestone Celebration Modal */}
-        {celebratingMilestone && (
-          <MilestoneCelebration
-            milestone={celebratingMilestone}
-            onClose={() => setCelebratingMilestone(null)}
-          />
-        )}
+        {/* Depth sidebar — always visible on desktop */}
+        <DepthSidebar
+          wordCount={stats.wordsEncountered}
+          totalMinutes={stats.totalTime}
+        />
 
-        <div className="max-w-4xl mx-auto space-y-10">
-          {/* Usage Limit Banner */}
-          <UsageLimitBanner className="mb-4" />
+        {/* Navigation */}
+        <AppNav
+          wordsEncountered={stats.wordsEncountered}
+          streak={stats.streak}
+          avatarUrl={avatarUrl}
+          isAdmin={isAdmin}
+        />
+        <ContextualNav />
+        <MobileBottomNav wordsEncountered={stats.wordsEncountered} />
 
-          {/* Tier Badge */}
-          {hasAccess(subscriptionTier as TierSlug, "diver") && (
-            <div className="flex justify-center">
+        {/* Right panel */}
+        <DashboardRightPanel
+          wordsToday={
+            stats.wordsEncountered > 0
+              ? Math.min(stats.wordsEncountered, 30)
+              : 0
+          }
+          dailyGoal={30}
+          minutesToday={stats.totalTime > 0 ? Math.min(stats.totalTime, 60) : 0}
+          streak={stats.streak}
+          spotlightWord={{
+            word: "lumière",
+            translation: "light",
+            partOfSpeech: "noun (f)",
+            example: "La lumière du soleil danse sur l\u2019eau.",
+          }}
+        />
+
+        {/* Main Content — three-column offset */}
+        <div
+          ref={contentRef}
+          className={cn(
+            "relative z-10 min-h-screen pt-24 px-6",
+            "lg:ml-[240px] xl:mr-[280px]",
+          )}
+          style={{ paddingBottom: immersePlayerOpen ? 88 : 64 }}
+        >
+          {/* Payment Success Notification */}
+          {showPaymentSuccess && (
+            <div className="fixed top-20 right-6 z-50 max-w-md">
               <div
-                className="flex items-center gap-2 px-4 py-2 rounded-full"
+                className="glass-card p-4"
                 style={{
-                  background: "rgba(13, 148, 136, 0.08)",
-                  border: "1px solid rgba(13, 148, 136, 0.15)",
+                  background: "rgba(255, 255, 255, 0.03)",
+                  border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+                  borderRadius: 16,
                 }}
               >
-                <Crown
-                  className="w-4 h-4"
-                  style={{ color: "var(--teal-surface, #0D9488)" }}
-                />
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: "var(--teal-surface, #0D9488)",
-                    fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  {getTierConfig(subscriptionTier as TierSlug)?.displayName ||
-                    "Pro"}
-                </span>
+                <div className="flex items-start gap-3">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: "rgba(255, 255, 255, 0.04)" }}
+                  >
+                    <Check
+                      className="w-5 h-5"
+                      style={{ color: "var(--text-secondary, #6B9E96)" }}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3
+                      className="font-semibold mb-1"
+                      style={{
+                        color: "var(--text-primary, #EDF6F4)",
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                        fontSize: 15,
+                      }}
+                    >
+                      Welcome aboard!
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        color: "var(--text-secondary, #7BA8A0)",
+                      }}
+                    >
+                      Your{" "}
+                      {getTierConfig(subscriptionTier as TierSlug)
+                        ?.displayName || "subscription"}{" "}
+                      plan is active.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowPaymentSuccess(false)}
+                    className="transition-opacity hover:opacity-100 opacity-60"
+                    style={{ color: "var(--text-ghost, #2D5A52)" }}
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
-          {/* ========== SESSION HERO ========== */}
-          <section>
-            {ambientView === "container" ? (
-              <SoundContainer />
-            ) : (
+          {/* Milestone Celebration Modal */}
+          {celebratingMilestone && (
+            <MilestoneCelebration
+              milestone={celebratingMilestone}
+              onClose={() => setCelebratingMilestone(null)}
+            />
+          )}
+
+          <div className="max-w-4xl mx-auto space-y-10">
+            {/* Usage Limit Banner */}
+            <UsageLimitBanner className="mb-4" />
+
+            {/* Tier Badge */}
+            {hasAccess(subscriptionTier as TierSlug, "diver") && (
+              <div className="flex justify-center">
+                <div
+                  className="flex items-center gap-2 px-4 py-2 rounded-full"
+                  style={{
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border:
+                      "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+                  }}
+                >
+                  <Crown
+                    className="w-4 h-4"
+                    style={{ color: "var(--text-muted, #2E5C54)" }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 500,
+                      color: "var(--text-secondary, #6B9E96)",
+                      fontFamily:
+                        "var(--font-mono, 'JetBrains Mono', monospace)",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    {getTierConfig(subscriptionTier as TierSlug)?.displayName ||
+                      "Pro"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* ========== SESSION HERO ========== */}
+            <section>
               <NextLessonHero
                 depthName={depthInfo.name}
                 wordsAbsorbed={stats.wordsEncountered}
                 sessionPath={depthInfo.path}
                 onDiveClick={handleDiveClick}
               />
-            )}
-          </section>
-
-          {/* ========== VOCABULARY VIEWER ========== */}
-          {userId && (
-            <section>
-              <VocabularyViewer userId={userId} language={targetLanguage} />
             </section>
-          )}
 
-          {/* ========== UPGRADE CTA ========== */}
-          {stats.wordsEncountered >= 50 &&
-            !hasAccess(subscriptionTier as TierSlug, "diver") && (
-              <section
-                className="glass-card p-8"
-                style={{
-                  borderRadius: 20,
-                  background:
-                    "linear-gradient(135deg, rgba(13, 148, 136, 0.04) 0%, rgba(4, 24, 36, 0.6) 100%)",
-                  border: "1px solid rgba(13, 148, 136, 0.1)",
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h3
-                      style={{
-                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                        fontSize: 18,
-                        fontWeight: 600,
-                        color: "var(--text-primary, #F0FDFA)",
-                        margin: 0,
-                      }}
-                    >
-                      Go deeper
-                    </h3>
-                    <p
-                      style={{
-                        fontSize: 14,
-                        color: "var(--text-secondary, #7BA8A0)",
-                      }}
-                    >
-                      Unlimited immersion time, longer stories, and advanced
-                      tools.
-                    </p>
-                  </div>
-                  <Link href="/pricing">
-                    <button
-                      className="dive-cta flex items-center gap-2"
-                      style={{
-                        padding: "10px 24px",
-                        borderRadius: 100,
-                        border: "none",
-                        cursor: "pointer",
-                        background: "var(--teal-surface, #0D9488)",
-                        color: "#020F14",
-                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                        fontSize: 14,
-                        fontWeight: 600,
-                        boxShadow: "0 0 24px rgba(13, 148, 136, 0.2)",
-                      }}
-                    >
-                      Start Diving
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </Link>
-                </div>
+            {/* ========== VOCABULARY VIEWER ========== */}
+            {userId && (
+              <section>
+                <VocabularyViewer userId={userId} language={targetLanguage} />
               </section>
             )}
+
+            {/* ========== UPGRADE CTA ========== */}
+            {stats.wordsEncountered >= 50 &&
+              !hasAccess(subscriptionTier as TierSlug, "diver") && (
+                <section
+                  className="glass-card p-8"
+                  style={{
+                    borderRadius: 20,
+                    background:
+                      "linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(3, 24, 32, 0.6) 100%)",
+                    border:
+                      "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <h3
+                        style={{
+                          fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                          fontSize: 18,
+                          fontWeight: 600,
+                          color: "var(--text-primary, #F0FDFA)",
+                          margin: 0,
+                        }}
+                      >
+                        Go deeper
+                      </h3>
+                      <p
+                        style={{
+                          fontSize: 14,
+                          color: "var(--text-secondary, #7BA8A0)",
+                        }}
+                      >
+                        Unlimited immersion time, longer stories, and advanced
+                        tools.
+                      </p>
+                    </div>
+                    <Link href="/pricing">
+                      <button
+                        className="flex items-center gap-2"
+                        style={{
+                          padding: "10px 24px",
+                          borderRadius: 100,
+                          border:
+                            "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+                          cursor: "pointer",
+                          background: "transparent",
+                          color: "var(--text-secondary, #6B9E96)",
+                          fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                          fontSize: 14,
+                          fontWeight: 500,
+                          transition: "all 200ms ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor =
+                            "var(--teal-border, rgba(13,148,136,0.2))";
+                          e.currentTarget.style.color =
+                            "var(--text-primary, #EDF6F4)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor =
+                            "var(--border-dim, rgba(255,255,255,0.07))";
+                          e.currentTarget.style.color =
+                            "var(--text-secondary, #6B9E96)";
+                        }}
+                      >
+                        Start Diving
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </Link>
+                  </div>
+                </section>
+              )}
+          </div>
         </div>
       </div>
-    </div>
+    </ProgressionProvider>
   );
 }
 

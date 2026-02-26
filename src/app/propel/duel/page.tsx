@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { OceanBackground, DepthSidebar } from "@/components/ocean";
 import {
-  OceanBackground,
-  OceanNavigation,
-  DepthSidebar,
-} from "@/components/ocean";
+  AppNav,
+  ContextualNav,
+  MobileBottomNav,
+} from "@/components/navigation";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   DuelCard,
@@ -224,15 +225,15 @@ function DuelLobbyContent({
     <OceanBackground>
       <DepthSidebar wordCount={wordsEncountered} scrollable={false} />
 
-      <OceanNavigation
+      <AppNav
         streak={streak}
         avatarUrl={avatarUrl}
-        currentPath="/propel/duel"
         isAdmin={isAdmin}
-        targetLanguage={targetLanguage}
         wordsEncountered={wordsEncountered}
         onBeforeNavigate={handleNavigation}
       />
+      <ContextualNav />
+      <MobileBottomNav wordsEncountered={wordsEncountered} />
 
       {/* Bioluminescence particles */}
       <BioluminescenceBackground />

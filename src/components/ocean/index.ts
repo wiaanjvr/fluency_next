@@ -12,3 +12,7 @@ export {
   useDiveTransition,
   DiveTransitionContext,
 } from "./DiveTransition";
+
+// New depth progression components (re-export for convenience)
+export { DepthIndicator } from "../navigation/DepthIndicator";
+export { DepthSidebar as DepthSidebarV2 } from "../navigation/DepthSidebar";

@@ -14,9 +14,11 @@ import {
   Users,
   Map,
   Flame,
+  Headphones,
 } from "lucide-react";
-import { AmbientLauncher } from "@/components/ambient";
-import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
+import { useImmerse } from "@/components/immerse";
+import { DepthIndicator } from "@/components/navigation/DepthIndicator";
+import { getDepthLevel } from "@/lib/progression/depthLevels";
 
 // ============================================================================
 // Ocean Navigation — Frosted glass top bar
@@ -61,11 +63,7 @@ const LANG_META: Record<string, { flag: string; name: string }> = {
 };
 
 function getDepthZoneName(wordCount: number): string {
-  if (wordCount >= 5000) return "The Abyss";
-  if (wordCount >= 2000) return "The Deep";
-  if (wordCount >= 500) return "Twilight Zone";
-  if (wordCount >= 50) return "Sunlit Zone";
-  return "Shallows";
+  return getDepthLevel(wordCount).name;
 }
 
 export function OceanNavigation({
@@ -83,10 +81,13 @@ export function OceanNavigation({
   onBeforeNavigate,
 }: OceanNavigationProps) {
   const [scrolled, setScrolled] = useState(false);
-  const [wordsCount, setWordsCount] = useState(0);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
-  const { ambientView, setAmbientView } = useAmbientPlayer();
+  const {
+    isPlaying: immerseIsPlaying,
+    isOpen: immerseIsOpen,
+    openSelectModal,
+  } = useImmerse();
 
   const zoneName = depthName || getDepthZoneName(wordsEncountered);
   const langMeta = LANG_META[targetLanguage || "fr"] || {
@@ -127,23 +128,6 @@ export function OceanNavigation({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    const duration = 1000;
-    const steps = 30;
-    const wordsStep = wordsEncountered / steps;
-    let current = 0;
-
-    const interval = setInterval(() => {
-      current++;
-      setWordsCount(
-        Math.min(Math.round(wordsStep * current), wordsEncountered),
-      );
-      if (current >= steps) clearInterval(interval);
-    }, duration / steps);
-
-    return () => clearInterval(interval);
-  }, [wordsEncountered]);
-
   const formatTime = (minutes: number) => {
     if (minutes < 60) return `${minutes}m`;
     const h = Math.floor(minutes / 60);
@@ -159,10 +143,10 @@ export function OceanNavigation({
       )}
       style={{
         height: 64,
-        background: scrolled ? "rgba(4, 24, 36, 0.85)" : "rgba(4, 24, 36, 0.7)",
-        backdropFilter: "blur(24px) saturate(1.2)",
-        WebkitBackdropFilter: "blur(24px) saturate(1.2)",
-        borderBottom: `1px solid rgba(13, 148, 136, ${scrolled ? "0.12" : "0.06"})`,
+        background: scrolled ? "rgba(1, 12, 16, 0.9)" : "rgba(1, 12, 16, 0.85)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        borderBottom: `1px solid rgba(255, 255, 255, 0.04)`,
       }}
     >
       <div className="w-full h-full px-6 flex items-center justify-between">
@@ -177,14 +161,14 @@ export function OceanNavigation({
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
               <path
                 d="M4 16C6 13 8.5 12 11 14C13.5 16 16 15 18 13C20 11 22.5 12 24 14"
-                stroke="#0D9488"
+                stroke="var(--text-secondary, #6B9E96)"
                 strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               <path
                 d="M4 20C6 17 8.5 16 11 18C13.5 20 16 19 18 17C20 15 22.5 16 24 18"
-                stroke="#0D9488"
+                stroke="var(--text-muted, #2E5C54)"
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -194,8 +178,9 @@ export function OceanNavigation({
           </div>
           <span
             style={{
-              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+              fontFamily: "var(--font-display, 'Playfair Display', serif)",
               fontWeight: 600,
+              fontStyle: "italic",
               fontSize: 18,
               letterSpacing: "0.02em",
               color: "var(--text-primary, #F0FDFA)",
@@ -222,7 +207,7 @@ export function OceanNavigation({
             <span style={{ color: "var(--text-ghost, #2D5A52)", fontSize: 14 }}>
               ›
             </span>
-            <span style={{ color: "var(--teal-surface, #0D9488)" }}>
+            <span style={{ color: "var(--text-secondary, #6B9E96)" }}>
               {zoneName}
             </span>
           </div>
@@ -247,28 +232,21 @@ export function OceanNavigation({
                   href={item.href}
                   className="group"
                   onClick={(e) => {
-                    if (ambientView === "container") {
-                      setAmbientView("soundbar");
-                    } else if (ambientView === "soundbar") {
-                      setAmbientView(null);
-                    }
                     handleLinkClick(e, item.href);
                   }}
                 >
                   <div
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 relative"
                     style={{
-                      background: isActive
-                        ? "rgba(13, 148, 136, 0.1)"
-                        : "transparent",
+                      background: "transparent",
                     }}
                   >
                     <Icon
                       className="w-3.5 h-3.5"
                       style={{
                         color: isActive
-                          ? "var(--teal-surface, #0D9488)"
-                          : "var(--text-ghost, #2D5A52)",
+                          ? "var(--text-primary, #EDF6F4)"
+                          : "var(--text-muted, #2E5C54)",
                       }}
                     />
                     <span
@@ -276,18 +254,82 @@ export function OceanNavigation({
                       style={{
                         fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                         color: isActive
-                          ? "var(--teal-surface, #0D9488)"
-                          : "var(--text-secondary, #7BA8A0)",
+                          ? "var(--text-primary, #EDF6F4)"
+                          : "var(--text-muted, #2E5C54)",
+                        fontWeight: isActive ? 500 : 400,
                       }}
                     >
                       {item.label}
                     </span>
+                    {isActive && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          bottom: -2,
+                          left: 0,
+                          right: 0,
+                          height: 2,
+                          background: "var(--teal, #0D9488)",
+                          borderRadius: 1,
+                        }}
+                      />
+                    )}
                   </div>
                 </Link>
               );
             })}
 
-            <AmbientLauncher variant="nav" />
+            {/* Immerse button — opens stream selection modal */}
+            <button
+              onClick={openSelectModal}
+              className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 relative"
+              style={{ background: "transparent" }}
+              aria-label="Open immersion streams"
+            >
+              {immerseIsPlaying && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 block h-2 w-2 rounded-full"
+                  style={{
+                    background: "var(--teal, #0D9488)",
+                    boxShadow: "0 0 6px rgba(13, 148, 136, 0.6)",
+                    animation: "immerse-pulse 2s ease-in-out infinite",
+                  }}
+                />
+              )}
+              <Headphones
+                className="w-3.5 h-3.5"
+                style={{
+                  color: immerseIsOpen
+                    ? "var(--teal, #0D9488)"
+                    : "var(--text-muted, #2E5C54)",
+                }}
+              />
+              <span
+                className="text-xs font-medium"
+                style={{
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                  color: immerseIsOpen
+                    ? "var(--teal, #0D9488)"
+                    : "var(--text-muted, #2E5C54)",
+                  fontWeight: immerseIsOpen ? 500 : 400,
+                }}
+              >
+                Immerse
+              </span>
+              <style jsx>{`
+                @keyframes immerse-pulse {
+                  0%,
+                  100% {
+                    opacity: 1;
+                    transform: scale(1);
+                  }
+                  50% {
+                    opacity: 0.6;
+                    transform: scale(1.3);
+                  }
+                }
+              `}</style>
+            </button>
 
             {/* Community */}
             {(() => {
@@ -301,19 +343,17 @@ export function OceanNavigation({
                   onClick={(e) => handleLinkClick(e, communityHref)}
                 >
                   <div
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 relative"
                     style={{
-                      background: isActive
-                        ? "rgba(13, 148, 136, 0.1)"
-                        : "transparent",
+                      background: "transparent",
                     }}
                   >
                     <Users
                       className="w-3.5 h-3.5"
                       style={{
                         color: isActive
-                          ? "var(--teal-surface, #0D9488)"
-                          : "var(--text-ghost, #2D5A52)",
+                          ? "var(--text-primary, #EDF6F4)"
+                          : "var(--text-muted, #2E5C54)",
                       }}
                     />
                     <span
@@ -321,12 +361,26 @@ export function OceanNavigation({
                       style={{
                         fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                         color: isActive
-                          ? "var(--teal-surface, #0D9488)"
-                          : "var(--text-secondary, #7BA8A0)",
+                          ? "var(--text-primary, #EDF6F4)"
+                          : "var(--text-muted, #2E5C54)",
+                        fontWeight: isActive ? 500 : 400,
                       }}
                     >
                       Community
                     </span>
+                    {isActive && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          bottom: -2,
+                          left: 0,
+                          right: 0,
+                          height: 2,
+                          background: "var(--teal, #0D9488)",
+                          borderRadius: 1,
+                        }}
+                      />
+                    )}
                   </div>
                 </Link>
               );
@@ -341,19 +395,17 @@ export function OceanNavigation({
                   return (
                     <Link key={adminHref} href={adminHref} className="group">
                       <div
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 relative"
                         style={{
-                          background: isActive
-                            ? "rgba(13, 148, 136, 0.1)"
-                            : "transparent",
+                          background: "transparent",
                         }}
                       >
                         <Settings
                           className="w-3.5 h-3.5"
                           style={{
                             color: isActive
-                              ? "var(--teal-surface, #0D9488)"
-                              : "var(--text-ghost, #2D5A52)",
+                              ? "var(--text-primary, #EDF6F4)"
+                              : "var(--text-muted, #2E5C54)",
                           }}
                         />
                         <span
@@ -362,12 +414,25 @@ export function OceanNavigation({
                             fontFamily:
                               "var(--font-inter, 'Inter', sans-serif)",
                             color: isActive
-                              ? "var(--teal-surface, #0D9488)"
-                              : "var(--text-secondary, #7BA8A0)",
+                              ? "var(--text-primary, #EDF6F4)"
+                              : "var(--text-muted, #2E5C54)",
                           }}
                         >
                           Donations
                         </span>
+                        {isActive && (
+                          <span
+                            style={{
+                              position: "absolute",
+                              bottom: -2,
+                              left: 0,
+                              right: 0,
+                              height: 2,
+                              background: "var(--teal, #0D9488)",
+                              borderRadius: 1,
+                            }}
+                          />
+                        )}
                       </div>
                     </Link>
                   );
@@ -378,19 +443,17 @@ export function OceanNavigation({
                   return (
                     <Link key={costsHref} href={costsHref} className="group">
                       <div
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 relative"
                         style={{
-                          background: isActive
-                            ? "rgba(13, 148, 136, 0.1)"
-                            : "transparent",
+                          background: "transparent",
                         }}
                       >
                         <BarChart
                           className="w-3.5 h-3.5"
                           style={{
                             color: isActive
-                              ? "var(--teal-surface, #0D9488)"
-                              : "var(--text-ghost, #2D5A52)",
+                              ? "var(--text-primary, #EDF6F4)"
+                              : "var(--text-muted, #2E5C54)",
                           }}
                         />
                         <span
@@ -399,12 +462,25 @@ export function OceanNavigation({
                             fontFamily:
                               "var(--font-inter, 'Inter', sans-serif)",
                             color: isActive
-                              ? "var(--teal-surface, #0D9488)"
-                              : "var(--text-secondary, #7BA8A0)",
+                              ? "var(--text-primary, #EDF6F4)"
+                              : "var(--text-muted, #2E5C54)",
                           }}
                         >
                           Costs
                         </span>
+                        {isActive && (
+                          <span
+                            style={{
+                              position: "absolute",
+                              bottom: -2,
+                              left: 0,
+                              right: 0,
+                              height: 2,
+                              background: "var(--teal, #0D9488)",
+                              borderRadius: 1,
+                            }}
+                          />
+                        )}
                       </div>
                     </Link>
                   );
@@ -421,20 +497,20 @@ export function OceanNavigation({
             <div
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
               style={{
-                background: "rgba(13, 148, 136, 0.08)",
-                border: "1px solid rgba(13, 148, 136, 0.15)",
+                background: "rgba(255, 255, 255, 0.03)",
+                border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
               }}
               title="Daily streak"
             >
               <Flame
                 className="w-3.5 h-3.5"
-                style={{ color: "var(--teal-glow, #2DD4BF)" }}
+                style={{ color: "var(--text-muted, #2E5C54)" }}
               />
               <span
                 className="text-xs font-semibold tabular-nums"
                 style={{
                   fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  color: "var(--teal-surface, #0D9488)",
+                  color: "var(--text-secondary, #6B9E96)",
                 }}
               >
                 {streak}
@@ -442,24 +518,8 @@ export function OceanNavigation({
             </div>
           )}
 
-          {/* XP / progress chip */}
-          <div
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-            style={{
-              background: "rgba(13, 148, 136, 0.08)",
-              border: "1px solid rgba(13, 148, 136, 0.15)",
-            }}
-          >
-            <span
-              className="text-xs font-medium tabular-nums"
-              style={{
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                color: "var(--text-secondary, #7BA8A0)",
-              }}
-            >
-              {wordsCount} words
-            </span>
-          </div>
+          {/* Depth Indicator — replaces simple word count chip */}
+          <DepthIndicator wordCount={wordsEncountered} />
 
           {/* Avatar dropdown trigger */}
           <div ref={accountMenuRef} className="relative">
@@ -472,8 +532,8 @@ export function OceanNavigation({
               <div
                 className="w-8 h-8 rounded-full overflow-hidden transition-all duration-300 group-hover:scale-105"
                 style={{
-                  border: `2px solid ${accountMenuOpen ? "rgba(13, 148, 136, 0.5)" : "rgba(255, 255, 255, 0.08)"}`,
-                  background: "var(--bg-surface, #041824)",
+                  border: `2px solid ${accountMenuOpen ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.08)"}`,
+                  background: "var(--bg-surface, #031820)",
                 }}
               >
                 {avatarUrl ? (
@@ -507,10 +567,10 @@ export function OceanNavigation({
               <div
                 className="absolute right-0 top-full mt-3 min-w-max rounded-xl border overflow-hidden z-50"
                 style={{
-                  background: "var(--bg-elevated, #062030)",
-                  borderColor: "rgba(13, 148, 136, 0.15)",
+                  background: "var(--bg-elevated, #052030)",
+                  borderColor: "var(--border-dim, rgba(255,255,255,0.07))",
                   boxShadow:
-                    "0 12px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(13,148,136,0.08)",
+                    "0 12px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)",
                   backdropFilter: "blur(16px)",
                 }}
               >
@@ -532,13 +592,13 @@ export function OceanNavigation({
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.color =
-                        "var(--teal-surface, #0D9488)";
+                        "var(--text-primary, #EDF6F4)";
                       e.currentTarget.style.backgroundColor =
-                        "rgba(13, 148, 136, 0.08)";
+                        "rgba(255, 255, 255, 0.04)";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.color =
-                        "var(--text-primary, #F0FDFA)";
+                        "var(--text-primary, #EDF6F4)";
                       e.currentTarget.style.backgroundColor = "transparent";
                     }}
                     onClick={() => setAccountMenuOpen(false)}
@@ -558,7 +618,7 @@ export function OceanNavigation({
           className="absolute bottom-0 left-0 right-0 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent 0%, rgba(13, 148, 136, 0.2) 50%, transparent 100%)",
+              "linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.06) 50%, transparent 100%)",
           }}
         />
       )}

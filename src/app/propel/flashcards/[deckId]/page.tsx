@@ -5,11 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { OceanBackground, DepthSidebar } from "@/components/ocean";
 import {
-  OceanBackground,
-  OceanNavigation,
-  DepthSidebar,
-} from "@/components/ocean";
+  AppNav,
+  ContextualNav,
+  MobileBottomNav,
+} from "@/components/navigation";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 import {
@@ -427,15 +428,15 @@ function DeckDetailContent({
   return (
     <OceanBackground>
       <DepthSidebar wordCount={wordsEncountered} scrollable={false} />
-      <OceanNavigation
+      <AppNav
         streak={streak}
         avatarUrl={avatarUrl}
-        currentPath="/propel/flashcards"
         isAdmin={isAdmin}
-        targetLanguage={targetLanguage}
         wordsEncountered={wordsEncountered}
         onBeforeNavigate={handleNavigation}
       />
+      <ContextualNav />
+      <MobileBottomNav wordsEncountered={wordsEncountered} />
 
       <div className="relative z-10 min-h-screen pt-28 pb-24 px-6 md:pl-[370px]">
         <div className="max-w-5xl mx-auto">

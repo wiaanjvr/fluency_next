@@ -1,208 +1,53 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { OceanBackground, DepthSidebar } from "@/components/ocean";
 import {
-  OceanBackground,
-  OceanNavigation,
-  DepthSidebar,
-} from "@/components/ocean";
+  AppNav,
+  ContextualNav,
+  MobileBottomNav,
+} from "@/components/navigation";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
-import {
-  BookOpen,
-  PenLine,
-  Layers,
-  GitBranch,
-  Mic,
-  Compass,
-  MessageCircle,
-  Swords,
-  ArrowRight,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import "@/styles/ocean-theme.css";
 
-// ============================================================================
-// Mode definitions
-// ============================================================================
-const PRACTICE_MODES = [
-  {
-    slug: "free-reading",
-    name: "Free Reading",
-    description: "Dive into native texts at your level.",
-    Icon: BookOpen,
-    skills: ["Reading"],
-  },
-  {
-    slug: "cloze",
-    name: "Cloze Activities",
-    description: "Fill the gaps. Train your instincts.",
-    Icon: PenLine,
-    skills: ["Writing", "Reading"],
-  },
-  {
-    slug: "flashcards",
-    name: "Flashcards",
-    description: "Surface and reinforce. Anki-style recall.",
-    Icon: Layers,
-    skills: ["Vocabulary"],
-  },
-  {
-    slug: "conjugation",
-    name: "Conjugation Drills",
-    description: "Master verb forms under pressure.",
-    Icon: GitBranch,
-    skills: ["Grammar", "Writing"],
-  },
-  {
-    slug: "pronunciation",
-    name: "Pronunciation",
-    description: "Speak. Shadow. Sound native.",
-    Icon: Mic,
-    skills: ["Speaking"],
-  },
-  {
-    slug: "grammar",
-    name: "Grammar",
-    description: "Understand the currents beneath the words.",
-    Icon: Compass,
-    skills: ["Grammar", "Reading"],
-  },
-  {
-    slug: "conversation",
-    name: "Conversation",
-    description: "Speak freely. An AI listens, responds, corrects.",
-    Icon: MessageCircle,
-    skills: ["Speaking", "Listening"],
-  },
-  {
-    slug: "duel",
-    name: "Duel",
-    description: "Challenge a friend. Prove your depth.",
-    Icon: Swords,
-    skills: ["Competition"],
-  },
-] as const;
+import {
+  activityRegistry,
+  getAllTags,
+  getActivitiesByCategory,
+} from "@/lib/activities/activityRegistry";
+import type {
+  ActivityTag,
+  ActivityCategory,
+} from "@/lib/activities/activityRegistry";
+import { ActivityCard } from "@/components/propel/ActivityCard";
+import type { ActivityCardPersonalizationProps } from "@/components/propel/ActivityCard";
+import { TagFilterBar } from "@/components/propel/TagFilterBar";
+import {
+  PersonalizationBanner,
+  PersonalizationBannerSkeleton,
+} from "@/components/propel/PersonalizationBanner";
+import { WhatNextFAB } from "@/components/propel/WhatNextFAB";
+import { getActivityInsights } from "@/lib/actions/getActivityInsights";
+import type {
+  ActivityInsight,
+  PropelPersonalization,
+} from "@/lib/actions/getActivityInsights";
 
-// Skill label → colour theme
-const SKILL_MAP: Record<string, { bg: string; color: string }> = {
-  Reading: { bg: "rgba(61,214,181,0.12)", color: "var(--turquoise)" },
-  Writing: { bg: "rgba(138,180,248,0.12)", color: "#8ab4f8" },
-  Speaking: { bg: "rgba(249,168,212,0.12)", color: "#f9a8d4" },
-  Listening: { bg: "rgba(253,224,132,0.12)", color: "#fde084" },
-  Grammar: { bg: "rgba(167,139,250,0.12)", color: "#a78bfa" },
-  Vocabulary: { bg: "rgba(61,214,181,0.12)", color: "var(--turquoise)" },
-  Competition: { bg: "rgba(251,146,60,0.12)", color: "#fb923c" },
+// ============================================================================
+// Grid class per category
+// ============================================================================
+const GRID_CLASS: Record<ActivityCategory, string> = {
+  Immersion: "grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4",
+  Study: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4",
+  Produce: "grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4",
+  Compete: "flex justify-center",
 };
-
-// ============================================================================
-// Mode Grid
-// ============================================================================
-function ModeGrid() {
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-      {PRACTICE_MODES.map((mode) => {
-        const Icon = mode.Icon;
-        return (
-          <Link
-            key={mode.slug}
-            href={`/propel/${mode.slug}`}
-            className="group focus:outline-none"
-          >
-            <div
-              className={cn(
-                "relative h-full flex flex-col gap-4 rounded-2xl overflow-hidden",
-                "border border-white/[0.07]",
-                "bg-gradient-to-b from-[#0e2340]/90 to-[#091527]/95",
-                "p-5 cursor-pointer",
-                "transition-all duration-300 ease-out",
-                "hover:border-[var(--turquoise)]/40",
-                "hover:shadow-[0_8px_32px_rgba(61,214,181,0.08)]",
-                "hover:-translate-y-0.5",
-              )}
-            >
-              {/* Ambient glow — top-right corner on hover */}
-              <div
-                className="absolute -top-6 -right-6 w-20 h-20 rounded-full pointer-events-none
-                            opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                style={{
-                  background:
-                    "radial-gradient(circle, rgba(61,214,181,0.18) 0%, transparent 70%)",
-                }}
-              />
-
-              {/* Icon */}
-              <div
-                className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
-                  "bg-[var(--turquoise)]/10",
-                  "group-hover:bg-[var(--turquoise)]/[0.18] transition-colors duration-300",
-                )}
-              >
-                <Icon className="w-[18px] h-[18px] text-[var(--turquoise)]" />
-              </div>
-
-              {/* Name + description */}
-              <div className="flex-1 space-y-1">
-                <h3
-                  className="font-display text-[15px] font-bold leading-snug"
-                  style={{ color: "var(--sand)" }}
-                >
-                  {mode.name}
-                </h3>
-                <p
-                  className="font-body text-[12px] leading-relaxed"
-                  style={{ color: "var(--seafoam)", opacity: 0.65 }}
-                >
-                  {mode.description}
-                </p>
-              </div>
-
-              {/* Footer: skill chips + directional arrow */}
-              <div className="flex items-end justify-between gap-2 mt-auto">
-                <div className="flex flex-wrap gap-1">
-                  {mode.skills.map((skill) => {
-                    const s =
-                      SKILL_MAP[skill as keyof typeof SKILL_MAP] ??
-                      SKILL_MAP.Vocabulary;
-                    return (
-                      <span
-                        key={skill}
-                        className="font-body text-[10px] font-medium px-2 py-0.5 rounded-full"
-                        style={{ background: s.bg, color: s.color }}
-                      >
-                        {skill}
-                      </span>
-                    );
-                  })}
-                </div>
-                <ArrowRight
-                  className="w-3.5 h-3.5 flex-shrink-0 opacity-0 group-hover:opacity-60
-                             translate-x-0 group-hover:translate-x-0.5 transition-all duration-300"
-                  style={{ color: "var(--turquoise)" }}
-                />
-              </div>
-
-              {/* Bottom accent line */}
-              <div
-                className="absolute bottom-0 left-0 right-0 h-[1.5px]
-                            opacity-0 group-hover:opacity-40 transition-opacity duration-500"
-                style={{
-                  background:
-                    "linear-gradient(90deg, transparent 0%, var(--turquoise) 50%, transparent 100%)",
-                }}
-              />
-            </div>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
 
 // ============================================================================
 // Propel Content
@@ -213,19 +58,88 @@ function PropelContent({
   targetLanguage,
   isAdmin,
   wordsEncountered,
+  insights,
+  personalization,
 }: {
   streak: number;
   avatarUrl?: string;
   targetLanguage: string;
   isAdmin: boolean;
   wordsEncountered: number;
+  insights: ActivityInsight[] | null;
+  personalization: PropelPersonalization | null;
 }) {
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [activeTags, setActiveTags] = useState<ActivityTag[]>([]);
   const { ambientView, setAmbientView } = useAmbientPlayer();
 
+  const allTags = useMemo(() => getAllTags(), []);
+  const categorised = useMemo(() => getActivitiesByCategory(), []);
+
+  // Filter logic: if no tags selected show all; otherwise OR-match
+  const filteredCategories = useMemo(() => {
+    if (activeTags.length === 0) return categorised;
+
+    return categorised
+      .map((group) => ({
+        ...group,
+        activities: group.activities.filter((a) =>
+          a.tags.some((t) => activeTags.includes(t)),
+        ),
+      }))
+      .filter((group) => group.activities.length > 0);
+  }, [activeTags, categorised]);
+
+  // Build per-activity personalization lookup
+  const activityPersonalization = useMemo(() => {
+    if (!insights || !personalization)
+      return new Map<string, ActivityCardPersonalizationProps>();
+
+    const map = new Map<string, ActivityCardPersonalizationProps>();
+
+    for (const insight of insights) {
+      const props: ActivityCardPersonalizationProps = {};
+
+      props.isRecommended =
+        insight.activityId === personalization.recommendedActivityId;
+      props.isNeglected = personalization.neglectedActivityIds.includes(
+        insight.activityId,
+      );
+      props.isNeverTried = personalization.neverTriedActivityIds.includes(
+        insight.activityId,
+      );
+      props.daysSinceLastSession = insight.daysSinceLastSession;
+
+      if (
+        insight.daysSinceLastSession !== null &&
+        insight.daysSinceLastSession > 0
+      ) {
+        props.lastDoneLabel =
+          insight.daysSinceLastSession === 1
+            ? "Last dive: yesterday"
+            : `Last dive: ${insight.daysSinceLastSession} days ago`;
+      } else if (insight.daysSinceLastSession === 0) {
+        props.lastDoneLabel = "Last dive: today";
+      }
+
+      map.set(insight.activityId, props);
+    }
+
+    return map;
+  }, [insights, personalization]);
+
+  const handleTagToggle = useCallback((tag: ActivityTag) => {
+    setActiveTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  }, []);
+
+  const handleClearAll = useCallback(() => {
+    setActiveTags([]);
+  }, []);
+
   // Ensure soundbar is visible when arriving on Propel while ambient is active
-  // (SoundContainer only exists on the dashboard, so switch to soundbar view)
   useEffect(() => {
     if (ambientView === "container") {
       setAmbientView("soundbar");
@@ -233,7 +147,7 @@ function PropelContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Disable page scroll while on Propel to prevent scrollbar flicker
+  // Allow page scroll on Propel
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "auto";
@@ -256,23 +170,22 @@ function PropelContent({
 
   return (
     <OceanBackground>
-      {/* Depth sidebar — mirrors dashboard (non-scrollable on Propel) */}
       <DepthSidebar wordCount={wordsEncountered} scrollable={false} />
 
-      <OceanNavigation
+      <AppNav
         streak={streak}
         avatarUrl={avatarUrl}
-        currentPath="/propel"
         isAdmin={isAdmin}
-        targetLanguage={targetLanguage}
         wordsEncountered={wordsEncountered}
         onBeforeNavigate={handleNavigation}
       />
+      <ContextualNav />
+      <MobileBottomNav wordsEncountered={wordsEncountered} />
 
       <div className="relative z-10 min-h-screen pt-24 pb-16 px-6 lg:pl-[370px]">
         <div className="max-w-5xl mx-auto w-full">
           {/* ── Page header ── */}
-          <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+          <div className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
             <div className="space-y-1">
               <h1
                 className="font-display text-4xl md:text-5xl font-bold tracking-tight"
@@ -298,10 +211,72 @@ function PropelContent({
             />
           </div>
 
-          {/* ── Training mode grid ── */}
-          <ModeGrid />
+          {/* ── Personalization banner ── */}
+          <Suspense fallback={<PersonalizationBannerSkeleton />}>
+            <PersonalizationBanner personalization={personalization} />
+          </Suspense>
+
+          {/* ── Filter bar ── */}
+          <div className="mb-8">
+            <TagFilterBar
+              allTags={allTags}
+              activeTags={activeTags}
+              onToggle={handleTagToggle}
+              onClearAll={handleClearAll}
+            />
+          </div>
+
+          {/* ── Category sections ── */}
+          <div className="space-y-10">
+            <AnimatePresence mode="popLayout">
+              {filteredCategories.map(({ category, meta, activities }) => (
+                <section key={category}>
+                  {/* Section label */}
+                  <div className="mb-4">
+                    <span
+                      className="font-body text-[11px] font-semibold tracking-[0.18em] uppercase"
+                      style={{ color: "var(--seafoam)", opacity: 0.35 }}
+                    >
+                      {meta.label}
+                    </span>
+                    <div
+                      className="mt-2 h-px w-full"
+                      style={{
+                        background:
+                          "linear-gradient(90deg, rgba(255,255,255,0.06) 0%, transparent 60%)",
+                      }}
+                    />
+                  </div>
+
+                  {/* Card grid */}
+                  <div className={GRID_CLASS[category]}>
+                    <AnimatePresence mode="popLayout">
+                      {activities.map((activity) => (
+                        <div
+                          key={activity.id}
+                          className={cn(
+                            category === "Compete" && "w-full max-w-md",
+                          )}
+                        >
+                          <ActivityCard
+                            activity={activity}
+                            personalization={activityPersonalization.get(
+                              activity.id,
+                            )}
+                          />
+                        </div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </section>
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
+
+      {/* ── "What next?" floating action button ── */}
+      <WhatNextFAB insights={insights} />
     </OceanBackground>
   );
 }
@@ -319,6 +294,9 @@ export default function PropelPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [wordsEncountered, setWordsEncountered] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [insights, setInsights] = useState<ActivityInsight[] | null>(null);
+  const [personalization, setPersonalization] =
+    useState<PropelPersonalization | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -362,6 +340,17 @@ export default function PropelPage() {
 
       setIsAdmin(!!adminRow);
       setLoading(false);
+
+      // Fetch personalization data non-blocking (graceful degradation)
+      const lang = profile?.target_language ?? "fr";
+      try {
+        const result = await getActivityInsights(user.id, lang);
+        setInsights(result.insights);
+        setPersonalization(result.personalization);
+      } catch (err) {
+        console.error("[PropelPage] Failed to fetch personalization:", err);
+        // Graceful degradation — page works without personalization
+      }
     };
 
     load();
@@ -379,6 +368,8 @@ export default function PropelPage() {
         targetLanguage={targetLanguage}
         isAdmin={isAdmin}
         wordsEncountered={wordsEncountered}
+        insights={insights}
+        personalization={personalization}
       />
     </ProtectedRoute>
   );

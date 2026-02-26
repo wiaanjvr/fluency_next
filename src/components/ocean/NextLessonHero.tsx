@@ -145,9 +145,6 @@ export function NextLessonHero({
       style={{
         minHeight: 220,
         borderRadius: 20,
-        background:
-          "radial-gradient(ellipse at 30% 40%, rgba(13,148,136,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 60%, rgba(6,61,56,0.2) 0%, transparent 50%), linear-gradient(160deg, #062030 0%, #041420 50%, #020F14 100%)",
-        border: "1px solid rgba(13, 148, 136, 0.1)",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -170,14 +167,14 @@ export function NextLessonHero({
                 gap: 6,
                 padding: "4px 12px",
                 borderRadius: 100,
-                border: "1px solid rgba(13, 148, 136, 0.3)",
-                background: "rgba(13, 148, 136, 0.08)",
+                border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+                background: "rgba(255, 255, 255, 0.03)",
                 fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                 fontSize: 11,
                 fontWeight: 500,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase" as const,
-                color: "var(--teal-surface, #0D9488)",
+                color: "var(--text-secondary, #6B9E96)",
               }}
             >
               <span
@@ -185,8 +182,7 @@ export function NextLessonHero({
                   width: 6,
                   height: 6,
                   borderRadius: "50%",
-                  background: "var(--teal-surface, #0D9488)",
-                  boxShadow: "0 0 6px rgba(13, 148, 136, 0.5)",
+                  background: "var(--text-muted, #2E5C54)",
                   display: "inline-block",
                 }}
               />
@@ -213,12 +209,8 @@ export function NextLessonHero({
                     display: "inline-block",
                     background:
                       i < divesRemaining
-                        ? "var(--teal-surface, #0D9488)"
-                        : "rgba(255, 255, 255, 0.08)",
-                    boxShadow:
-                      i < divesRemaining
-                        ? "0 0 4px rgba(13, 148, 136, 0.4)"
-                        : "none",
+                        ? "var(--text-muted, #2E5C54)"
+                        : "var(--text-ghost, #1A3832)",
                   }}
                 />
               ))}
@@ -325,7 +317,7 @@ export function NextLessonHero({
               >
                 <ActivityIcon
                   className="w-3.5 h-3.5"
-                  style={{ color: "var(--teal-surface, #0D9488)" }}
+                  style={{ color: "var(--text-muted, #2E5C54)" }}
                 />
                 <span>{activityInfo?.label || "Flashcards"}</span>
               </div>
@@ -412,7 +404,7 @@ export function NextLessonHero({
                 cy="70"
                 r="54"
                 fill="none"
-                stroke="rgba(13, 148, 136, 0.2)"
+                stroke="rgba(255, 255, 255, 0.06)"
                 strokeWidth="3"
               />
               {/* Progress arc */}
@@ -421,7 +413,7 @@ export function NextLessonHero({
                 cy="70"
                 r="54"
                 fill="none"
-                stroke="var(--teal-surface, #0D9488)"
+                stroke="var(--teal-dim, rgba(13, 148, 136, 0.5))"
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
@@ -469,42 +461,54 @@ export function NextLessonHero({
             </div>
           </div>
 
-          {/* Floating word chips */}
-          <div className="flex flex-wrap gap-2 justify-center">
+          {/* Floating word chips with label */}
+          <div className="flex flex-col items-center gap-2">
+            <span
+              style={{
+                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                fontSize: 8,
+                letterSpacing: "0.15em",
+                color: "var(--text-ghost, #1A3832)",
+                textTransform: "uppercase" as const,
+              }}
+            >
+              TODAY&apos;S WORDS
+            </span>
+            <div className="flex flex-wrap gap-2 justify-center">
             {["lumière", "mer", "vague"].map((word, i) => (
               <span
                 key={word}
                 style={{
                   display: "inline-block",
-                  padding: "4px 14px",
-                  borderRadius: 100,
-                  background: "rgba(13, 148, 136, 0.07)",
-                  border: "1px solid rgba(13, 148, 136, 0.18)",
-                  backdropFilter: "blur(8px)",
+                  padding: "4px 12px",
+                  borderRadius: 20,
+                  background: "rgba(255, 255, 255, 0.025)",
+                  border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
                   fontFamily: "var(--font-display, 'Playfair Display', serif)",
-                  fontSize: 13,
+                  fontSize: 12,
                   fontStyle: "italic",
-                  color: "rgba(13, 148, 136, 0.78)",
+                  color: "var(--text-secondary, #6B9E96)",
                   letterSpacing: "0.03em",
-                  animation: `float-chip ${3 + i * 0.5}s ease-in-out ${i * 0.8}s infinite`,
+                  animation: `chipFloat ${4 + i * 0.5}s ease-in-out ${i * 0.8}s infinite`,
                 }}
               >
                 {word}
               </span>
             ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Keyframes */}
       <style jsx>{`
-        @keyframes float-chip {
+        @keyframes chipFloat {
           0%,
           100% {
-            transform: translateY(0);
+            transform: translateY(0px);
           }
           50% {
-            transform: translateY(-4px);
+            transform: translateY(-5px);
           }
         }
       `}</style>

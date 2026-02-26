@@ -67,16 +67,23 @@ function DepthGauge({ word }: { word: UserWord }) {
     <div className="flex flex-col gap-1.5 w-full">
       {/* Track */}
       <div
-        className="depth-bar-track relative w-full h-[4px] rounded-full overflow-hidden"
-        style={{ background: "rgba(13, 148, 136, 0.08)" }}
+        className="depth-bar-track relative w-full overflow-hidden"
+        style={{
+          height: 3,
+          borderRadius: 2,
+          background: "rgba(255, 255, 255, 0.06)",
+          width: 140,
+        }}
       >
-        {/* Fill — single teal gradient */}
+        {/* Fill — 50% opacity teal, variable width */}
         <div
-          className="depth-bar-fill absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+          className="depth-bar-fill absolute inset-y-0 left-0 transition-all"
           style={{
             width: `${pct}%`,
-            background:
-              "linear-gradient(90deg, rgba(13, 148, 136, 0.3) 0%, var(--teal-surface, #0D9488) 100%)",
+            height: '100%',
+            borderRadius: 2,
+            background: "var(--teal-dim, rgba(13, 148, 136, 0.5))",
+            transition: "width 600ms cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         />
       </div>
@@ -85,10 +92,10 @@ function DepthGauge({ word }: { word: UserWord }) {
         style={{
           fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
           fontSize: 9,
-          fontWeight: 500,
+          fontWeight: 400,
           letterSpacing: "0.1em",
           textTransform: "uppercase" as const,
-          color: "var(--text-ghost, #2D5A52)",
+          color: "var(--text-muted, #2E5C54)",
         }}
       >
         {stage.label}
@@ -108,18 +115,19 @@ function ReviewChip({ nextReview }: { nextReview: string }) {
   if (isDue) {
     return (
       <span
-        className="review-badge review-badge-ready inline-flex items-center gap-1 px-2 py-0.5 rounded-full"
+        className="review-badge review-badge-ready inline-flex items-center gap-1"
         style={{
           fontSize: 10,
-          fontWeight: 600,
+          fontWeight: 400,
           fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-          background: "rgba(13, 148, 136, 0.15)",
-          border: "1px solid rgba(13, 148, 136, 0.3)",
-          color: "var(--teal-glow, #2DD4BF)",
-          letterSpacing: "0.04em",
+          background: "transparent",
+          border: "none",
+          color: "var(--text-secondary, #6B9E96)",
+          letterSpacing: "0.08em",
+          padding: 0,
         }}
       >
-        <Zap className="h-2.5 w-2.5" />
+        <span style={{ color: "var(--teal, #0D9488)", fontSize: 10 }}>↑</span>
         READY
       </span>
     );
@@ -131,8 +139,11 @@ function ReviewChip({ nextReview }: { nextReview: string }) {
         style={{
           fontSize: 10,
           fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-          color: "var(--teal-surface, #0D9488)",
-          letterSpacing: "0.04em",
+          color: "var(--text-muted, #2E5C54)",
+          letterSpacing: "0.08em",
+          background: "transparent",
+          border: "none",
+          padding: 0,
         }}
       >
         {Math.round(diffDays * 24)}h
@@ -145,8 +156,11 @@ function ReviewChip({ nextReview }: { nextReview: string }) {
         style={{
           fontSize: 10,
           fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-          color: "var(--text-ghost, #2D5A52)",
-          letterSpacing: "0.04em",
+          color: "var(--text-ghost, #1A3832)",
+          letterSpacing: "0.08em",
+          background: "transparent",
+          border: "none",
+          padding: 0,
         }}
       >
         {Math.round(diffDays)}d
@@ -276,8 +290,8 @@ export function VocabularyListView({
         textTransform: "uppercase" as const,
         color:
           sortField === field
-            ? "var(--teal-surface, #0D9488)"
-            : "var(--text-ghost, #2D5A52)",
+            ? "var(--text-secondary, #6B9E96)"
+            : "var(--text-ghost, #1A3832)",
         background: "none",
         border: "none",
         cursor: "pointer",
@@ -323,15 +337,13 @@ export function VocabularyListView({
                 onMouseLeave={() => setHoveredId(null)}
                 style={{
                   background: isExpanded
-                    ? "rgba(13, 148, 136, 0.06)"
+                    ? "rgba(255, 255, 255, 0.02)"
                     : isHovered
                       ? "rgba(13, 148, 136, 0.03)"
-                      : idx % 2 === 0
-                        ? "transparent"
-                        : "rgba(255, 255, 255, 0.01)",
+                      : "transparent",
                   borderLeft:
                     isHovered || isExpanded
-                      ? "2px solid var(--teal-surface, #0D9488)"
+                      ? "2px solid var(--teal, #0D9488)"
                       : "2px solid transparent",
                   transition: "background 0.15s ease, border-left 0.15s ease",
                 }}
@@ -388,8 +400,8 @@ export function VocabularyListView({
                   className="px-4 pb-4 pt-2 grid grid-cols-2 sm:grid-cols-4 gap-4"
                   style={{
                     background:
-                      "linear-gradient(180deg, rgba(13, 148, 136, 0.04) 0%, transparent 100%)",
-                    borderBottom: "1px solid rgba(13, 148, 136, 0.1)",
+                      "linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%)",
+                    borderBottom: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
                   }}
                 >
                   {/* Translation */}
@@ -447,13 +459,13 @@ export function VocabularyListView({
                       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
                       style={{
                         fontSize: 10,
-                        fontWeight: 600,
+                        fontWeight: 500,
                         fontFamily:
                           "var(--font-mono, 'JetBrains Mono', monospace)",
                         letterSpacing: "0.06em",
-                        background: "rgba(13, 148, 136, 0.1)",
-                        border: "1px solid rgba(13, 148, 136, 0.2)",
-                        color: "var(--teal-surface, #0D9488)",
+                        background: "rgba(255, 255, 255, 0.03)",
+                        border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+                        color: "var(--text-muted, #2E5C54)",
                       }}
                     >
                       {stage.label}

@@ -3,9 +3,15 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
+import { ActiveLanguageProvider } from "@/contexts/ActiveLanguageContext";
 import { AmbientPlayerProvider } from "@/contexts/AmbientPlayerContext";
 import { KnowledgeProvider } from "@/contexts/KnowledgeContext";
 import { AmbientPlayer } from "@/components/ambient";
+import {
+  ImmerseProvider,
+  ImmersePlayer,
+  ImmerseSelectModal,
+} from "@/components/immerse";
 import { ProfileLocationSync } from "@/components/ProfileLocationSync";
 
 // Font is loaded via globals.css
@@ -40,12 +46,18 @@ export default function RootLayout({
         <LocationProvider>
           <AuthProvider>
             <ProfileLocationSync />
-            <KnowledgeProvider>
-              <AmbientPlayerProvider>
-                {children}
-                <AmbientPlayer />
-              </AmbientPlayerProvider>
-            </KnowledgeProvider>
+            <ActiveLanguageProvider>
+              <KnowledgeProvider>
+                <AmbientPlayerProvider>
+                  <ImmerseProvider>
+                    {children}
+                    <AmbientPlayer />
+                    <ImmersePlayer />
+                    <ImmerseSelectModal />
+                  </ImmerseProvider>
+                </AmbientPlayerProvider>
+              </KnowledgeProvider>
+            </ActiveLanguageProvider>
           </AuthProvider>
         </LocationProvider>
       </body>
