@@ -1,0 +1,1020 @@
+/* ==========================================================================
+   FLUENSEA ONBOARDING LAYOUT — Shared Brand Styles
+   Applies consistent deep-ocean brand styling across all onboarding steps.
+   ========================================================================== */
+
+/* ===== Page Wrapper — establishes stacking context ===== */
+.onboarding-page {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Fixed full-screen background: dark navy with depth variation */
+.onboarding-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 30% 20%,
+    rgba(0, 40, 60, 0.8) 0%,
+    #080f1a 60%
+  );
+}
+
+/* Ensure page content renders above the fixed bg layer */
+.onboarding-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== Glow Wrapper — radial teal aura centered behind the active card ===== */
+.onboarding-glow {
+  position: relative;
+}
+
+.onboarding-glow::before {
+  content: "";
+  position: absolute;
+  inset: -80px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    rgba(0, 212, 184, 0.06) 0%,
+    transparent 70%
+  );
+}
+
+/* ===== Ocean Card — Teal-branded card for all onboarding step containers ===== *
+ * Defined outside @layer so it supersedes the base ocean-card from ocean-theme.css
+ * when used inside .onboarding-page. Apply the class directly to <Card> elements.
+ *
+ * Usage:
+ *   <div class="onboarding-page">         ← page wrapper (applies fixed bg + glow)
+ *     <div class="onboarding-glow">       ← radial teal aura (wraps active card)
+ *       <Card class="ocean-card …">       ← teal-branded card
+ */
+
+/* Scoped override — teal styling active within the onboarding page wrapper */
+.onboarding-page .ocean-card {
+  border-radius: 16px;
+  background: rgba(8, 20, 40, 0.75);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(0, 212, 184, 0.15);
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 184, 0.1),
+    0 0 40px rgba(0, 212, 184, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.onboarding-page .ocean-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 184, 0.2),
+    0 0 60px rgba(0, 212, 184, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Standalone variant — same teal branding for use outside the page wrapper */
+.ocean-card-teal {
+  border-radius: 16px;
+  background: rgba(8, 20, 40, 0.75);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(0, 212, 184, 0.15);
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 184, 0.1),
+    0 0 40px rgba(0, 212, 184, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.ocean-card-teal:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 184, 0.2),
+    0 0 60px rgba(0, 212, 184, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+@keyframes onboardingLevelReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.onboarding-level-reveal {
+  animation: onboardingLevelReveal 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  text-shadow: 0 0 40px rgba(0, 212, 184, 0.6);
+}
+
+/* ==========================================================================
+   ASSESSMENT RESULTS — Ceremonial staggered entrance animations
+   ========================================================================== */
+
+/* Trophy: scale from 0.5 → 1.0, 400ms, ease-out-back, immediate */
+@keyframes resultsTrophyIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Heading / labels: fade in + rise from below */
+@keyframes resultsElementIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Level code: scale from 0.4 → 1.0 + fade, ease-out-back */
+@keyframes resultsLevelReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Progress bar fill — uses --target-width CSS custom property */
+@keyframes resultsBarFill {
+  from {
+    width: 0;
+  }
+  to {
+    width: var(--target-width, 0%);
+  }
+}
+
+/* ── Applied classes ────────────────────────────────────────────────────── */
+
+.results-anim-trophy {
+  animation: resultsTrophyIn 400ms cubic-bezier(0.34, 1.56, 0.64, 1) 0ms both;
+}
+
+.results-anim-heading {
+  animation: resultsElementIn 300ms ease-out 300ms both;
+}
+
+.results-anim-level {
+  animation: resultsLevelReveal 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 600ms
+    both;
+  text-shadow:
+    0 0 60px rgba(0, 212, 184, 0.7),
+    0 0 20px rgba(0, 212, 184, 0.4);
+}
+
+.results-anim-description {
+  animation: resultsElementIn 300ms ease-out 900ms both;
+}
+
+.results-anim-scores {
+  animation: resultsElementIn 300ms ease-out 1100ms both;
+}
+
+.results-listening-bar {
+  animation: resultsBarFill 800ms ease-out 1100ms both;
+}
+
+.results-reading-bar {
+  animation: resultsBarFill 800ms ease-out 1250ms both;
+}
+
+/* ==========================================================================
+   PROGRESS DEPTH METER
+   Ocean-themed step indicator for onboarding / placement-test flow.
+   ========================================================================== */
+
+@keyframes pdm-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px rgba(0, 212, 184, 0.25),
+      0 0 10px 3px rgba(0, 212, 184, 0.55);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px rgba(0, 212, 184, 0.1),
+      0 0 18px 6px rgba(0, 212, 184, 0.3);
+  }
+}
+
+/* Outer layout ─────────────────────────────────────────────────────────── */
+.progress-depth-meter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  padding-bottom: 24px; /* room for hover labels */
+}
+
+/* Track layer — sits in the vertical centre of the node row ──────────── */
+.pdm-track {
+  position: absolute;
+  top: 50%;
+  /* subtract label space added by padding-bottom */
+  transform: translateY(calc(-50% - 12px));
+  left: 0;
+  right: 0;
+  height: 2px;
+  /* indent by half a node width so the line starts/ends at node centres */
+  margin-inline: calc(100% / (var(--pdm-total, 8) * 2));
+}
+
+.pdm-track-base {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pdm-track-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #00d4b8, #00a896);
+  transition: width 600ms ease-in-out;
+}
+
+/* Node row ──────────────────────────────────────────────────────────────── */
+.pdm-nodes {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pdm-node-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  /* prevent labels from disrupting row height */
+  padding-bottom: 0;
+}
+
+/* Base node ─────────────────────────────────────────────────────────────── */
+.pdm-node {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition:
+    background 400ms ease,
+    box-shadow 400ms ease,
+    width 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    height 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Completed node — teal fill + teal glow ─────────────────────────────── */
+.pdm-node--completed {
+  background: #00d4b8;
+  box-shadow: 0 0 8px rgba(0, 212, 184, 0.8);
+}
+
+/* Current node — slightly larger + pulsing glow ─────────────────────── */
+.pdm-node--current {
+  width: 10px;
+  height: 10px;
+  background: #00d4b8;
+  animation: pdm-pulse 1.8s ease-in-out infinite;
+}
+
+/* Upcoming node — dark with faint border ────────────────────────────── */
+.pdm-node--upcoming {
+  background: rgb(8, 20, 40);
+  border: 1.5px solid rgba(0, 212, 184, 0.25);
+}
+
+/* Hover labels ──────────────────────────────────────────────────────────── */
+.pdm-label {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: rgba(0, 212, 184, 0.7);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.pdm-node-wrapper:hover .pdm-label {
+  opacity: 1;
+}
+
+/* Mobile — smaller nodes, labels hidden ─────────────────────────────── */
+@media (max-width: 639px) {
+  .pdm-node {
+    width: 6px;
+    height: 6px;
+  }
+  .pdm-node--current {
+    width: 8px;
+    height: 8px;
+  }
+  .pdm-label {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   LANGUAGE SELECTION CARDS — Premium immersive cards for onboarding step 1
+   ========================================================================== */
+
+/* Base card */
+.lang-card {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 212, 184, 0.15);
+  background: rgba(8, 20, 40, 0.5);
+  cursor: pointer;
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    background 200ms ease;
+}
+
+.lang-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 212, 184, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 184, 0.15),
+    0 4px 24px rgba(0, 212, 184, 0.1);
+}
+
+/* Selected state — teal left accent + tinted bg */
+.lang-card--selected {
+  border-color: rgba(0, 212, 184, 0.3);
+  border-left: 3px solid #00d4b8;
+  background: rgba(0, 212, 184, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 184, 0.2),
+    0 4px 24px rgba(0, 212, 184, 0.07);
+}
+
+/* Culturally-tinted ghost gradient — absolutely positioned, pointer-events none */
+.lang-card-gradient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* French: faint bleu-blanc-rouge wash */
+.lang-card-gradient--fr {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 35, 149, 0.04) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(237, 41, 57, 0.04) 100%
+  );
+}
+
+/* German: faint Schwarz-Rot-Gold wash */
+.lang-card-gradient--de {
+  background: linear-gradient(
+    135deg,
+    rgba(24, 24, 24, 0.05) 0%,
+    rgba(200, 16, 16, 0.04) 50%,
+    rgba(255, 206, 0, 0.04) 100%
+  );
+}
+
+/* Italian: faint verde-bianco-rosso wash */
+.lang-card-gradient--it {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 146, 70, 0.04) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(206, 43, 55, 0.04) 100%
+  );
+}
+
+/* Language code badge (FR / DE / IT) */
+.lang-code-badge {
+  font-family:
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(0, 90, 70, 0.3);
+  color: rgb(94, 234, 212); /* teal-300 */
+  border: 1px solid rgba(0, 212, 184, 0.25);
+  vertical-align: middle;
+}
+
+/* Checkmark icon — scale-in on selection */
+.lang-check-icon {
+  opacity: 0;
+  transform: scale(0.5);
+  flex-shrink: 0;
+  transition:
+    opacity 200ms ease,
+    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lang-check-icon--visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Continue button — slides up into view once a language is chosen */
+.lang-continue-wrapper {
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+  transition:
+    opacity 300ms ease,
+    transform 300ms ease;
+}
+
+.lang-continue-wrapper--visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Button text fade — keyed on selected language for cross-fade */
+@keyframes lang-btn-text-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lang-btn-text {
+  display: inline;
+  animation: lang-btn-text-in 150ms ease both;
+}
+
+/* ==========================================================================
+   LEARNING ROADMAP — Animated path, node effects, pills, button shimmer
+   ========================================================================== */
+
+/* ── Animated vertical path line ─────────────────────────────────────── */
+
+.roadmap-path-line {
+  position: relative;
+  width: 3px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #00d4b8 0%, rgba(0, 212, 184, 0.3) 100%);
+}
+
+/* Glowing droplet that travels down the line */
+@keyframes dropletFlow {
+  0% {
+    top: -14px;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    top: calc(100% + 4px);
+    opacity: 0;
+  }
+}
+
+.roadmap-path-line::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(0, 212, 184, 1);
+  box-shadow:
+    0 0 8px rgba(0, 212, 184, 0.9),
+    0 0 16px rgba(0, 212, 184, 0.5);
+  animation: dropletFlow 3s linear infinite;
+}
+
+/* ── START node pulsing glow ring ─────────────────────────────────────── */
+
+@keyframes nodeStartPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px rgba(0, 212, 184, 0.2),
+      0 0 24px rgba(0, 212, 184, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 10px rgba(0, 212, 184, 0),
+      0 0 36px rgba(0, 212, 184, 0.1);
+  }
+}
+
+.roadmap-node-start {
+  animation: nodeStartPulse 2s ease-in-out infinite;
+}
+
+/* ── Intermediate node tooltip ────────────────────────────────────────── */
+
+.roadmap-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: rgb(94, 234, 212); /* teal-300 */
+  background: rgba(8, 20, 40, 0.9);
+  border: 1px solid rgba(0, 212, 184, 0.3);
+  border-radius: 8px;
+  padding: 4px 10px;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+  transform: translateX(-50%) translateY(4px);
+  z-index: 20;
+}
+
+.group:hover .roadmap-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Intermediate node scale on hover ─────────────────────────────────── */
+
+.roadmap-node-intermediate {
+  transition:
+    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 200ms ease;
+}
+
+.roadmap-node-intermediate:hover {
+  transform: scale(1.05);
+}
+
+/* ── B2 GOAL node double glow ring ────────────────────────────────────── */
+
+.roadmap-node-goal {
+  box-shadow:
+    0 0 0 4px rgba(0, 212, 184, 0.25),
+    0 0 0 10px rgba(0, 212, 184, 0.1),
+    0 0 40px rgba(0, 212, 184, 0.35);
+  transition:
+    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 200ms ease;
+}
+
+.roadmap-node-goal:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 0 5px rgba(0, 212, 184, 0.35),
+    0 0 0 12px rgba(0, 212, 184, 0.15),
+    0 0 60px rgba(0, 212, 184, 0.5);
+}
+
+/* ── Graduation cap subtle rotation ──────────────────────────────────── */
+
+@keyframes gradCapSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.roadmap-grad-cap-rotate {
+  animation: gradCapSpin 20s linear infinite;
+  display: inline-block;
+}
+
+/* ── Feature tag pills ────────────────────────────────────────────────── */
+
+.feature-tag-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  background: rgba(19, 78, 74, 0.3); /* teal-900/30 */
+  color: rgb(94, 234, 212); /* teal-300 */
+  border: 1px solid rgba(15, 118, 110, 0.3); /* teal-700/30 */
+  overflow: hidden;
+  cursor: default;
+}
+
+/* Shimmer sweep on hover */
+@keyframes pillShimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.feature-tag-pill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 33%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 66%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.feature-tag-pill:hover::after {
+  opacity: 1;
+  animation: pillShimmer 600ms linear forwards;
+}
+
+/* ── Smart Progress ocean info box ────────────────────────────────────── */
+
+.roadmap-info-box {
+  background: radial-gradient(
+    ellipse at 20% 50%,
+    rgba(0, 212, 184, 0.07) 0%,
+    rgba(8, 20, 40, 0.5) 70%
+  );
+  border: 1px solid rgba(0, 212, 184, 0.25);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 184, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ── Start Journey button shimmer sweep ─────────────────────────────── */
+
+@keyframes btnShimmer {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(300%) skewX(-20deg);
+  }
+}
+
+.btn-journey {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 200ms ease;
+}
+
+.btn-journey::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.28),
+    transparent
+  );
+  transform: translateX(-150%) skewX(-20deg);
+  animation: btnShimmer 3s ease-in-out 1.5s infinite;
+  pointer-events: none;
+}
+
+.btn-journey:hover {
+  transform: scale(1.02);
+  box-shadow:
+    0 0 24px rgba(0, 212, 184, 0.45),
+    0 0 48px rgba(0, 212, 184, 0.2);
+}
+
+/* ==========================================================================
+   PLACEMENT ASSESSMENT INTRO — Entrance animation, sonar rings, info card
+   ========================================================================== */
+
+/* Card entrance: fade in + rise from 20px below */
+@keyframes placementCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.placement-intro-enter {
+  animation: placementCardIn 400ms ease forwards;
+}
+
+/* Italic serif treatment for the heading word "depth" */
+.placement-depth-word {
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+/* Ocean-tinted info box replacing the amber warning */
+.placement-info-card {
+  background: rgba(0, 212, 184, 0.06);
+  border: 1px solid rgba(0, 212, 184, 0.2);
+}
+
+/* Sonar / radar expanding rings */
+@keyframes sonarExpand {
+  from {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(2.75);
+    opacity: 0;
+  }
+}
+
+.sonar-ring {
+  transform-box: fill-box;
+  transform-origin: center center;
+  animation: sonarExpand 2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+
+.sonar-ring-2 {
+  animation-delay: 1s;
+}
+
+/* ==========================================================================
+   AUDIO PLAY BUTTON — Ripple rings (playing state) + idle pulse glow
+   ========================================================================== */
+
+/* Ripple ring base */
+.audio-ripple {
+  position: absolute;
+  width: 64px; /* matches h-16 w-16 button */
+  height: 64px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 212, 184, 0.4);
+  pointer-events: none;
+  animation: audioRipple 1.5s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+
+.audio-ripple-2 {
+  animation-delay: 0.5s;
+}
+
+.audio-ripple-3 {
+  animation-delay: 1s;
+}
+
+@keyframes audioRipple {
+  from {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* Idle pulse: glow on play button when audio hasn't been played yet */
+@keyframes playBtnPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 8px rgba(0, 212, 184, 0.1),
+      0 0 30px rgba(0, 212, 184, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 0 14px rgba(0, 212, 184, 0.18),
+      0 0 50px rgba(0, 212, 184, 0.5);
+  }
+}
+
+.play-btn-pulse {
+  animation: playBtnPulse 2s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   INTEREST TOPIC CARDS — Redesigned selection grid for onboarding step 5
+   ========================================================================== */
+
+/* Spring scale-in keyframe for selected state */
+@keyframes interestCardSelect {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.06);
+  }
+  70% {
+    transform: scale(0.99);
+  }
+  100% {
+    transform: scale(1.02);
+  }
+}
+
+/* Base card */
+.interest-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.875rem;
+  color: rgb(209, 213, 219); /* text-gray-300 */
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    transform 150ms ease,
+    opacity 200ms ease;
+}
+
+.interest-card:hover {
+  border-color: rgba(0, 212, 184, 0.3);
+  background: rgba(0, 212, 184, 0.05);
+  transform: translateY(-1px);
+}
+
+/* Selected state — teal border + tinted bg + spring scale */
+.interest-card--selected {
+  border-color: rgba(45, 212, 191, 0.5); /* teal-400/50 */
+  background: rgba(20, 184, 166, 0.12); /* teal-500/12 */
+  animation: interestCardSelect 350ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.interest-card--selected:hover {
+  border-color: rgba(45, 212, 191, 0.6);
+  background: rgba(20, 184, 166, 0.15);
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* Dimmed when limit reached and card is not selected */
+.interest-card--dimmed {
+  opacity: 0.45;
+  pointer-events: auto; /* still allow deselect via other cards — keep clickable */
+}
+
+/* Checkmark badge — small teal pill in top-right corner */
+.interest-card-check {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(0, 212, 184, 0.9);
+  color: #080f1a;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   useOnboardingAnimation HOOK — staggered entrance classes
+   Returned by the hook as `animationClass`; apply directly to elements.
+   ========================================================================== */
+
+.ob-anim-out {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 300ms ease-out,
+    transform 300ms ease-out;
+}
+
+.ob-anim-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 300ms ease-out,
+    transform 300ms ease-out;
+}
+
+/* ==========================================================================
+   TEAL CTA BUTTON INTERACTIONS
+   Apply .btn-teal-cta alongside the standard Button component classes
+   inside .onboarding-page to get the enhanced lift + glow + press behaviour.
+   ========================================================================== */
+
+.btn-teal-cta {
+  /* Base transition overrides the Tailwind duration-300 default */
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease !important;
+}
+
+.btn-teal-cta:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+  box-shadow:
+    0 0 24px rgba(0, 212, 184, 0.48),
+    0 0 48px rgba(0, 212, 184, 0.18),
+    0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Active / click press — 80ms snap */
+.btn-teal-cta:active:not(:disabled) {
+  transform: translateY(0px) scale(0.98) !important;
+  transition:
+    transform 80ms ease,
+    box-shadow 80ms ease !important;
+  box-shadow:
+    0 0 16px rgba(0, 212, 184, 0.3),
+    0 1px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ==========================================================================
+   PROGRESS DEPTH METER — completed-pip sweep animation
+   When a node is marked .pdm-node--sweep, a white flash sweeps left→right.
+   The class is added for ~500ms then removed — see ProgressDepthMeter.tsx.
+   ========================================================================== */
+
+/* Ensure position context is available for the ::after pseudo-element */
+.pdm-node {
+  position: relative;
+}
+
+@keyframes pdmNodeCompleteSweep {
+  0% {
+    clip-path: inset(0 100% 0 0 round 50%);
+    opacity: 0.9;
+  }
+  55% {
+    clip-path: inset(0 0% 0 0 round 50%);
+    opacity: 0.6;
+  }
+  100% {
+    clip-path: inset(0 0% 0 0 round 50%);
+    opacity: 0;
+  }
+}
+
+.pdm-node--sweep::after {
+  content: "";
+  position: absolute;
+  /* slightly larger than the node to cover the edges cleanly */
+  inset: -2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  animation: pdmNodeCompleteSweep 450ms ease-out forwards;
+}

@@ -57,8 +57,8 @@ export function ReadingComprehensionTest({
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader className="space-y-4">
+    <Card className="ocean-card w-full max-w-2xl mx-auto">
+      <CardHeader className="space-y-4 text-sm text-gray-300">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-primary" />
@@ -66,21 +66,23 @@ export function ReadingComprehensionTest({
               Reading {itemIndex + 1} of {totalItems}
             </CardTitle>
           </div>
-          <span className="text-sm text-muted-foreground px-2 py-1 bg-muted rounded">
+          <span className="text-xs px-2.5 py-1 rounded-full bg-teal-900/40 text-teal-300 border border-teal-700/30">
             {getDifficultyLabel(item.difficulty)}
           </span>
         </div>
 
         {/* Passage */}
-        <div className="bg-muted/50 rounded-xl p-6">
-          <p className="text-lg leading-relaxed">{item.passage}</p>
+        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-6">
+          <p className="text-sm leading-relaxed text-gray-300">
+            {item.passage}
+          </p>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 text-sm text-gray-300">
         {/* Question */}
         <div className="space-y-2">
-          <h3 className="font-medium text-lg">{item.question}</h3>
+          <h3 className="text-sm font-medium text-gray-300">{item.question}</h3>
         </div>
 
         {/* Options */}
@@ -90,14 +92,22 @@ export function ReadingComprehensionTest({
               key={index}
               onClick={() => handleSelectOption(index)}
               className={cn(
-                "w-full text-left p-4 rounded-lg border-2 transition-all",
-                "hover:border-primary/50",
+                "w-full text-left px-4 py-3 rounded-lg border transition-all duration-150",
+                "border-white/10 bg-white/[0.03] text-gray-200",
+                "hover:border-teal-500/40 hover:bg-teal-500/[0.08] hover:translate-x-1",
                 selectedIndex === index
-                  ? "border-primary bg-primary/5"
-                  : "border-muted",
+                  ? "border-teal-400/60 bg-teal-500/[0.15] translate-x-0"
+                  : "",
               )}
             >
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted text-sm font-medium mr-3">
+              <span
+                className={cn(
+                  "inline-flex items-center justify-center w-6 h-6 rounded text-xs font-semibold mr-3 flex-shrink-0 transition-colors duration-150",
+                  selectedIndex === index
+                    ? "bg-teal-500 text-white"
+                    : "bg-white/10 text-gray-300",
+                )}
+              >
                 {String.fromCharCode(65 + index)}
               </span>
               {option}
@@ -109,7 +119,12 @@ export function ReadingComprehensionTest({
         <Button
           onClick={handleSubmit}
           disabled={selectedIndex === null}
-          className="w-full"
+          className={cn(
+            "w-full transition-all duration-200",
+            selectedIndex === null
+              ? "opacity-40 cursor-not-allowed pointer-events-none"
+              : "shadow-[0_0_20px_rgba(0,212,184,0.25)]",
+          )}
           size="lg"
         >
           Submit Answer

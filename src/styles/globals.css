@@ -4,13 +4,16 @@
    ========================================================================== */
 
 /* Google Fonts — editorial serif for display headlines */
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap");
 
 /* Import Ocean Theme (colors, animations, components) */
 @import url("./ocean-theme.css");
 
 /* Import Landing Page styles */
 @import url("./landing.css");
+
+/* Import Onboarding Layout (page bg, glow, teal card brand) */
+@import url("./onboarding-layout.css");
 
 /* Blended swim background for main screen */
 .with-swim-bg::before {
@@ -46,6 +49,7 @@ body {
 
 @layer base {
   :root {
+    --font-serif: "Playfair Display", Georgia, serif;
     /* Fluensea Ocean Theme - Immersive learning experience */
     --background: 205 60% 8%; /* #0B1C2C - Deep midnight ocean base */
     --foreground: 40 35% 95%; /* #f5e6d3 - Warm sand for primary text */
@@ -737,6 +741,25 @@ body {
 
   .animate-ripple {
     animation: ripple 2s ease-out infinite;
+  }
+
+  /**
+   * btn-ripple — one-shot cover ripple used by <Button>.
+   * The span is pre-sized to span the full button diagonal, so
+   * scale(0→1) always covers the entire surface from the click origin.
+   */
+  @keyframes btn-ripple {
+    0% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    70% {
+      opacity: 0.15;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
   }
 
   /* Depth fade - for diving in effect */

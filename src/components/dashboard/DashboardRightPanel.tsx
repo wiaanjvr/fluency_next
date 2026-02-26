@@ -90,11 +90,13 @@ export function DashboardRightPanel({
     >
       {/* ── Current Session Card ── */}
       <div
-        className="glass-card flex flex-col gap-4 p-6"
+        className="flex flex-col gap-4"
         style={{
-          borderRadius: 16,
-          background: "var(--bg-surface, #031820)",
-          border: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
+          borderRadius: 12,
+          padding: 16,
+          background: "#060f0f",
+          border: "1px solid rgba(0, 229, 204, 0.12)",
+          boxShadow: "0 0 20px rgba(0,0,0,0.4)",
         }}
       >
         <h3
@@ -102,10 +104,12 @@ export function DashboardRightPanel({
             fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
             fontSize: 9,
             fontWeight: 500,
-            letterSpacing: "0.15em",
+            letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "var(--text-ghost, #1A3832)",
+            color: "#4a9e96",
+            fontStyle: "normal",
             margin: 0,
+            marginBottom: 8,
           }}
         >
           Today&apos;s Session
@@ -208,11 +212,13 @@ export function DashboardRightPanel({
       {/* ── Word Spotlight Card ── */}
       {spotlightWord && (
         <div
-          className="spotlight-card glass-card flex flex-col gap-4 p-6"
+          className="spotlight-card flex flex-col gap-4"
           style={{
-            borderRadius: 16,
-            background: "var(--bg-surface, #031820)",
-            border: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
+            borderRadius: 12,
+            padding: 16,
+            background: "#060f0f",
+            border: "1px solid rgba(0, 229, 204, 0.12)",
+            boxShadow: "0 0 20px rgba(0,0,0,0.4)",
             position: "relative",
             overflow: "hidden",
           }}
@@ -222,10 +228,12 @@ export function DashboardRightPanel({
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               fontSize: 9,
               fontWeight: 500,
-              letterSpacing: "0.15em",
+              letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "var(--text-ghost, #1A3832)",
+              color: "#4a9e96",
+              fontStyle: "normal",
               margin: 0,
+              marginBottom: 8,
             }}
           >
             Word Spotlight
@@ -266,6 +274,7 @@ export function DashboardRightPanel({
             style={{
               fontFamily: "var(--font-inter, 'Inter', sans-serif)",
               fontSize: 14,
+              fontStyle: "normal",
               color: "var(--text-secondary, #7BA8A0)",
             }}
           >
@@ -282,7 +291,7 @@ export function DashboardRightPanel({
                 borderLeft: "2px solid rgba(212, 160, 86, 0.2)",
                 fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                 fontSize: 12,
-                fontStyle: "italic",
+                fontStyle: "normal",
                 color: "var(--text-warm, #c8b89a)",
                 lineHeight: 1.6,
               }}
@@ -332,20 +341,24 @@ export function DashboardRightPanel({
 
       {/* ── This Week — with sparkline ── */}
       <div
-        className="glass-card flex flex-col gap-3 p-5 mt-auto"
+        className="flex flex-col gap-3 mt-auto"
         style={{
-          borderRadius: 16,
-          background: "var(--bg-surface, #031820)",
-          border: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
+          borderRadius: 12,
+          padding: 16,
+          background: "#060f0f",
+          border: "1px solid rgba(0, 229, 204, 0.12)",
+          boxShadow: "0 0 20px rgba(0,0,0,0.4)",
         }}
       >
         <span
           style={{
             fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
             fontSize: 9,
-            letterSpacing: "0.12em",
+            letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "var(--text-ghost, #2D5A52)",
+            color: "#4a9e96",
+            fontStyle: "normal",
+            marginBottom: 8,
           }}
         >
           This week

@@ -26,20 +26,20 @@ const TIER_META: Record<
   }
 > = {
   snorkeler: {
-    depthName: "The Shallows",
+    depthName: "Snorkeler",
     depthTag: "0 – 10m",
     depthIcon:
       "M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 1.3 0 1.9-.5 2.5-1M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.4 2 5 2c1.3 0 1.9-.5 2.5-1M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.4 2 5 2c1.3 0 1.9-.5 2.5-1",
     zoneBg: "linear-gradient(180deg, #0A3040 0%, #072838 100%)",
   },
   diver: {
-    depthName: "The Reef",
+    depthName: "Diver",
     depthTag: "10 – 100m",
     depthIcon: "M12 2L12 22M12 22L6 16M12 22L18 16M4 8L20 8",
     zoneBg: "linear-gradient(180deg, #052030 0%, #041828 100%)",
   },
   submariner: {
-    depthName: "The Abyss",
+    depthName: "Submariner",
     depthTag: "100m+",
     depthIcon:
       "M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8",

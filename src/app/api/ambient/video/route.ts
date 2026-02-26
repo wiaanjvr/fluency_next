@@ -22,6 +22,7 @@ export interface AmbientVideoRow {
   thumbnail_url: string | null;
   duration_hint: string | null;
   is_live: boolean;
+  language_code: string;
 }
 
 export async function GET(request: Request) {
@@ -53,15 +54,15 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const categoryFilter = url.searchParams.get("category") ?? null;
     const limit = Math.min(
-      parseInt(url.searchParams.get("limit") ?? "40", 10),
-      100,
+      parseInt(url.searchParams.get("limit") ?? "500", 10),
+      1000,
     );
 
     // Query
     let query = supabase
       .from("ambient_videos")
       .select(
-        "id, title, description, embed_url, source, category, thumbnail_url, duration_hint, is_live",
+        "id, title, description, embed_url, source, category, thumbnail_url, duration_hint, is_live, language_code",
       )
       .eq("is_active", true)
       .ilike("language_code", `${langPrefix}%`)

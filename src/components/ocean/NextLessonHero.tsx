@@ -152,7 +152,7 @@ export function NextLessonHero({
       )}
       style={{
         minHeight: 220,
-        borderRadius: 20,
+        borderRadius: 16,
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -289,10 +289,9 @@ export function NextLessonHero({
                 {fallbackMessage.headingEmphasis && (
                   <em
                     style={{
-                      fontFamily:
-                        "var(--font-editorial, 'Cormorant Garamond', serif)",
+                      fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                       fontWeight: 500,
-                      fontStyle: "italic",
+                      fontStyle: "normal",
                       color: "var(--text-primary, #F0FDFA)",
                     }}
                   >
@@ -570,7 +569,7 @@ export function NextLessonHero({
                     fontFamily:
                       "var(--font-display, 'Playfair Display', serif)",
                     fontSize: 13,
-                    fontStyle: "italic",
+                    fontStyle: "normal",
                     color: "var(--text-secondary, #6B9E96)",
                     letterSpacing: "0.03em",
                     animation: `chipFloat ${4 + i * 0.5}s ease-in-out ${i * 0.8}s infinite`,

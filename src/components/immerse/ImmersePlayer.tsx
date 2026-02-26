@@ -32,7 +32,6 @@ import type {
   ImmerseDifficulty,
 } from "@/lib/immerse/immerseRegistry";
 import {
-  IMMERSE_STREAMS,
   filterByType,
   filterByDifficulty,
 } from "@/lib/immerse/immerseRegistry";
@@ -224,15 +223,14 @@ function VolumeSlider({
 
 function RelatedStreams({
   current,
+  all,
   onSelect,
 }: {
   current: ImmerseStream;
+  all: ImmerseStream[];
   onSelect: (s: ImmerseStream) => void;
 }) {
-  const related = IMMERSE_STREAMS.filter((s) => s.id !== current.id).slice(
-    0,
-    4,
-  );
+  const related = all.filter((s) => s.id !== current.id).slice(0, 4);
   return (
     <div className="space-y-2">
       <h4
@@ -294,6 +292,7 @@ export function ImmersePlayer() {
     audioRef,
     ytPlayerRef,
     setPlayerReady,
+    streams,
   } = useImmerse();
 
   const ytContainerRef = useRef<HTMLDivElement>(null);
@@ -407,185 +406,174 @@ export function ImmersePlayer() {
 
   return (
     <>
-      {/* ── Persistent YouTube container — always in DOM ──────────────────── */}
-      <div
-        ref={ytContainerRef}
-        className={cn(
-          "fixed transition-all duration-300 z-[51]",
-          isOpen && !isMinimized && currentStream.type === "youtube"
-            ? "w-full max-w-2xl aspect-video rounded-xl overflow-hidden left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-            : "w-0 h-0 overflow-hidden pointer-events-none opacity-0",
-        )}
-        style={{
-          // Keep in DOM but hidden when minimized
-          position: "fixed",
-        }}
-      />
-
       <AnimatePresence>
         {isOpen && (
           <>
             {/* ── Expanded overlay ─────────────────────────────────────────── */}
-            {!isMinimized && (
-              <motion.div
-                key="immerse-overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="fixed inset-0 z-[49] bg-black/60 backdrop-blur-sm"
-                onClick={minimize}
-              />
-            )}
-
-            {/* ── Expanded panel ───────────────────────────────────────────── */}
             <AnimatePresence>
               {!isMinimized && (
                 <motion.div
-                  key="immerse-expanded"
-                  initial={{ opacity: 0, scale: 0.95, y: 40 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 40 }}
-                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                  className="fixed inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 top-[10%] sm:top-[8%] z-[52] w-auto sm:w-full sm:max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #041E2B 0%, #020F14 100%)",
-                    border: "1px solid rgba(13, 148, 136, 0.15)",
-                    boxShadow:
-                      "0 0 60px rgba(13, 148, 136, 0.08), 0 25px 50px rgba(0,0,0,0.5)",
-                  }}
-                >
-                  {/* Header */}
-                  <div className="flex items-center justify-between p-5 pb-0">
-                    <div className="flex items-center gap-3">
-                      <TypeBadge type={currentStream.type} />
-                      <DifficultyBadge level={currentStream.difficulty} />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={minimize}
-                        className="p-2 rounded-lg transition-colors hover:bg-white/5"
-                        aria-label="Minimize"
-                      >
-                        <Minimize2
-                          className="w-4 h-4"
-                          style={{ color: "var(--text-secondary, #7BA8A0)" }}
-                        />
-                      </button>
-                      <button
-                        onClick={close}
-                        className="p-2 rounded-lg transition-colors hover:bg-white/5"
-                        aria-label="Close player"
-                      >
-                        <X
-                          className="w-4 h-4"
-                          style={{ color: "var(--text-muted, #2E5C54)" }}
-                        />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Player area */}
-                  <div className="p-5 space-y-5">
-                    {/* Audio visualizer for non-YouTube */}
-                    {currentStream.type !== "youtube" && (
-                      <div
-                        className="flex flex-col items-center justify-center gap-4 py-8 rounded-xl"
-                        style={{ background: "rgba(255,255,255,0.02)" }}
-                      >
-                        <div
-                          className="w-24 h-24 rounded-xl bg-cover bg-center"
-                          style={{
-                            backgroundImage: `url(${currentStream.thumbnailUrl})`,
-                            backgroundColor: "rgba(255,255,255,0.05)",
-                          }}
-                        />
-                        <AudioVisualizer isPlaying={isPlaying} />
-                      </div>
-                    )}
-
-                    {/* YouTube space — the actual player is in the persistent container above */}
-                    {currentStream.type === "youtube" && (
-                      <div className="aspect-video rounded-xl bg-black/30" />
-                    )}
-
-                    {/* Stream info */}
-                    <div className="space-y-2">
-                      <h2
-                        className="text-lg font-semibold"
-                        style={{
-                          color: "var(--text-primary, #F0FDFA)",
-                          fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                        }}
-                      >
-                        {currentStream.title}
-                      </h2>
-                      <p
-                        className="text-sm leading-relaxed"
-                        style={{ color: "var(--text-secondary, #7BA8A0)" }}
-                      >
-                        {currentStream.description}
-                      </p>
-                      <div className="flex items-center gap-2 pt-1">
-                        <span
-                          className="text-xs"
-                          style={{
-                            color: "var(--text-muted, #2E5C54)",
-                            fontFamily:
-                              "var(--font-mono, 'JetBrains Mono', monospace)",
-                          }}
-                        >
-                          {currentStream.language_code.toUpperCase()}
-                        </span>
-                        {currentStream.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-[10px] px-1.5 py-0.5 rounded-full"
-                            style={{
-                              background: "rgba(255,255,255,0.04)",
-                              color: "var(--text-muted, #2E5C54)",
-                            }}
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Controls */}
-                    <div className="flex items-center justify-between">
-                      <VolumeSlider volume={volume} onChange={setVolume} />
-                      <button
-                        onClick={togglePlay}
-                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105"
-                        style={{
-                          background: "var(--teal, #0D9488)",
-                          boxShadow: "0 0 20px rgba(13, 148, 136, 0.3)",
-                        }}
-                        aria-label={isPlaying ? "Pause" : "Play"}
-                      >
-                        {isPlaying ? (
-                          <Pause className="w-5 h-5 text-white" />
-                        ) : (
-                          <Play className="w-5 h-5 text-white ml-0.5" />
-                        )}
-                      </button>
-                      <div style={{ width: 120 }} />{" "}
-                      {/* Spacer for centering */}
-                    </div>
-
-                    {/* Related streams */}
-                    <div className="pt-3 border-t border-white/5">
-                      <RelatedStreams
-                        current={currentStream}
-                        onSelect={playStream}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
+                  key="immerse-overlay"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 z-[49] bg-black/60 backdrop-blur-sm"
+                  onClick={minimize}
+                />
               )}
             </AnimatePresence>
+
+            {/* ── Expanded panel — always in DOM when open so the YouTube player persists ── */}
+            <motion.div
+              key="immerse-expanded"
+              initial={{ opacity: 0, scale: 0.95, y: 40 }}
+              animate={
+                isMinimized
+                  ? { opacity: 0, scale: 0.95, y: 40 }
+                  : { opacity: 1, scale: 1, y: 0 }
+              }
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 top-[10%] sm:top-[8%] z-[52] w-auto sm:w-full sm:max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl"
+              style={{
+                background: "linear-gradient(180deg, #041E2B 0%, #020F14 100%)",
+                border: "1px solid rgba(13, 148, 136, 0.15)",
+                boxShadow:
+                  "0 0 60px rgba(13, 148, 136, 0.08), 0 25px 50px rgba(0,0,0,0.5)",
+                pointerEvents: isMinimized ? "none" : "auto",
+              }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 pb-0">
+                <div className="flex items-center gap-3">
+                  <TypeBadge type={currentStream.type} />
+                  <DifficultyBadge level={currentStream.difficulty} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={minimize}
+                    className="p-2 rounded-lg transition-colors hover:bg-white/5"
+                    aria-label="Minimize"
+                  >
+                    <Minimize2
+                      className="w-4 h-4"
+                      style={{ color: "var(--text-secondary, #7BA8A0)" }}
+                    />
+                  </button>
+                  <button
+                    onClick={close}
+                    className="p-2 rounded-lg transition-colors hover:bg-white/5"
+                    aria-label="Close player"
+                  >
+                    <X
+                      className="w-4 h-4"
+                      style={{ color: "var(--text-muted, #2E5C54)" }}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Player area */}
+              <div className="p-5 space-y-5">
+                {/* Audio visualizer for non-YouTube */}
+                {currentStream.type !== "youtube" && (
+                  <div
+                    className="flex flex-col items-center justify-center gap-4 py-8 rounded-xl"
+                    style={{ background: "rgba(255,255,255,0.02)" }}
+                  >
+                    <div
+                      className="w-24 h-24 rounded-xl bg-cover bg-center"
+                      style={{
+                        backgroundImage: `url(${currentStream.thumbnailUrl})`,
+                        backgroundColor: "rgba(255,255,255,0.05)",
+                      }}
+                    />
+                    <AudioVisualizer isPlaying={isPlaying} />
+                  </div>
+                )}
+
+                {/* YouTube player renders directly here */}
+                {currentStream.type === "youtube" && (
+                  <div
+                    ref={ytContainerRef}
+                    className="w-full aspect-video rounded-xl overflow-hidden bg-black"
+                  />
+                )}
+
+                {/* Stream info */}
+                <div className="space-y-2">
+                  <h2
+                    className="text-lg font-semibold"
+                    style={{
+                      color: "var(--text-primary, #F0FDFA)",
+                      fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                    }}
+                  >
+                    {currentStream.title}
+                  </h2>
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{ color: "var(--text-secondary, #7BA8A0)" }}
+                  >
+                    {currentStream.description}
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <span
+                      className="text-xs"
+                      style={{
+                        color: "var(--text-muted, #2E5C54)",
+                        fontFamily:
+                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                      }}
+                    >
+                      {currentStream.language_code.toUpperCase()}
+                    </span>
+                    {currentStream.tags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-[10px] px-1.5 py-0.5 rounded-full"
+                        style={{
+                          background: "rgba(255,255,255,0.04)",
+                          color: "var(--text-muted, #2E5C54)",
+                        }}
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="flex items-center justify-between">
+                  <VolumeSlider volume={volume} onChange={setVolume} />
+                  <button
+                    onClick={togglePlay}
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105"
+                    style={{
+                      background: "var(--teal, #0D9488)",
+                      boxShadow: "0 0 20px rgba(13, 148, 136, 0.3)",
+                    }}
+                    aria-label={isPlaying ? "Pause" : "Play"}
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-5 h-5 text-white" />
+                    ) : (
+                      <Play className="w-5 h-5 text-white ml-0.5" />
+                    )}
+                  </button>
+                  <div style={{ width: 120 }} /> {/* Spacer for centering */}
+                </div>
+
+                {/* Related streams */}
+                <div className="pt-3 border-t border-white/5">
+                  <RelatedStreams
+                    current={currentStream}
+                    all={streams}
+                    onSelect={playStream}
+                  />
+                </div>
+              </div>
+            </motion.div>
 
             {/* ── Mini-player bar ──────────────────────────────────────────── */}
             <motion.div

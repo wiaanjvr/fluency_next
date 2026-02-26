@@ -58,54 +58,49 @@ interface PopoverProps {
 
 function AmbientPopover({ onClose }: PopoverProps) {
   const {
-    mode,
     stations,
     episodes,
     isLoading,
     currentStation,
     currentEpisode,
+    fetchStations,
+    fetchEpisodes,
     openAmbient,
     playStation,
     playEpisode,
   } = useAmbientPlayer();
 
   const defaultTab: Tab =
-    mode === "podcast"
-      ? "podcast"
-      : ((typeof window !== "undefined"
-          ? (localStorage.getItem(LS_MODE_KEY) as Tab | null)
-          : null) ?? "radio");
+    typeof window !== "undefined"
+      ? ((localStorage.getItem(LS_MODE_KEY) as Tab | null) ?? "radio")
+      : "radio";
 
   const [tab, setTab] = useState<Tab>(defaultTab);
 
-  // Always call openAmbient when the tab changes — this sets mode (shows the
-  // bar) and fetches data. The auto-play guard inside openAmbient prevents
-  // re-starting audio that is already playing.
+  // Fetch data for the active tab when the popover mounts or the tab changes.
+  // We call fetchStations/fetchEpisodes directly — NOT openAmbient — so we
+  // only load data without triggering auto-play or ambientView changes.
   useEffect(() => {
-    openAmbient(tab);
+    if (tab === "radio") {
+      fetchStations();
+    } else {
+      fetchEpisodes();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
   const handleStationClick = (station: AmbientStation) => {
-    // Ensure ambient mode is opened (shows the bottom bar) before
-    // initiating playback. openAmbient is safe to call even if mode
-    // is already active.
-    openAmbient("radio");
     playStation(station);
     onClose();
   };
 
   const handleEpisodeClick = (episode: AmbientEpisode) => {
-    // Ensure ambient mode is opened (shows the bottom bar) before
-    // initiating playback.
-    openAmbient("podcast");
     playEpisode(episode);
     onClose();
   };
 
   const handleTabSwitch = (next: Tab) => {
     setTab(next);
-    // openAmbient called via the useEffect above when tab state updates
   };
 
   return (
@@ -436,19 +431,9 @@ export function AmbientLauncher({
   className?: string;
   variant?: "default" | "nav";
 }) {
-  const { mode, isPlaying, openAmbient, ambientView } = useAmbientPlayer();
+  const { isPlaying, ambientView } = useAmbientPlayer();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Preferred tab: match current active mode, then localStorage, then "radio"
-  const getPreferredTab = useCallback((): Tab => {
-    if (mode === "podcast") return "podcast";
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(LS_MODE_KEY) as Tab | null;
-      if (saved === "podcast" || saved === "radio") return saved;
-    }
-    return "radio";
-  }, [mode]);
 
   // Close on Escape
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLButtonElement>) => {
@@ -461,9 +446,6 @@ export function AmbientLauncher({
   const isActive = ambientView === "container";
 
   const handleClick = () => {
-    if (!open) {
-      openAmbient(getPreferredTab());
-    }
     setOpen((o) => !o);
   };
 

@@ -24,7 +24,10 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import type { ImmerseStream } from "@/lib/immerse/immerseRegistry";
+import type {
+  ImmerseStream,
+  ImmerseContentType,
+} from "@/lib/immerse/immerseRegistry";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,6 +42,9 @@ interface ImmerseState {
   lastPlayedId: string | null;
   /** Whether the stream selection modal is open */
   isSelectModalOpen: boolean;
+  /** Dynamic stream list fetched from ambient_videos table */
+  streams: ImmerseStream[];
+  isLoadingStreams: boolean;
 }
 
 interface ImmerseActions {
@@ -85,6 +91,57 @@ export function useImmerse(): ImmerseContextValue {
 const LS_VOLUME_KEY = "fluensea_immerse_volume";
 const LS_LAST_STREAM_KEY = "fluensea_immerse_last_stream";
 
+// ── DB → ImmerseStream mapper ────────────────────────────────────────────────
+
+type DbVideoRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  embed_url: string;
+  source: string;
+  category: string;
+  thumbnail_url: string | null;
+  language_code: string;
+};
+
+function extractYoutubeVideoId(url: string): string | undefined {
+  // Require the 11-char segment to be followed by ?, &, / or end-of-string
+  // so we don't accidentally match path words like "live_stream" or "videoseries".
+  const m = url.match(/\/embed\/([a-zA-Z0-9_-]{11})(?:[?&/]|$)/);
+  if (!m) return undefined;
+  const id = m[1];
+  // Exclude YouTube's non-video embed path segments
+  if (id === "live_stream" || id === "videoseries") return undefined;
+  return id;
+}
+
+function mapDbToImmerseStream(row: DbVideoRow): ImmerseStream {
+  const type: ImmerseContentType =
+    row.source === "radio"
+      ? "radio"
+      : row.source === "podcast"
+        ? "podcast"
+        : "youtube";
+  const youtubeVideoId =
+    type === "youtube" ? extractYoutubeVideoId(row.embed_url) : undefined;
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description ?? "",
+    type,
+    language_code: row.language_code,
+    thumbnailUrl:
+      row.thumbnail_url ??
+      (youtubeVideoId
+        ? `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`
+        : ""),
+    youtubeVideoId,
+    streamUrl: type !== "youtube" ? row.embed_url : undefined,
+    difficulty: "intermediate",
+    tags: row.category ? [row.category] : [],
+  };
+}
+
 // ── Provider ─────────────────────────────────────────────────────────────────
 
 export function ImmerseProvider({ children }: { children: ReactNode }) {
@@ -103,6 +160,10 @@ export function ImmerseProvider({ children }: { children: ReactNode }) {
   const [lastPlayedId, setLastPlayedId] = useState<string | null>(null);
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
 
+  // Dynamic stream list from ambient_videos table
+  const [streams, setStreams] = useState<ImmerseStream[]>([]);
+  const [isLoadingStreams, setIsLoadingStreams] = useState(false);
+
   // Volume — initialise from localStorage
   const [volume, setVolumeState] = useState(0.5);
 
@@ -116,6 +177,21 @@ export function ImmerseProvider({ children }: { children: ReactNode }) {
     }
     const storedLast = localStorage.getItem(LS_LAST_STREAM_KEY);
     if (storedLast) setLastPlayedId(storedLast);
+  }, []);
+
+  // Fetch streams from ambient_videos on mount
+  useEffect(() => {
+    setIsLoadingStreams(true);
+    fetch("/api/ambient/video")
+      .then((r) => r.json())
+      .then((json) => {
+        const mapped = ((json.videos ?? []) as DbVideoRow[]).map(
+          mapDbToImmerseStream,
+        );
+        setStreams(mapped);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingStreams(false));
   }, []);
 
   // ── Create persistent <audio> once ─────────────────────────────────────────
@@ -270,6 +346,8 @@ export function ImmerseProvider({ children }: { children: ReactNode }) {
     playerReady,
     lastPlayedId,
     isSelectModalOpen,
+    streams,
+    isLoadingStreams,
     playStream,
     togglePlay,
     minimize,

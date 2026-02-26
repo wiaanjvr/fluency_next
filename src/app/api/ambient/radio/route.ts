@@ -82,9 +82,12 @@ export interface RadioStation {
   bitrate: number;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = await createClient();
+
+    const url = new URL(request.url);
+    const debug = url.searchParams.get("debug") === "1";
 
     // Auth
     const {
@@ -93,7 +96,10 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized", detail: authError?.message },
+        { status: 401 },
+      );
     }
 
     // Fetch target language from profile
@@ -105,15 +111,41 @@ export async function GET() {
 
     const languageCode = profile?.target_language || "fr";
 
-    // Check how many active stations we already have
+    // Return any saved stations for this language.
+    // .or() handles the case where is_active is NULL (manually inserted rows).
     const { data: existing, error: fetchError } = await supabase
       .from("radio_stations")
-      .select("id, name, stream_url, country, bitrate")
+      .select(
+        "id, name, stream_url, country, bitrate, language_code, is_active",
+      )
       .eq("language_code", languageCode)
-      .eq("is_active", true)
+      .or("is_active.eq.true,is_active.is.null")
       .limit(20);
 
-    if (!fetchError && existing && existing.length >= 5) {
+    if (debug) {
+      // Also fetch ALL rows (no language/active filter) so we can inspect
+      const { data: allRows, error: allErr } = await supabase
+        .from("radio_stations")
+        .select(
+          "id, name, stream_url, country, bitrate, language_code, is_active",
+        )
+        .limit(50);
+
+      return NextResponse.json({
+        stations: existing ?? [],
+        debug: {
+          userId: user.id,
+          languageCode,
+          fetchError: fetchError?.message ?? null,
+          existingCount: existing?.length ?? 0,
+          allRowsCount: allRows?.length ?? 0,
+          allRowsError: allErr?.message ?? null,
+          allRows: allRows ?? [],
+        },
+      });
+    }
+
+    if (!fetchError && existing && existing.length > 0) {
       return NextResponse.json({ stations: existing as RadioStation[] });
     }
 
@@ -155,22 +187,36 @@ export async function GET() {
         last_checked: new Date().toISOString(),
       }));
 
-    await supabase
-      .from("radio_stations")
-      .upsert(upsertRows, {
-        onConflict: "stream_url",
-        ignoreDuplicates: false,
-      });
+    await supabase.from("radio_stations").upsert(upsertRows, {
+      onConflict: "stream_url",
+      ignoreDuplicates: false,
+    });
 
     // Re-fetch after upsert
     const { data: refreshed } = await supabase
       .from("radio_stations")
       .select("id, name, stream_url, country, bitrate")
       .eq("language_code", languageCode)
-      .eq("is_active", true)
+      .or("is_active.eq.true,is_active.is.null")
       .limit(20);
 
-    return NextResponse.json({ stations: (refreshed ?? []) as RadioStation[] });
+    // If the DB re-fetch returned nothing (table missing or RLS issue),
+    // fall back to the radio-browser.info data fetched above so the user
+    // always sees stations even before the migration has been applied.
+    if (!refreshed || refreshed.length === 0) {
+      const fallback = rbStations
+        .filter((s) => s.url_resolved)
+        .map((s) => ({
+          id: s.stationuuid,
+          name: s.name || "Unknown Station",
+          stream_url: s.url_resolved,
+          country: s.countrycode || "",
+          bitrate: s.bitrate || 0,
+        }));
+      return NextResponse.json({ stations: fallback as RadioStation[] });
+    }
+
+    return NextResponse.json({ stations: refreshed as RadioStation[] });
   } catch (err) {
     console.error("[ambient/radio] Error:", err);
     return NextResponse.json(

@@ -46,23 +46,37 @@ export async function GET(request: Request) {
     // Match by the first two-letter ISO code (case-insensitive).
     const langPrefix = languageCode.slice(0, 2).toLowerCase();
 
-    // Fetch active feeds for this language (case-insensitive prefix match)
+    // Fetch feeds for this language.
+    // .or() handles rows where is_active is NULL (manually inserted).
     const { data: feeds, error: feedsError } = await supabase
       .from("podcast_feeds")
-      .select("id, title, rss_url, difficulty")
+      .select("id, title, rss_url, difficulty, language_code, is_active")
       .ilike("language_code", `${langPrefix}%`)
-      .eq("is_active", true);
+      .or("is_active.eq.true,is_active.is.null");
 
     const url = new URL(request.url);
     const debug = url.searchParams.get("debug") === "1";
 
     if (feedsError || !feeds || feeds.length === 0) {
+      // Also fetch ALL rows (no filters) so we can inspect the table contents
+      const { data: allFeeds, error: allErr } = await supabase
+        .from("podcast_feeds")
+        .select("id, title, rss_url, difficulty, language_code, is_active")
+        .limit(50);
+
       if (debug) {
         return NextResponse.json({
           episodes: [],
-          feeds: feeds ?? [],
-          languageCode,
-          langPrefix,
+          debug: {
+            userId: user.id,
+            languageCode,
+            langPrefix,
+            feedsError: feedsError?.message ?? null,
+            filteredFeeds: feeds ?? [],
+            allFeedsCount: allFeeds?.length ?? 0,
+            allFeedsError: allErr?.message ?? null,
+            allFeeds: allFeeds ?? [],
+          },
         });
       }
       return NextResponse.json({ episodes: [] });

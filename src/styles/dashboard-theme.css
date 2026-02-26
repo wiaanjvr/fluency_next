@@ -7,38 +7,38 @@
 /* ===== Google Fonts ===== */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap");
 
-/* ===== Core Color System ===== */
+/* ===== Core Color System — Matched to Landing Page Ocean Aesthetic ===== */
 :root {
-  /* Backgrounds — layered darkness with oceanic depth */
+  /* Backgrounds — layered darkness matching landing page (#020F14) */
   --bg-abyss: #010c10;
   --bg-deep: #020f14;
-  --bg-surface: #031820;
+  --bg-surface: #041824;
   --bg-elevated: #052030;
-  --bg-glass: rgba(3, 24, 32, 0.85);
-  --bg-overlay: rgba(3, 24, 32, 0.85);
+  --bg-glass: rgba(4, 24, 36, 0.85);
+  --bg-overlay: rgba(2, 15, 20, 0.85);
 
-  /* The ONE teal — warm, organic, not electric */
-  --teal: #0d9488;
-  --teal-surface: #0d9488;
-  --teal-dim: rgba(13, 148, 136, 0.5);
-  --teal-ghost: rgba(13, 148, 136, 0.15);
-  --teal-border: rgba(13, 148, 136, 0.2);
-  --teal-glow: #0d9488;
-  --teal-glow-sm: 0 0 16px rgba(13, 148, 136, 0.25);
-  --teal-glow-md: 0 0 32px rgba(13, 148, 136, 0.2);
+  /* The ONE teal — matching landing page --lp-accent: #0f9b8e */
+  --teal: #0f9b8e;
+  --teal-surface: #0f9b8e;
+  --teal-dim: rgba(15, 155, 142, 0.5);
+  --teal-ghost: rgba(15, 155, 142, 0.15);
+  --teal-border: rgba(15, 155, 142, 0.2);
+  --teal-glow: #0f9b8e;
+  --teal-glow-sm: 0 0 16px rgba(15, 155, 142, 0.25);
+  --teal-glow-md: 0 0 32px rgba(15, 155, 142, 0.2);
   --teal-glow-lg:
-    0 0 48px rgba(13, 148, 136, 0.15), 0 0 96px rgba(13, 148, 136, 0.08);
-  --teal-deep: #0a6b64;
-  --teal-abyss: #063d38;
+    0 0 48px rgba(15, 155, 142, 0.15), 0 0 96px rgba(15, 155, 142, 0.08);
+  --teal-deep: #0a7b72;
+  --teal-abyss: #064d46;
 
-  /* Bioluminescent accent — sparingly, for glow effects */
+  /* Bioluminescent glow — matching landing page --lp-glow: #2dd4bf */
   --biolum: #2dd4bf;
   --biolum-dim: rgba(45, 212, 191, 0.12);
   --biolum-ghost: rgba(45, 212, 191, 0.06);
 
-  /* Text — warm, not cold grey */
-  --text-primary: #edf6f4;
-  --text-secondary: #6b9e96;
+  /* Text — warmer tones matching landing page typography */
+  --text-primary: #f0fdfa;
+  --text-secondary: #94a3b8;
   --text-muted: #2e5c54;
   --text-ghost: #1a3832;
   --text-warm: #c8b89a; /* candlelight-underwater tint for example text */
@@ -82,64 +82,269 @@
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--bg-deep);
+  background: #040d0d;
   color: var(--text-primary);
   font-family: var(--font-inter);
 }
 
-/* ===== Environmental Depth — subtle radial light from surface ===== */
+/* ===== Environmental Depth — Underwater Light Bloom ===== */
+.dashboard-shell {
+  background: #020f14;
+}
+
+/* Primary bloom — teal/cyan light source from top-center */
 .dashboard-shell::before {
   content: "";
   position: fixed;
-  top: -10%;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 140%;
-  height: 60%;
+  width: 70vw;
+  height: 50vh;
   background: radial-gradient(
-    ellipse 50% 40% at 50% 0%,
-    rgba(13, 148, 136, 0.04) 0%,
-    rgba(13, 148, 136, 0.02) 30%,
+    ellipse 70% 55% at 50% 0%,
+    rgba(15, 155, 142, 0.15) 0%,
+    rgba(10, 58, 58, 0.3) 30%,
     transparent 70%
   );
   pointer-events: none;
   z-index: 0;
 }
 
-/* Ambient underwater caustic overlay on main content */
+/* Secondary bloom — bottom-left corner for depth asymmetry */
 .dashboard-shell::after {
   content: "";
   position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(
-      ellipse 80% 50% at 30% 10%,
-      rgba(13, 148, 136, 0.015) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse 60% 40% at 70% 80%,
-      rgba(6, 61, 56, 0.02) 0%,
-      transparent 50%
-    );
+  bottom: 0;
+  left: 0;
+  width: 35vw;
+  height: 35vh;
+  background: radial-gradient(
+    ellipse 50% 50% at 20% 90%,
+    rgba(6, 40, 36, 0.35) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   z-index: 0;
-  animation: ambientShift 30s ease-in-out infinite alternate;
+  animation: bloomShift 25s ease-in-out infinite alternate;
 }
 
-@keyframes ambientShift {
+/* ── Cinematic vignette — darkened edges like the landing page ── */
+.db-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 50% 50% at 50% 50%, transparent 55%, rgba(2, 15, 20, 0.6) 100%),
+    linear-gradient(180deg, transparent 0%, transparent 85%, rgba(2, 12, 16, 0.4) 100%);
+}
+
+/* ── Caustic light layer — animated organic blobs like landing page ── */
+.db-caustic-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.db-caustic {
+  position: absolute;
+  filter: blur(80px);
+  will-change: transform;
+}
+
+.db-caustic-1 {
+  width: 45vw;
+  height: 35vw;
+  top: 5%;
+  left: 10%;
+  border-radius: 42% 58% 55% 45% / 48% 52% 48% 52%;
+  background: rgba(15, 155, 142, 0.08);
+  animation: dbCaustic1 14s ease-in-out infinite;
+}
+
+.db-caustic-2 {
+  width: 30vw;
+  height: 25vw;
+  bottom: 20%;
+  right: 10%;
+  border-radius: 55% 45% 60% 40% / 40% 60% 40% 60%;
+  background: rgba(15, 155, 142, 0.05);
+  animation: dbCaustic2 11s ease-in-out infinite;
+}
+
+.db-caustic-3 {
+  width: 20vw;
+  height: 20vw;
+  top: 35%;
+  left: 40%;
+  border-radius: 60% 40% 50% 50% / 55% 45% 55% 45%;
+  background: rgba(45, 212, 191, 0.04);
+  animation: dbCaustic3 16s ease-in-out infinite;
+}
+
+@keyframes dbCaustic1 {
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  33% { transform: translate(-3%, 2%) scale(1.05) rotate(1deg); }
+  66% { transform: translate(2%, -1%) scale(0.97) rotate(-1deg); }
+}
+
+@keyframes dbCaustic2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-4%, 3%) scale(1.08); }
+}
+
+@keyframes dbCaustic3 {
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  50% { transform: translate(3%, -2%) scale(1.06) rotate(2deg); }
+}
+
+/* ── Water-surface light rays — angled beams from above ── */
+.db-ray {
+  position: fixed;
+  top: -5%;
+  width: 80px;
+  height: 75%;
+  filter: blur(28px);
+  transform-origin: top center;
+  pointer-events: none;
+  will-change: transform, opacity;
+  z-index: 0;
+}
+
+.db-ray-1 {
+  left: 8%;
+  background: linear-gradient(to bottom, rgba(15, 155, 142, 0.14) 0%, transparent 70%);
+  animation: dbRay1 9s ease-in-out infinite;
+}
+
+.db-ray-2 {
+  left: 24%;
+  width: 55px;
+  background: linear-gradient(to bottom, rgba(45, 212, 191, 0.08) 0%, transparent 60%);
+  animation: dbRay2 11s ease-in-out infinite;
+}
+
+.db-ray-3 {
+  left: 48%;
+  width: 100px;
+  background: linear-gradient(to bottom, rgba(15, 155, 142, 0.1) 0%, transparent 65%);
+  animation: dbRay3 13s ease-in-out infinite;
+}
+
+.db-ray-4 {
+  left: 68%;
+  width: 60px;
+  background: linear-gradient(to bottom, rgba(45, 212, 191, 0.07) 0%, transparent 60%);
+  animation: dbRay4 10s ease-in-out infinite 2s;
+}
+
+.db-ray-5 {
+  left: 85%;
+  width: 50px;
+  background: linear-gradient(to bottom, rgba(15, 155, 142, 0.09) 0%, transparent 55%);
+  animation: dbRay5 12s ease-in-out infinite 4s;
+}
+
+@keyframes dbRay1 {
+  0%, 100% { transform: rotate(-13deg) scaleX(1); opacity: 0.7; }
+  50% { transform: rotate(-7deg) scaleX(1.15); opacity: 1; }
+}
+@keyframes dbRay2 {
+  0%, 100% { transform: rotate(-4deg) scaleX(1); opacity: 0.5; }
+  50% { transform: rotate(2deg) scaleX(0.85); opacity: 0.8; }
+}
+@keyframes dbRay3 {
+  0%, 100% { transform: rotate(4deg) scaleX(1); opacity: 0.6; }
+  50% { transform: rotate(9deg) scaleX(1.12); opacity: 0.9; }
+}
+@keyframes dbRay4 {
+  0%, 100% { transform: rotate(11deg) scaleX(1); opacity: 0.45; }
+  50% { transform: rotate(5deg) scaleX(0.9); opacity: 0.7; }
+}
+@keyframes dbRay5 {
+  0%, 100% { transform: rotate(16deg) scaleX(1); opacity: 0.55; }
+  50% { transform: rotate(21deg) scaleX(1.18); opacity: 0.85; }
+}
+
+/* ── Rising bubbles — ambient floating bubbles ── */
+.db-bubbles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.db-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  will-change: transform;
+  animation: dbBubbleRise linear infinite;
+}
+
+.db-bubble-1 { width: 4px; height: 4px; left: 15%; bottom: 3%; animation-duration: 20s; }
+.db-bubble-2 { width: 3px; height: 3px; left: 42%; bottom: 8%; animation-duration: 25s; animation-delay: 5s; }
+.db-bubble-3 { width: 5px; height: 5px; left: 65%; bottom: 2%; animation-duration: 18s; animation-delay: 9s; }
+.db-bubble-4 { width: 3px; height: 3px; left: 30%; bottom: 6%; animation-duration: 28s; animation-delay: 14s; }
+.db-bubble-5 { width: 4px; height: 4px; left: 80%; bottom: 5%; animation-duration: 22s; animation-delay: 7s; }
+
+@keyframes dbBubbleRise {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  5% { opacity: 0.1; }
+  90% { opacity: 0.1; }
+  100% { transform: translateY(-110vh) translateX(10px); opacity: 0; }
+}
+
+@keyframes bloomShift {
   0% {
-    opacity: 0.6;
+    opacity: 0.7;
   }
   50% {
     opacity: 1;
   }
   100% {
-    opacity: 0.7;
+    opacity: 0.8;
   }
 }
 
-/* ===== Top Navigation Bar ===== */
+/* ── Floating light particles — drift upward ── */
+@keyframes particleRise {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--p-opacity, 0.15);
+  }
+  90% {
+    opacity: var(--p-opacity, 0.15);
+  }
+  100% {
+    transform: translateY(-100vh) translateX(var(--p-drift, 20px));
+    opacity: 0;
+  }
+}
+
+.underwater-particle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: particleRise var(--p-dur, 20s) linear infinite;
+  animation-delay: var(--p-delay, 0s);
+  background: var(--p-color, rgba(0, 229, 204, 0.15));
+  width: var(--p-size, 6px);
+  height: var(--p-size, 6px);
+  left: var(--p-left, 50%);
+  bottom: var(--p-bottom, -10px);
+  opacity: 0;
+}
+
+/* ===== Top Navigation Bar — Frosted Glass (matching landing page) ===== */
 .dashboard-topnav {
   position: fixed;
   top: 0;
@@ -151,18 +356,19 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: rgba(1, 12, 16, 0.75);
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
-  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(2, 15, 20, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(45, 212, 191, 0.1);
   transition:
     background 0.3s ease,
     box-shadow 0.3s ease;
 }
 
 .dashboard-topnav.scrolled {
-  background: rgba(1, 12, 16, 0.92);
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3);
+  background: rgba(2, 15, 20, 0.92);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.4);
+  border-bottom-color: rgba(45, 212, 191, 0.08);
 }
 
 .dashboard-topnav .nav-logo {
@@ -214,7 +420,7 @@
   color: var(--text-secondary);
 }
 
-/* ===== Left Sidebar — Depth Gauge ===== */
+/* ===== Left Sidebar — Depth Gauge (matching landing page depth indicator) ===== */
 .depth-sidebar {
   position: fixed;
   top: 64px;
@@ -227,13 +433,13 @@
   padding: 24px 16px 20px;
   background: linear-gradient(
     to bottom,
-    rgba(13, 148, 136, 0.06) 0%,
-    #031a22 15%,
-    #020f16 50%,
-    #010c12 85%,
+    rgba(15, 155, 142, 0.06) 0%,
+    rgba(4, 24, 36, 0.9) 15%,
+    rgba(2, 15, 20, 0.95) 50%,
+    #010c10 85%,
     #010a0e 100%
   );
-  border-right: 1px solid var(--border-subtle);
+  border-right: 1px solid rgba(45, 212, 191, 0.08);
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -378,12 +584,12 @@
 }
 
 .depth-node.active .zone-name {
-  font-family: var(--font-editorial);
+  font-family: var(--font-inter);
   font-size: 13px;
-  font-weight: 500;
-  font-style: italic;
-  letter-spacing: 0.02em;
-  text-transform: none;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--text-primary);
 }
 
@@ -404,7 +610,7 @@
 .depth-node .zone-desc {
   font-family: var(--font-inter);
   font-size: 9px;
-  font-style: italic;
+  font-style: normal;
   color: var(--text-ghost);
   opacity: 0.5;
   margin-top: 1px;
@@ -456,34 +662,35 @@
   color: var(--text-ghost);
 }
 
-/* ===== Hero Dive Card ===== */
+/* ===== Hero Dive Card — immersive depth card with landing-page quality ===== */
 .hero-dive-card {
   position: relative;
   width: 100%;
-  min-height: 240px;
-  border-radius: 24px;
+  min-height: 260px;
+  border-radius: 20px;
   overflow: hidden;
   background:
     radial-gradient(
       ellipse 60% 80% at 20% 30%,
-      rgba(13, 148, 136, 0.09) 0%,
+      rgba(15, 155, 142, 0.1) 0%,
       transparent 100%
     ),
     radial-gradient(
       ellipse 40% 60% at 80% 70%,
-      rgba(6, 40, 36, 0.5) 0%,
+      rgba(8, 37, 53, 0.6) 0%,
       transparent 100%
     ),
     radial-gradient(
       ellipse 80% 50% at 50% 0%,
-      rgba(13, 148, 136, 0.04) 0%,
+      rgba(15, 155, 142, 0.05) 0%,
       transparent 60%
     ),
-    linear-gradient(145deg, #062030 0%, #041520 40%, #020d18 100%);
-  border: 1px solid var(--border-subtle);
+    #04100f;
+  border: 1px solid rgba(45, 212, 191, 0.12);
   box-shadow:
-    0 8px 40px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    0 12px 50px rgba(0, 0, 0, 0.4),
+    0 0 80px rgba(15, 155, 142, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 /* Caustic light shimmer — subtle animated light rays */
@@ -603,22 +810,24 @@
   background: var(--text-muted);
 }
 
-/* Dive CTA button — THE one teal element */
+/* Dive CTA button — THE one teal element, matching landing page CTA */
 .dive-cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 13px 28px;
-  border-radius: 100px;
+  padding: 14px 30px;
+  border-radius: 9999px;
   border: none;
   cursor: pointer;
-  background: var(--teal);
+  background: #0f9b8e;
   color: #020f14;
   font-family: var(--font-inter);
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   letter-spacing: 0.01em;
-  box-shadow: var(--teal-glow-sm);
+  box-shadow:
+    0 0 16px rgba(15, 155, 142, 0.25),
+    0 0 48px rgba(15, 155, 142, 0.08);
   transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
   animation: divePulse 3s ease-in-out infinite;
@@ -760,7 +969,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
   font-family: var(--font-display);
   font-size: 12px;
-  font-style: italic;
+  font-style: normal;
   color: var(--text-secondary);
   letter-spacing: 0.03em;
   animation: chipFloat 4s ease-in-out infinite;
@@ -806,11 +1015,14 @@
   }
 }
 
-/* ===== Vocabulary Table ===== */
+/* ===== Vocabulary Table — Ocean frosted glass ===== */
 .vocab-section {
-  border-radius: 16px;
-  background: var(--bg-surface);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  background: rgba(4, 24, 36, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(45, 212, 191, 0.06);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
   overflow: hidden;
 }
 
@@ -1069,7 +1281,7 @@
   background: rgba(13, 148, 136, 0.04);
 }
 
-/* ===== Right Panel ===== */
+/* ===== Right Panel — Frosted glass matching landing page panels ===== */
 .right-panel {
   position: fixed;
   top: 64px;
@@ -1084,22 +1296,30 @@
   overflow-y: auto;
   background: linear-gradient(
     180deg,
-    rgba(3, 24, 32, 0.4) 0%,
-    rgba(2, 15, 20, 0.6) 100%
+    rgba(4, 24, 36, 0.5) 0%,
+    rgba(2, 15, 20, 0.7) 100%
   );
-  border-left: 1px solid var(--border-subtle);
+  border-left: 1px solid rgba(45, 212, 191, 0.08);
 }
 
 .right-panel .panel-card {
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 24px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  transition: border-color 0.3s ease;
+  background: rgba(4, 24, 36, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(45, 212, 191, 0.06);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .right-panel .panel-card:hover {
-  border-color: var(--border-dim);
+  border-color: rgba(45, 212, 191, 0.1);
+  box-shadow:
+    0 6px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .right-panel .panel-card-title {
@@ -1213,13 +1433,27 @@
   }
 }
 
-/* ===== Glass card base ===== */
+/* ===== Glass card base — matching landing page frosted glass ===== */
 .glass-card {
-  border-radius: 16px;
-  background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  background: rgba(4, 24, 36, 0.65);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(45, 212, 191, 0.08);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(45, 212, 191, 0.12);
+  box-shadow:
+    0 16px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /* ===== Responsive ===== */

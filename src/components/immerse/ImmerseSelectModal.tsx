@@ -14,13 +14,13 @@ import { X, Radio, Podcast, Youtube, Headphones, Waves } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useImmerse } from "./ImmerseProvider";
 import {
-  IMMERSE_STREAMS,
   filterByType,
   filterByDifficulty,
   type ImmerseContentType,
   type ImmerseDifficulty,
   type ImmerseStream,
 } from "@/lib/immerse/immerseRegistry";
+import { Loader2 } from "lucide-react";
 
 // ── Filter types ─────────────────────────────────────────────────────────────
 
@@ -213,13 +213,15 @@ export function ImmerseSelectModal() {
     lastPlayedId,
     playStream,
     isPlaying,
+    streams,
+    isLoadingStreams,
   } = useImmerse();
 
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [diffFilter, setDiffFilter] = useState<DifficultyFilter>("all");
 
   const filtered = filterByDifficulty(
-    filterByType(IMMERSE_STREAMS, typeFilter),
+    filterByType(streams, typeFilter),
     diffFilter,
   );
 
@@ -367,32 +369,41 @@ export function ImmerseSelectModal() {
 
             {/* Stream grid */}
             <div className="flex-1 overflow-y-auto px-5 pb-5">
-              <div className="grid grid-cols-1 gap-2">
-                <AnimatePresence mode="popLayout">
-                  {filtered.map((stream) => (
-                    <StreamCard
-                      key={stream.id}
-                      stream={stream}
-                      isNowPlaying={
-                        isPlaying && currentStream?.id === stream.id
-                      }
-                      isLastPlayed={lastPlayedId === stream.id}
-                      onSelect={() => handleSelect(stream)}
-                    />
-                  ))}
-                </AnimatePresence>
+              {isLoadingStreams ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2
+                    className="w-6 h-6 animate-spin"
+                    style={{ color: "var(--teal, #0D9488)" }}
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  <AnimatePresence mode="popLayout">
+                    {filtered.map((stream) => (
+                      <StreamCard
+                        key={stream.id}
+                        stream={stream}
+                        isNowPlaying={
+                          isPlaying && currentStream?.id === stream.id
+                        }
+                        isLastPlayed={lastPlayedId === stream.id}
+                        onSelect={() => handleSelect(stream)}
+                      />
+                    ))}
+                  </AnimatePresence>
 
-                {filtered.length === 0 && (
-                  <div className="text-center py-12">
-                    <p
-                      className="text-sm"
-                      style={{ color: "var(--text-muted, #2E5C54)" }}
-                    >
-                      No streams match your filters
-                    </p>
-                  </div>
-                )}
-              </div>
+                  {filtered.length === 0 && (
+                    <div className="text-center py-12">
+                      <p
+                        className="text-sm"
+                        style={{ color: "var(--text-muted, #2E5C54)" }}
+                      >
+                        No streams match your filters
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         </>

@@ -213,9 +213,10 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         <div className="flex items-center gap-3">
           <h2
             style={{
-              fontSize: 20,
-              fontWeight: 300,
-              color: "var(--text-primary, #F0FDFA)",
+              fontSize: 18,
+              fontWeight: 700,
+              fontStyle: "normal",
+              color: "#ffffff",
               margin: 0,
             }}
           >
@@ -224,16 +225,15 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             >
               Your{" "}
             </span>
-            <em
+            <span
               style={{
-                fontFamily:
-                  "var(--font-editorial, 'Cormorant Garamond', serif)",
-                fontWeight: 500,
-                fontStyle: "italic",
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                fontWeight: 700,
+                fontStyle: "normal",
               }}
             >
               Vocabulary
-            </em>
+            </span>
           </h2>
           {/* Count chip */}
           <span
@@ -455,8 +455,8 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         style={{
           maxHeight: 520,
           borderRadius: 16,
-          border: "1px solid rgba(255, 255, 255, 0.04)",
-          background: "rgba(2, 15, 20, 0.4)",
+          border: "1px solid rgba(0, 229, 204, 0.12)",
+          background: "#060f0f",
         }}
       >
         <AnimatePresence mode="wait">

@@ -159,7 +159,7 @@ export function AppNav({
               style={{
                 fontFamily: "var(--font-display, 'Playfair Display', serif)",
                 fontWeight: 600,
-                fontStyle: "italic",
+                fontStyle: "normal",
                 fontSize: 18,
                 letterSpacing: "0.02em",
                 color: "var(--text-primary, #F0FDFA)",

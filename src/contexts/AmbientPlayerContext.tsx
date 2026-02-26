@@ -91,6 +91,10 @@ interface AmbientPlayerActions {
   retryVideo: () => void;
   /** Set which ambient view is active */
   setAmbientView: (v: "container" | "soundbar" | null) => void;
+  /** Fetch and cache stations without auto-playing */
+  fetchStations: () => Promise<AmbientStation[]>;
+  /** Fetch and cache episodes without auto-playing */
+  fetchEpisodes: () => Promise<AmbientEpisode[]>;
 }
 
 type AmbientPlayerContextValue = AmbientPlayerState & AmbientPlayerActions;
@@ -575,6 +579,8 @@ export function AmbientPlayerProvider({ children }: { children: ReactNode }) {
     retryEpisode,
     retryVideo,
     setAmbientView: setAmbientViewState,
+    fetchStations,
+    fetchEpisodes,
   };
 
   return (

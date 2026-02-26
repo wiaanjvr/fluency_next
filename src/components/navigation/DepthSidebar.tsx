@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DEPTH_LEVELS,
@@ -12,8 +12,8 @@ import {
 } from "@/lib/progression/depthLevels";
 
 // ============================================================================
-// DepthSidebar — Redesigned as a diving instrument depth gauge
-// Vertical pressure tube with filled gradient, zone rows, and depth needle.
+// DepthSidebar — Rebuilt as a deep-sea sonar instrument
+// Precision underwater gauge with glowing depth column and position marker.
 // ============================================================================
 
 interface DepthSidebarProps {
@@ -22,206 +22,298 @@ interface DepthSidebarProps {
   className?: string;
 }
 
-// ─── Tooltip for locked levels ──────────────────────────────────────────────
+// ── Zone config for the depth column gradient ───────────────────────────────
+const ZONE_GRADIENT_COLORS = [
+  "#00e5cc", // The Shallows (bright cyan)
+  "#00b4a0", // Sunlit Zone
+  "#007a6e", // Twilight Zone
+  "#004d45", // The Deep
+  "#001f1c", // The Abyss (near black-teal)
+];
 
-function LockedTooltip({ level }: { level: DepthLevel }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -8 }}
-      transition={{ duration: 0.15 }}
-      className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 whitespace-nowrap"
-    >
-      <div
-        className="px-3 py-2 rounded-lg text-xs"
-        style={{
-          background: "var(--bg-elevated, #0A2A38)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-          color: "var(--text-secondary, #7BA8A0)",
-        }}
-      >
-        Reach{" "}
-        <span
-          className="font-semibold"
-          style={{ color: level.colorPrimaryHex }}
-        >
-          {level.unlocksAt.toLocaleString()}
-        </span>{" "}
-        words to unlock
-      </div>
-    </motion.div>
-  );
+// ── Pulse animation keyframes ───────────────────────────────────────────────
+const pulseKeyframes = `
+@keyframes sonarPulseMarker {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.6;
+  }
 }
+`;
 
-// ─── Single zone row ────────────────────────────────────────────────────────
+// ── Depth Gauge Content (shared by desktop & mobile) ────────────────────────
 
-function ZoneRow({
-  level,
-  isActive,
-  isUnlocked,
-  isPast,
-}: {
-  level: DepthLevel;
-  isActive: boolean;
-  isUnlocked: boolean;
-  isPast: boolean;
-}) {
-  const [showTooltip, setShowTooltip] = useState(false);
-  const isLocked = !isUnlocked;
+function DepthGaugeContent({ wordCount }: { wordCount: number }) {
+  const currentLevel = getDepthLevel(wordCount);
+  const progress = getProgressToNextLevel(wordCount);
+  const currentIndex = DEPTH_LEVELS.findIndex((l) => l.id === currentLevel.id);
+  const totalZones = DEPTH_LEVELS.length;
 
-  const handleClick = () => {
-    if (isLocked) {
-      setShowTooltip(true);
-      setTimeout(() => setShowTooltip(false), 2000);
-      return;
-    }
-    // TODO: Navigate to level course content
-    // router.push(`/course/${level.slug}`);
-  };
+  // Each zone occupies an equal fraction of the bar
+  const zoneHeight = 100 / totalZones;
+  // Marker position: center of the current zone + partial progress
+  const markerPercent = currentIndex * zoneHeight + zoneHeight * 0.5;
 
-  const rangeLabel =
-    level.wordRange[1] === Infinity
-      ? `${level.wordRange[0].toLocaleString()}+`
-      : `${level.wordRange[0].toLocaleString()} – ${level.wordRange[1].toLocaleString()}`;
+  // Words to go for the target (next zone or infinity)
+  const wordsToGo = progress.next ? progress.next.unlocksAt - wordCount : 0;
 
   return (
-    <div className="relative">
-      <button
-        onClick={handleClick}
-        className={cn(
-          "relative w-full text-left transition-all duration-300",
-          "rounded-r-lg",
-          isLocked ? "cursor-default" : "cursor-pointer hover:bg-white/[0.03]",
-        )}
+    <div className="flex flex-col h-full">
+      {/* ── TOP LABEL ── */}
+      <div
         style={{
-          padding: "14px 12px 14px 44px",
-          opacity: isLocked ? 0.4 : isPast ? 0.7 : 1,
-          background: isActive
-            ? `linear-gradient(90deg, ${level.colorPrimaryHex}08 0%, transparent 100%)`
-            : "transparent",
+          borderTop: "1px solid rgba(0, 210, 180, 0.2)",
+          paddingTop: 12,
+          paddingBottom: 16,
+          textAlign: "center",
         }}
-        aria-label={
-          isLocked
-            ? `${level.name} — locked. Requires ${level.unlocksAt} words.`
-            : isActive
-              ? `${level.name} — current depth level`
-              : `${level.name} — unlocked`
-        }
-        aria-current={isActive ? "true" : undefined}
       >
-        {/* YOU ARE HERE marker */}
-        {isActive && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: 1.2 }}
-            className="absolute right-3 top-3"
-          >
-            <span
-              className="text-[8px] font-bold uppercase tracking-[0.2em] px-1.5 py-0.5 rounded-full"
-              style={{
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                color: level.colorPrimaryHex,
-                background: `${level.colorPrimaryHex}12`,
-                border: `1px solid ${level.colorPrimaryHex}25`,
-              }}
-            >
-              YOU ARE HERE
-            </span>
-          </motion.div>
-        )}
-
-        {/* Zone name — editorial serif for active, mono for rest */}
-        <div
-          className="mb-0.5"
+        <span
           style={{
-            fontFamily: isActive
-              ? "var(--font-editorial, 'Cormorant Garamond', serif)"
-              : "var(--font-mono, 'JetBrains Mono', monospace)",
-            fontSize: isActive ? 14 : 11,
-            fontWeight: isActive ? 500 : 600,
-            fontStyle: isActive ? "italic" : "normal",
-            letterSpacing: isActive ? "0.02em" : "0.1em",
-            textTransform: isActive
-              ? ("capitalize" as const)
-              : ("uppercase" as const),
-            color: isActive
-              ? level.colorPrimaryHex
-              : isLocked
-                ? "var(--text-ghost, #1E4040)"
-                : "var(--text-secondary, #6B9E96)",
-            filter: isLocked ? "saturate(0.3)" : "none",
-            transition: "all 0.3s ease",
+            fontFamily: "'Inter', system-ui, sans-serif",
+            fontSize: 9,
+            fontWeight: 500,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "#4a9e96",
           }}
         >
-          {isActive ? level.name : level.name.toUpperCase()}
-          {isLocked && (
-            <Lock
-              className="inline-block ml-1.5 w-3 h-3"
-              style={{ color: "var(--text-ghost, #1E4040)" }}
-            />
-          )}
-        </div>
+          DEPTH GAUGE
+        </span>
+      </div>
 
-        {/* Word range */}
+      {/* ── DEPTH COLUMN AREA ─ bar + labels + marker ── */}
+      <div
+        className="relative flex-1"
+        style={{ minHeight: 0, paddingLeft: 16, paddingRight: 16 }}
+      >
+        {/* The vertical gradient bar — centered */}
         <div
-          className="text-[10px] tabular-nums"
           style={{
-            fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-            color: isActive
-              ? "var(--text-secondary, #7BA8A0)"
-              : "var(--text-ghost, #2D5A52)",
-            opacity: isLocked ? 0.6 : 0.8,
+            position: "absolute",
+            left: "50%",
+            top: "4%",
+            bottom: "4%",
+            width: 3,
+            transform: "translateX(-50%)",
+            borderRadius: 2,
+            background: `linear-gradient(to bottom, ${ZONE_GRADIENT_COLORS.join(", ")})`,
+            filter: "drop-shadow(0 0 6px rgba(0, 229, 204, 0.5))",
           }}
-        >
-          {rangeLabel} words
-        </div>
+        />
 
-        {/* Description for active level */}
-        {isActive && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="mt-1.5"
-          >
-            <p
-              className="text-[10px] italic leading-relaxed"
+        {/* Zone labels + tick marks — all labels LEFT of bar */}
+        {DEPTH_LEVELS.map((level, idx) => {
+          const topPercent = idx * zoneHeight + zoneHeight * 0.5;
+          const isActive = level.id === currentLevel.id;
+
+          return (
+            <div
+              key={level.id}
               style={{
-                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                color: "var(--text-secondary, #6B9E96)",
-                opacity: 0.7,
+                position: "absolute",
+                top: `${topPercent}%`,
+                transform: "translateY(-50%)",
+                left: 0,
+                right: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              {level.description.split(".")[0]}.
-            </p>
-          </motion.div>
-        )}
-      </button>
+              {/* Label to the LEFT of the bar */}
+              <span
+                style={{
+                  position: "absolute",
+                  right: "calc(50% + 16px)",
+                  fontFamily: "'Inter', system-ui, sans-serif",
+                  fontSize: 8,
+                  fontWeight: isActive ? 500 : 400,
+                  fontStyle: "normal",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: isActive ? "#c0ebe5" : "#4a9e96",
+                  textAlign: "right",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {level.name.toUpperCase()}
+              </span>
+              {/* Tick mark from label to bar */}
+              <div
+                style={{
+                  position: "absolute",
+                  right: "calc(50% + 2px)",
+                  width: 12,
+                  height: 1,
+                  background: isActive
+                    ? "rgba(0, 229, 204, 0.5)"
+                    : "rgba(74, 158, 150, 0.25)",
+                }}
+              />
+            </div>
+          );
+        })}
 
-      {/* Locked tooltip */}
-      <AnimatePresence>
-        {showTooltip && isLocked && <LockedTooltip level={level} />}
-      </AnimatePresence>
+        {/* ── CURRENT POSITION MARKER ── */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          style={{
+            position: "absolute",
+            top: `${markerPercent}%`,
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            zIndex: 10,
+          }}
+        >
+          {/* Diamond marker */}
+          <div
+            style={{
+              width: 12,
+              height: 12,
+              transform: "rotate(45deg)",
+              background: "#00e5cc",
+              borderRadius: 2,
+              boxShadow:
+                "0 0 10px rgba(0, 229, 204, 0.7), 0 0 20px rgba(0, 229, 204, 0.3)",
+              animation: "sonarPulseMarker 2.5s ease-in-out infinite",
+              flexShrink: 0,
+            }}
+          />
+          {/* Current zone name */}
+          <span
+            style={{
+              fontFamily: "'Inter', system-ui, sans-serif",
+              fontSize: 11,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              color: "#ffffff",
+              whiteSpace: "nowrap",
+              letterSpacing: "0.08em",
+              textShadow: "0 0 8px rgba(0, 229, 204, 0.4)",
+            }}
+          >
+            {currentLevel.name.toUpperCase()}
+          </span>
+        </motion.div>
+      </div>
+
+      {/* ── WORD COUNT DISPLAY ── */}
+      <div
+        style={{
+          textAlign: "center",
+          paddingTop: 16,
+          borderTop: "1px solid rgba(0, 210, 180, 0.1)",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Inter', system-ui, sans-serif",
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#00e5cc",
+            marginBottom: 2,
+          }}
+        >
+          {wordCount.toLocaleString()} words learned
+        </div>
+        {wordsToGo > 0 && (
+          <div
+            style={{
+              fontFamily: "'Inter', system-ui, sans-serif",
+              fontSize: 11,
+              fontWeight: 400,
+              color: "#4a9e96",
+            }}
+          >
+            {wordsToGo.toLocaleString()} words to go
+          </div>
+        )}
+      </div>
+
+      {/* ── ZONE LIST ── */}
+      <div
+        style={{
+          marginTop: 12,
+          paddingTop: 12,
+          borderTop: "1px solid rgba(0, 210, 180, 0.08)",
+          flexShrink: 0,
+          overflowY: "auto",
+        }}
+      >
+        {DEPTH_LEVELS.map((level) => {
+          const isActive = level.id === currentLevel.id;
+          const rangeLabel =
+            level.wordRange[1] === Infinity
+              ? `${level.wordRange[0].toLocaleString()}+`
+              : `${level.wordRange[0].toLocaleString()} – ${level.wordRange[1].toLocaleString()}`;
+
+          return (
+            <div
+              key={level.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "5px 8px 5px 10px",
+                borderLeft: isActive
+                  ? "2px solid #00e5cc"
+                  : "2px solid transparent",
+                marginBottom: 2,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "'Inter', system-ui, sans-serif",
+                  fontSize: 9,
+                  fontWeight: 400,
+                  fontStyle: "normal",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: isActive ? "#c0ebe5" : "#4a9e96",
+                }}
+              >
+                {level.name.toUpperCase()}
+              </span>
+              <span
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 9,
+                  color: "#4a9e96",
+                }}
+              >
+                {rangeLabel}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Inject pulse keyframes */}
+      <style>{pulseKeyframes}</style>
     </div>
   );
 }
 
-// ─── Mobile Bottom Sheet ────────────────────────────────────────────────────
+// ── Mobile Bottom Sheet ─────────────────────────────────────────────────────
 
 function MobileDepthSheet({
   isOpen,
   onClose,
   wordCount,
-  currentLevel,
 }: {
   isOpen: boolean;
   onClose: () => void;
   wordCount: number;
-  currentLevel: DepthLevel;
 }) {
   return (
     <AnimatePresence>
@@ -244,9 +336,8 @@ function MobileDepthSheet({
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
             className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl overflow-hidden"
             style={{
-              background:
-                "linear-gradient(to bottom, #031A22 0%, #020F16 100%)",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
+              background: "#060f0f",
+              borderTop: "1px solid rgba(0, 210, 180, 0.15)",
               maxHeight: "80vh",
             }}
           >
@@ -260,16 +351,6 @@ function MobileDepthSheet({
               className="px-5 pb-8 overflow-y-auto"
               style={{ maxHeight: "calc(80vh - 40px)" }}
             >
-              <h3
-                className="text-sm font-semibold mb-4"
-                style={{
-                  fontFamily: "var(--font-display, 'Playfair Display', serif)",
-                  color: "var(--text-primary, #F0FDFA)",
-                }}
-              >
-                Depth Gauge
-              </h3>
-
               <DepthGaugeContent wordCount={wordCount} />
             </div>
           </motion.div>
@@ -279,178 +360,7 @@ function MobileDepthSheet({
   );
 }
 
-// ─── Shared gauge content (used by both desktop sidebar and mobile sheet) ───
-
-function DepthGaugeContent({ wordCount }: { wordCount: number }) {
-  const currentLevel = getDepthLevel(wordCount);
-  const progress = getProgressToNextLevel(wordCount);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Calculate fill percentage for pressure tube
-  // Fill goes from top (Shallows = 0) down to current level
-  const currentIndex = DEPTH_LEVELS.findIndex((l) => l.id === currentLevel.id);
-  const totalZones = DEPTH_LEVELS.length;
-  // Fill covers all completed zones + partial current zone progress
-  const basePercentage = (currentIndex / totalZones) * 100;
-  const zonePartial = (progress.percentage / 100) * (100 / totalZones);
-  const fillPercentage = Math.min(basePercentage + zonePartial, 100);
-
-  return (
-    <div className="relative flex flex-col">
-      {/* Pressure tube — vertical line running through all zones */}
-      <div
-        className="absolute"
-        style={{
-          left: 15,
-          top: 8,
-          bottom: 8,
-          width: 3,
-          borderRadius: 2,
-          background: "rgba(255,255,255,0.03)",
-          overflow: "hidden",
-        }}
-      >
-        {/* Filled portion with gradient */}
-        <motion.div
-          initial={{ height: 0 }}
-          animate={{ height: mounted ? `${fillPercentage}%` : 0 }}
-          transition={{ duration: 1.2, ease: [0.23, 1, 0.32, 1] }}
-          style={{
-            width: "100%",
-            borderRadius: 2,
-            background: `linear-gradient(to bottom, 
-              ${DEPTH_LEVELS[0].colorPrimaryHex} 0%, 
-              ${DEPTH_LEVELS[1].colorPrimaryHex} 25%,
-              ${DEPTH_LEVELS[2].colorPrimaryHex} 50%,
-              ${DEPTH_LEVELS[3].colorPrimaryHex} 75%,
-              ${DEPTH_LEVELS[4].colorPrimaryHex} 100%
-            )`,
-          }}
-        />
-      </div>
-
-      {/* Depth needle at current position */}
-      <motion.div
-        className="absolute"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{
-          opacity: mounted ? 1 : 0,
-          scale: mounted ? 1 : 0,
-        }}
-        transition={{ duration: 0.4, delay: 1.0 }}
-        style={{
-          left: 9,
-          top: `calc(${((currentIndex + 0.5) / totalZones) * 100}% - 7px)`,
-          zIndex: 10,
-        }}
-      >
-        <div
-          className="w-[14px] h-[14px] rounded-full"
-          style={{
-            background: currentLevel.colorPrimaryHex,
-            boxShadow: `0 0 12px ${currentLevel.colorPrimaryHex}80, 0 0 24px ${currentLevel.colorPrimaryHex}30`,
-            border: "2px solid rgba(255,255,255,0.15)",
-          }}
-        />
-      </motion.div>
-
-      {/* Zone rows */}
-      {DEPTH_LEVELS.map((level) => {
-        const isActive = level.id === currentLevel.id;
-        const isUnlocked = wordCount >= level.unlocksAt;
-        const isPast = level.id < currentLevel.id;
-
-        return (
-          <ZoneRow
-            key={level.id}
-            level={level}
-            isActive={isActive}
-            isUnlocked={isUnlocked}
-            isPast={isPast}
-          />
-        );
-      })}
-
-      {/* Stats at bottom */}
-      <div
-        className="mt-4 pt-4"
-        style={{
-          borderTop: "1px solid rgba(255,255,255,0.04)",
-          paddingLeft: 44,
-        }}
-      >
-        <div className="mb-3">
-          <div
-            className="text-sm font-semibold tabular-nums"
-            style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              color: currentLevel.colorPrimaryHex,
-            }}
-          >
-            {wordCount.toLocaleString()}{" "}
-            <span
-              className="text-[9px] tracking-[0.15em] uppercase font-normal"
-              style={{ color: "var(--text-ghost, #2D5A52)" }}
-            >
-              Words
-            </span>
-          </div>
-        </div>
-
-        {/* Progress to next */}
-        {progress.next && (
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <span
-                className="text-[9px] tracking-[0.12em] uppercase"
-                style={{
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  color: "var(--text-ghost, #2D5A52)",
-                }}
-              >
-                Next depth
-              </span>
-              <span
-                className="text-[9px] tabular-nums"
-                style={{
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  color: "var(--text-secondary, #6B9E96)",
-                }}
-              >
-                {progress.wordsRemaining.toLocaleString()} to go
-              </span>
-            </div>
-            <div
-              className="w-full h-1 rounded-full overflow-hidden"
-              style={{ background: "rgba(255,255,255,0.04)" }}
-            >
-              <motion.div
-                className="h-full rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: mounted ? `${progress.percentage}%` : 0 }}
-                transition={{
-                  duration: 1,
-                  delay: 0.5,
-                  ease: [0.23, 1, 0.32, 1],
-                }}
-                style={{
-                  background: `linear-gradient(90deg, ${currentLevel.colorPrimaryHex}, ${currentLevel.colorSecondaryHex})`,
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Sidebar Component ─────────────────────────────────────────────────
+// ── Main Sidebar Component ──────────────────────────────────────────────────
 
 export function DepthSidebar({
   wordCount,
@@ -471,30 +381,15 @@ export function DepthSidebar({
         )}
         style={{
           width: 240,
+          minWidth: 200,
           height: "calc(100vh - 64px)",
-          padding: "20px 12px 20px 16px",
-          background:
-            "linear-gradient(to bottom, #031A22 0%, #020F16 40%, #010C12 100%)",
-          borderRight: "1px solid rgba(255, 255, 255, 0.04)",
+          padding: "0 16px 16px 16px",
+          background: "#060f0f",
+          boxShadow: "inset -1px 0 0 rgba(0, 210, 180, 0.15)",
         }}
         aria-label="Depth gauge navigation"
         role="navigation"
       >
-        {/* Title — editorial serif */}
-        <div
-          className="px-3 mb-4"
-          style={{
-            fontFamily: "var(--font-editorial, 'Cormorant Garamond', serif)",
-            fontSize: 14,
-            fontStyle: "italic",
-            fontWeight: 500,
-            letterSpacing: "0.04em",
-            color: "var(--text-secondary, #6B9E96)",
-          }}
-        >
-          Depth Gauge
-        </div>
-
         <DepthGaugeContent wordCount={wordCount} />
       </aside>
 
@@ -502,9 +397,10 @@ export function DepthSidebar({
       <button
         className="fixed bottom-6 left-6 z-50 lg:hidden flex items-center gap-2 px-4 py-2.5 rounded-full"
         style={{
-          background: `linear-gradient(135deg, ${currentLevel.colorPrimaryHex}20, ${currentLevel.colorPrimaryHex}08)`,
-          border: `1px solid ${currentLevel.colorPrimaryHex}30`,
-          boxShadow: `0 4px 24px rgba(0,0,0,0.4), 0 0 12px ${currentLevel.colorPrimaryHex}15`,
+          background: "rgba(6, 15, 15, 0.85)",
+          border: "1px solid rgba(0, 229, 204, 0.25)",
+          boxShadow:
+            "0 4px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(0, 229, 204, 0.1)",
           backdropFilter: "blur(16px)",
         }}
         onClick={() => setMobileOpen(true)}
@@ -513,23 +409,23 @@ export function DepthSidebar({
         <div
           className="w-2.5 h-2.5 rounded-full"
           style={{
-            background: currentLevel.colorPrimaryHex,
-            boxShadow: `0 0 6px ${currentLevel.colorPrimaryHex}80`,
+            background: "#00e5cc",
+            boxShadow: "0 0 6px rgba(0, 229, 204, 0.8)",
           }}
         />
         <span
-          className="text-xs font-medium"
           style={{
-            fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-            color: currentLevel.colorPrimaryHex,
+            fontFamily: "'Inter', system-ui, sans-serif",
+            fontSize: 12,
+            fontWeight: 500,
+            color: "#00e5cc",
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
           }}
         >
           {currentLevel.name}
         </span>
-        <ChevronDown
-          className="w-3 h-3"
-          style={{ color: currentLevel.colorPrimaryHex }}
-        />
+        <ChevronDown className="w-3 h-3" style={{ color: "#00e5cc" }} />
       </button>
 
       {/* Mobile bottom sheet */}
@@ -537,7 +433,6 @@ export function DepthSidebar({
         isOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}
         wordCount={wordCount}
-        currentLevel={currentLevel}
       />
     </>
   );

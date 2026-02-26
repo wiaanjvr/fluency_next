@@ -105,10 +105,80 @@ function DashboardContent({
     <ProgressionProvider initialWordCount={stats.wordsEncountered}>
       <div
         className="dashboard-shell min-h-screen relative"
-        style={{ background: "var(--bg-deep, #020F14)" }}
+        style={{
+          background: `
+            radial-gradient(ellipse 120% 35% at 50% -5%,
+              rgba(20, 80, 100, 0.65) 0%, transparent 65%),
+            radial-gradient(ellipse 60% 50% at 30% 20%,
+              rgba(15, 155, 142, 0.07) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 50% at 70% 25%,
+              rgba(15, 155, 142, 0.05) 0%, transparent 55%),
+            radial-gradient(ellipse at 50% 40%, #082535 0%, #020f14 100%)
+          `,
+        }}
       >
-        {/* Ambient depth background */}
-        <DepthAmbience wordCount={stats.wordsEncountered} />
+        {/* ── Cinematic vignette overlay — darkened edges ── */}
+        <div className="db-vignette" />
+
+        {/* ── Caustic light layer — animated organic blobs ── */}
+        <div className="db-caustic-layer">
+          <div className="db-caustic db-caustic-1" />
+          <div className="db-caustic db-caustic-2" />
+          <div className="db-caustic db-caustic-3" />
+        </div>
+
+        {/* ── Water-surface light rays ── */}
+        <div className="db-ray db-ray-1" />
+        <div className="db-ray db-ray-2" />
+        <div className="db-ray db-ray-3" />
+        <div className="db-ray db-ray-4" />
+        <div className="db-ray db-ray-5" />
+
+        {/* ── Rising bubbles ── */}
+        <div className="db-bubbles">
+          <div className="db-bubble db-bubble-1" />
+          <div className="db-bubble db-bubble-2" />
+          <div className="db-bubble db-bubble-3" />
+          <div className="db-bubble db-bubble-4" />
+          <div className="db-bubble db-bubble-5" />
+        </div>
+
+        {/* Ambient depth background — z-index: 0 */}
+        <div style={{ position: "relative", zIndex: 0 }}>
+          <DepthAmbience wordCount={stats.wordsEncountered} />
+        </div>
+
+        {/* ── Floating underwater light particles — z-index: 0 ── */}
+        {Array.from({ length: 20 }).map((_, i) => {
+          const size = 3 + Math.random() * 5; // 3-8px
+          const left = Math.random() * 100; // 0-100%
+          const dur = 18 + Math.random() * 20; // 18-38s
+          const delay = Math.random() * dur; // staggered
+          const drift = -40 + Math.random() * 80; // wider horizontal drift
+          const opacity = 0.06 + Math.random() * 0.12; // 0.06-0.18
+          const isTeal = Math.random() > 0.25;
+          const color = isTeal
+            ? `rgba(0, 229, 204, ${opacity})`
+            : `rgba(255, 255, 255, ${opacity * 0.6})`;
+          return (
+            <div
+              key={`particle-${i}`}
+              className="underwater-particle"
+              style={
+                {
+                  ["--p-size" as string]: `${size}px`,
+                  ["--p-left" as string]: `${left}%`,
+                  ["--p-dur" as string]: `${dur}s`,
+                  ["--p-delay" as string]: `${delay}s`,
+                  ["--p-drift" as string]: `${drift}px`,
+                  ["--p-color" as string]: color,
+                  ["--p-opacity" as string]: opacity,
+                  ["--p-bottom" as string]: `-${Math.random() * 20}px`,
+                } as React.CSSProperties
+              }
+            />
+          );
+        })}
 
         {/* Depth sidebar — always visible on desktop */}
         <DepthSidebar
@@ -159,9 +229,10 @@ function DashboardContent({
               <div
                 className="glass-card p-4"
                 style={{
-                  background: "rgba(255, 255, 255, 0.03)",
-                  border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
-                  borderRadius: 16,
+                  background: "rgba(4, 24, 36, 0.75)",
+                  border: "1px solid rgba(45, 212, 191, 0.1)",
+                  borderRadius: 20,
+                  backdropFilter: "blur(24px) saturate(180%)",
                 }}
               >
                 <div className="flex items-start gap-3">
@@ -227,9 +298,10 @@ function DashboardContent({
                 <div
                   className="flex items-center gap-2 px-4 py-2 rounded-full"
                   style={{
-                    background: "rgba(255, 255, 255, 0.03)",
+                    background: "rgba(4, 24, 36, 0.6)",
                     border:
-                      "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+                      "1px solid rgba(45, 212, 191, 0.1)",
+                    backdropFilter: "blur(16px)",
                   }}
                 >
                   <Crown
@@ -278,9 +350,10 @@ function DashboardContent({
                   style={{
                     borderRadius: 20,
                     background:
-                      "linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(3, 24, 32, 0.6) 100%)",
+                      "linear-gradient(135deg, rgba(4, 24, 36, 0.6) 0%, rgba(2, 15, 20, 0.8) 100%)",
                     border:
-                      "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
+                      "1px solid rgba(45, 212, 191, 0.08)",
+                    boxShadow: "0 8px 40px rgba(0,0,0,0.3), 0 0 60px rgba(15,155,142,0.03)",
                   }}
                 >
                   <div className="flex items-center justify-between">

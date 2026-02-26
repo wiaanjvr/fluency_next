@@ -70,7 +70,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const Comp = asChild ? Slot : "button";
     const [ripples, setRipples] = React.useState<
-      Array<{ x: number; y: number; id: number }>
+      Array<{ x: number; y: number; size: number; id: number }>
     >([]);
     const buttonRef = React.useRef<HTMLButtonElement | null>(null);
 
@@ -81,12 +81,23 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        const newRipple = { x, y, id: Date.now() };
+        // Calculate the radius needed to reach the farthest corner from the
+        // click point, so the ripple always covers the entire button surface.
+        const size =
+          Math.max(
+            Math.hypot(x, y),
+            Math.hypot(rect.width - x, y),
+            Math.hypot(x, rect.height - y),
+            Math.hypot(rect.width - x, rect.height - y),
+          ) * 2;
+
+        const newRipple = { x, y, size, id: Date.now() };
         setRipples((prev) => [...prev, newRipple]);
 
+        // Remove ripple after animation completes (600ms)
         setTimeout(() => {
           setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-        }, 600);
+        }, 700);
       }
 
       onClick?.(e);
@@ -135,12 +146,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           ripples.map((ripple) => (
             <span
               key={ripple.id}
-              className="absolute rounded-full bg-white/30 pointer-events-none animate-ripple"
+              className="absolute rounded-full pointer-events-none"
               style={{
-                left: ripple.x - 10,
-                top: ripple.y - 10,
-                width: 20,
-                height: 20,
+                left: ripple.x - ripple.size / 2,
+                top: ripple.y - ripple.size / 2,
+                width: ripple.size,
+                height: ripple.size,
+                background: "rgba(255,255,255,0.25)",
+                animation: "btn-ripple 600ms ease-out forwards",
               }}
             />
           ))}
