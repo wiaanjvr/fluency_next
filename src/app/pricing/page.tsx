@@ -1,45 +1,54 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import {
-  Check,
-  ArrowRight,
-  Headphones,
-  Brain,
-  Mic,
-  Crown,
-  Waves,
-  DollarSign,
-  Anchor,
-  Ship,
-  BadgePercent,
-  Menu,
-  X,
-} from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { TIERS, TIER_SLUGS, type TierSlug } from "@/lib/tiers";
 import { useLocation } from "@/contexts/LocationContext";
 
 /* =============================================================================
-   PRICING PAGE - FLUENSEA OCEAN THEME (Three-Tier)
+   PRICING PAGE — FLUENSEA OCEAN DEPTH EXPERIENCE
 
-   Shows Snorkeler (free), Diver (R240), Submariner (R450) side by side.
-   Prices are base ZAR, converted to the user's selected display currency.
+   Fully redesigned to match the immersive ocean-themed landing page.
+   Uses the same lp-* CSS class system, caustic lights, light rays, depth
+   metaphor, and Playfair Display / Inter typography.
 ============================================================================= */
 
-const tierIcons: Record<TierSlug, React.ElementType> = {
-  snorkeler: Waves,
-  diver: Anchor,
-  submariner: Ship,
+/* ---------- Depth-aligned tier naming & metadata ---------- */
+const TIER_META: Record<
+  TierSlug,
+  {
+    depthName: string;
+    depthTag: string;
+    depthIcon: string;
+    zoneBg: string;
+  }
+> = {
+  snorkeler: {
+    depthName: "The Shallows",
+    depthTag: "0 – 10m",
+    depthIcon:
+      "M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 1.3 0 1.9-.5 2.5-1M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.4 2 5 2c1.3 0 1.9-.5 2.5-1M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.4 2 5 2c1.3 0 1.9-.5 2.5-1",
+    zoneBg: "linear-gradient(180deg, #0A3040 0%, #072838 100%)",
+  },
+  diver: {
+    depthName: "The Reef",
+    depthTag: "10 – 100m",
+    depthIcon: "M12 2L12 22M12 22L6 16M12 22L18 16M4 8L20 8",
+    zoneBg: "linear-gradient(180deg, #052030 0%, #041828 100%)",
+  },
+  submariner: {
+    depthName: "The Abyss",
+    depthTag: "100m+",
+    depthIcon:
+      "M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8",
+    zoneBg: "linear-gradient(180deg, #03141E 0%, #020F16 100%)",
+  },
 };
 
 const currencies = [
-  { code: "USD", symbol: "$", name: "US Dollar", icon: DollarSign },
+  { code: "USD", symbol: "$", name: "US Dollar" },
   { code: "EUR", symbol: "\u20ac", name: "Euro" },
   { code: "GBP", symbol: "\u00a3", name: "British Pound" },
   { code: "ZAR", symbol: "R", name: "South African Rand" },
@@ -58,36 +67,198 @@ const moreCurrencies = [
   { code: "HKD", symbol: "$", name: "Hong Kong Dollar" },
 ];
 
-const featureHighlights = [
+const TESTIMONIALS = [
   {
-    icon: Headphones,
-    title: "Immersive Listening",
-    description:
-      "Train your ear with native-paced audio content tailored to your level",
+    name: "Marie Laurent",
+    context: "Learning French → B2",
+    quote:
+      "I went from barely understanding menus to watching French films without subtitles. The depth-based progression made it feel natural, not forced.",
+    initials: "ML",
+    color: "#0D9488",
   },
   {
-    icon: Brain,
-    title: "Intelligent SRS",
-    description: "Our spaced repetition system adapts to your memory patterns",
-  },
-  {
-    icon: Mic,
-    title: "Speech Practice",
-    description: "Perfect your pronunciation with real-time feedback",
+    name: "Kenji Tanaka",
+    context: "Learning Spanish → B1",
+    quote:
+      "Other apps felt like homework. Fluensea feels like discovering something. The spaced repetition keeps everything fresh without the grind.",
+    initials: "KT",
+    color: "#2DD4BF",
   },
 ];
 
+/* ---------- Inline SVG Components ---------- */
+function WaveIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className || "lp-wave-icon"}
+      viewBox="0 0 32 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        className="lp-wave-path lp-wave-1"
+        d="M1 8C4 5 7 5 10 8C13 11 16 11 19 8C22 5 25 5 28 8"
+        stroke="#0D9488"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        className="lp-wave-path lp-wave-2"
+        d="M1 14C4 11 7 11 10 14C13 17 16 17 19 14C22 11 25 11 28 14"
+        stroke="#0D9488"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.5"
+      />
+      <path
+        className="lp-wave-path lp-wave-3"
+        d="M1 20C4 17 7 17 10 20C13 23 16 23 19 20C22 17 25 17 28 20"
+        stroke="#0D9488"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.25"
+      />
+    </svg>
+  );
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  );
+}
+
+/* ---------- FAQ Accordion Item ---------- */
+function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className={`pp-faq-item ${open ? "pp-faq-open" : ""}`}
+      style={{ animationDelay: `${index * 80}ms` }}
+    >
+      <button
+        className="pp-faq-trigger"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        <span className="pp-faq-question">{q}</span>
+        <svg
+          className={`pp-faq-chevron ${open ? "pp-faq-chevron-open" : ""}`}
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <div className={`pp-faq-answer-wrap ${open ? "pp-faq-answer-open" : ""}`}>
+        <p className="pp-faq-answer">{a}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------
+   Mouse follower dot (reuses landing cursor styles)
+   A lightweight lerped follower for desktop that mimics the teal dot
+   on the home page. Added only to client bundle (file is client).
+------------------------------------------------------------------ */
+function MouseFollower() {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const pos = useRef({ x: 0, y: 0 });
+  const target = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    // initialise to center
+    pos.current.x = window.innerWidth / 2;
+    pos.current.y = window.innerHeight / 2;
+    target.current.x = pos.current.x;
+    target.current.y = pos.current.y;
+
+    let raf = 0;
+
+    function onMove(e: MouseEvent) {
+      target.current.x = e.clientX;
+      target.current.y = e.clientY;
+    }
+
+    function animate() {
+      // lerp towards target
+      pos.current.x += (target.current.x - pos.current.x) * 0.18;
+      pos.current.y += (target.current.y - pos.current.y) * 0.18;
+      el!.style.transform = `translate3d(${pos.current.x - 6}px, ${pos.current.y - 6}px, 0)`;
+      raf = requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("mousemove", onMove);
+    raf = requestAnimationFrame(animate);
+
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return <div ref={ref} className="lp-cursor" />;
+}
+
+/* ==========================================================================
+   MAIN PRICING PAGE CONTENT
+   ========================================================================== */
 function PricingPageContent() {
   const searchParams = useSearchParams();
   const currencyParam = searchParams.get("currency");
   const { currencyCode: detectedCurrency, paymentProvider } = useLocation();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
 
   const [selectedCurrency, setSelectedCurrency] = useState(
     currencyParam || "ZAR",
   );
 
-  // Auto-select the detected currency on first load (if no explicit param)
   useEffect(() => {
     if (!currencyParam && detectedCurrency) {
       const allCodes = [...currencies, ...moreCurrencies].map((c) => c.code);
@@ -96,6 +267,7 @@ function PricingPageContent() {
       }
     }
   }, [detectedCurrency, currencyParam]);
+
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
     "monthly",
   );
@@ -105,70 +277,81 @@ function PricingPageContent() {
     GBP: 0.79,
     ZAR: 18.5,
   });
-  const [loadingRates, setLoadingRates] = useState(false);
 
-  // Fetch exchange rates on mount
+  useEffect(() => {
+    const t = setTimeout(() => setHeroLoaded(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+
   useEffect(() => {
     async function fetchRates() {
-      setLoadingRates(true);
       try {
         const response = await fetch(
           "/api/currency/convert?amount=1&from=USD&to=USD",
         );
         if (response.ok) {
           const data = await response.json();
-          if (data.rates) {
-            setExchangeRates(data.rates);
-          }
+          if (data.rates) setExchangeRates(data.rates);
         }
       } catch (error) {
         console.error("Failed to fetch exchange rates:", error);
-      } finally {
-        setLoadingRates(false);
       }
     }
     fetchRates();
   }, []);
 
+  /* --- IntersectionObserver for section reveals --- */
+  useEffect(() => {
+    if (!heroLoaded) return;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const els = document.querySelectorAll(".lp-reveal");
+    if (reduced) {
+      els.forEach((el) => el.classList.add("lp-revealed"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("lp-revealed");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [heroLoaded]);
+
   const isMoreSelected = moreCurrencies.some(
     (c) => c.code === selectedCurrency,
   );
-
-  // SA users pay in ZAR (Paystack); international users pay in USD (Lemon Squeezy)
   const isSA = paymentProvider === "paystack";
 
-  /**
-   * Format a price for the current user:
-   * - SA: convert ZAR base → selected display currency
-   * - International: convert USD base → selected display currency
-   */
   const formatPrice = (zarAmount: number, usdAmount?: number) => {
     if (zarAmount === 0) return "Free";
-
     const allCurrencies = currencies.concat(moreCurrencies);
     const sym =
       allCurrencies.find((c) => c.code === selectedCurrency)?.symbol ||
       selectedCurrency;
-
     if (isSA) {
-      // ZAR base
       if (selectedCurrency === "ZAR") return `R${zarAmount}`;
       const rate = exchangeRates[selectedCurrency] || 1;
       const zarRate = exchangeRates["ZAR"] || 18.5;
       return `${sym}${((zarAmount / zarRate) * rate).toFixed(2)}`;
     } else {
-      // USD base
       const base = usdAmount ?? 0;
       if (base === 0) return "Free";
       if (selectedCurrency === "USD") return `$${base}`;
       const rate = exchangeRates[selectedCurrency] || 1;
       const usdRate = exchangeRates["USD"] || 1;
-      const converted = ((base / usdRate) * rate).toFixed(2);
-      return `${sym}${converted}`;
+      return `${sym}${((base / usdRate) * rate).toFixed(2)}`;
     }
   };
 
-  /** Return the effective { zarAmount, usdAmount } for the current billing cycle. */
   const getEffectivePrice = (tier: (typeof TIERS)[TierSlug]) => {
     if (billingCycle === "annual") {
       return {
@@ -176,13 +359,9 @@ function PricingPageContent() {
         usdAmount: tier.annualPriceUSD ?? tier.priceUSD ?? 0,
       };
     }
-    return {
-      zarAmount: tier.priceZAR,
-      usdAmount: tier.priceUSD ?? 0,
-    };
+    return { zarAmount: tier.priceZAR, usdAmount: tier.priceUSD ?? 0 };
   };
 
-  /** Return the annual saving vs monthly for a paid tier. */
   const getAnnualSaving = (tier: (typeof TIERS)[TierSlug]) => {
     if (isSA) {
       if (!tier.annualPriceZAR || tier.priceZAR === 0) return 0;
@@ -193,548 +372,8 @@ function PricingPageContent() {
     }
   };
 
-  return (
-    <main className="bg-background text-foreground antialiased min-h-screen">
-      {/* ========== NAVIGATION ========== */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-background/80 border-b border-ocean-turquoise/10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 rounded-lg overflow-hidden transition-all duration-500 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(42,169,160,0.3)] bg-background/90 border-b border-ocean-turquoise/20 flex items-center justify-center">
-                <Image
-                  src="/logo.png"
-                  alt="Fluensea Logo"
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 object-contain"
-                  priority
-                />
-              </div>
-              <span className="text-lg font-medium text-gradient-turquoise">
-                Fluensea
-              </span>
-            </Link>
-
-            {/* Desktop nav */}
-            <div className="hidden sm:flex items-center gap-6">
-              <Link
-                href="/"
-                className="text-sm font-medium text-muted-foreground hover:text-ocean-turquoise transition-colors duration-300"
-              >
-                Home
-              </Link>
-              <Link href="/auth/login">
-                <Button variant="ghost" size="sm">
-                  Sign in
-                </Button>
-              </Link>
-              <Link href="/auth/signup">
-                <Button size="sm" className="rounded-full px-5 font-medium">
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setMobileOpen((o) => !o)}
-              className="sm:hidden min-h-touch min-w-[44px] flex items-center justify-center rounded-xl text-muted-foreground hover:text-ocean-turquoise transition-colors"
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </button>
-          </div>
-
-          {/* Mobile dropdown */}
-          {mobileOpen && (
-            <div className="sm:hidden border-t border-ocean-turquoise/10 py-4 flex flex-col gap-1 animate-in fade-in slide-in-from-top-2 duration-200">
-              <Link
-                href="/"
-                onClick={() => setMobileOpen(false)}
-                className="px-3 py-3 min-h-touch flex items-center rounded-xl text-sm font-medium text-muted-foreground hover:text-ocean-turquoise hover:bg-ocean-turquoise/5 transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                href="/auth/login"
-                onClick={() => setMobileOpen(false)}
-                className="px-3 py-3 min-h-touch flex items-center rounded-xl text-sm font-medium text-muted-foreground hover:text-ocean-turquoise hover:bg-ocean-turquoise/5 transition-colors"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/auth/signup"
-                onClick={() => setMobileOpen(false)}
-                className="mt-1"
-              >
-                <Button size="sm" className="w-full rounded-full font-medium">
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-          )}
-        </div>
-      </nav>
-
-      {/* ========== HERO SECTION ========== */}
-      <section className="relative min-h-[70vh] flex items-center justify-center px-6 pt-16 overflow-hidden">
-        {/* Ocean ambient background */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-ocean-turquoise/[0.05] rounded-full blur-[120px] animate-pulse-glow" />
-          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-ocean-teal/[0.06] rounded-full blur-[100px]" />
-          <div className="absolute top-2/3 right-1/3 w-[300px] h-[300px] bg-ocean-turquoise/[0.03] rounded-full blur-[80px] animate-float" />
-        </div>
-
-        <div className="max-w-4xl mx-auto text-center">
-          <ScrollReveal delay={100}>
-            <p className="text-overline text-ocean-turquoise mb-8">
-              Simple, Transparent Pricing
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={200}>
-            <h1 className="text-display-xl leading-[1.1] mb-10">
-              Choose your
-              <br />
-              <span className="font-serif italic text-gradient-turquoise">
-                depth.
-              </span>
-            </h1>
-          </ScrollReveal>
-
-          <ScrollReveal delay={400}>
-            <p className="text-body-lg text-muted-foreground max-w-xl mx-auto mb-14 leading-relaxed">
-              From the shallows to the abyss — pick a plan that matches your
-              commitment to fluency.
-            </p>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ========== PRICING SECTION ========== */}
-      <section className="px-6 pb-16">
-        <div className="max-w-6xl mx-auto">
-          {/* Billing toggle + Currency Selection */}
-          <ScrollReveal>
-            <div className="mb-16 flex flex-col items-center gap-6">
-              {/* Monthly / Annual toggle */}
-              <div className="inline-flex items-center bg-muted/30 backdrop-blur-lg rounded-full p-1.5 gap-1 border border-white/[0.06]">
-                <button
-                  onClick={() => setBillingCycle("monthly")}
-                  className={`px-5 py-2 min-h-touch rounded-full text-sm font-light transition-all duration-200 ${
-                    billingCycle === "monthly"
-                      ? "bg-background shadow-sm text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  onClick={() => setBillingCycle("annual")}
-                  className={`px-5 py-2 min-h-touch rounded-full text-sm font-light transition-all duration-200 flex items-center gap-1.5 ${
-                    billingCycle === "annual"
-                      ? "bg-background shadow-sm text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Annual
-                  <span className="text-[10px] font-medium bg-ocean-turquoise/20 text-ocean-turquoise px-1.5 py-0.5 rounded-full">
-                    2 months free
-                  </span>
-                </button>
-              </div>
-
-              {/* Currency Selection */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <div className="flex items-center gap-2">
-                  {currencies.map((currency) => (
-                    <button
-                      key={currency.code}
-                      onClick={() => setSelectedCurrency(currency.code)}
-                      className={`px-3 py-1.5 text-sm font-light rounded-lg transition-all duration-300 ${
-                        selectedCurrency === currency.code
-                          ? "bg-ocean-turquoise/20 text-ocean-turquoise border border-ocean-turquoise/30"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                      }`}
-                      title={currency.name}
-                    >
-                      {currency.code}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Dropdown for more currencies */}
-                <div className="relative">
-                  <select
-                    className="px-3 py-1.5 text-sm font-light rounded-lg border border-ocean-turquoise/30 bg-background text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ocean-turquoise"
-                    value={isMoreSelected ? selectedCurrency : "MORE"}
-                    onChange={(e) => setSelectedCurrency(e.target.value)}
-                  >
-                    <option value="MORE" disabled>
-                      More...
-                    </option>
-                    {moreCurrencies.map((currency) => (
-                      <option key={currency.code} value={currency.code}>
-                        {currency.code} - {currency.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </ScrollReveal>
-
-          {/* 3-column tier cards */}
-          <div className="grid md:grid-cols-3 gap-8">
-            {TIER_SLUGS.map((slug, index) => {
-              const tier = TIERS[slug];
-              const TierIcon = tierIcons[slug];
-              const isRecommended = tier.recommended;
-              const {
-                zarAmount: effectivePriceZAR,
-                usdAmount: effectivePriceUSD,
-              } = getEffectivePrice(tier);
-              const saving = getAnnualSaving(tier);
-              const savingSymbol = isSA ? "R" : "$";
-
-              return (
-                <ScrollReveal key={slug} delay={500 + index * 150}>
-                  <div
-                    className={`relative h-full rounded-3xl border-[1.5px] p-8 md:p-10 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] backdrop-blur-lg ${
-                      isRecommended
-                        ? "bg-ocean-teal/10 border-ocean-turquoise/50 shadow-[0_0_60px_rgba(42,169,160,0.1)]"
-                        : "bg-card/80 border-white/[0.06] hover:border-ocean-teal/30 shadow-elevation-1 hover:shadow-elevation-2 hover:-translate-y-1"
-                    }`}
-                  >
-                    {/* Recommended Badge */}
-                    {isRecommended && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                        <div className="flex items-center gap-1.5 bg-ocean-turquoise text-ocean-midnight px-4 py-1.5 rounded-full text-sm font-medium shadow-[0_0_20px_rgba(42,169,160,0.3)]">
-                          <Crown className="w-3.5 h-3.5" />
-                          Recommended
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Plan Header */}
-                    <div className="mb-8 flex items-center gap-3">
-                      <div
-                        className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-transform duration-300 hover:scale-110 ${
-                          isRecommended
-                            ? "bg-ocean-turquoise/20"
-                            : "bg-ocean-teal/20"
-                        }`}
-                      >
-                        <TierIcon
-                          className={`w-5 h-5 ${
-                            isRecommended
-                              ? "text-ocean-turquoise"
-                              : "text-ocean-teal"
-                          }`}
-                        />
-                      </div>
-                      <div>
-                        <h3 className="text-subheading">{tier.displayName}</h3>
-                        <p className="text-caption text-muted-foreground">
-                          {tier.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Price */}
-                    <div className="mb-8">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-5xl font-light">
-                          {formatPrice(effectivePriceZAR, effectivePriceUSD)}
-                        </span>
-                        {tier.priceZAR > 0 && (
-                          <span className="text-muted-foreground font-light">
-                            {billingCycle === "annual" ? "/year" : "/month"}
-                          </span>
-                        )}
-                      </div>
-                      {tier.priceZAR > 0 &&
-                        billingCycle === "annual" &&
-                        saving > 0 && (
-                          <div className="flex items-center gap-1 mt-2">
-                            <BadgePercent className="w-3.5 h-3.5 text-ocean-turquoise" />
-                            <p className="text-xs font-medium text-ocean-turquoise">
-                              Save {savingSymbol}
-                              {saving} vs monthly
-                            </p>
-                          </div>
-                        )}
-                      {tier.priceZAR > 0 &&
-                        isSA &&
-                        selectedCurrency !== "ZAR" && (
-                          <p className="text-xs text-muted-foreground font-light mt-1">
-                            R{effectivePriceZAR}/
-                            {billingCycle === "annual" ? "year" : "month"}{" "}
-                            charged in ZAR
-                          </p>
-                        )}
-                      {tier.priceUSD && !isSA && selectedCurrency !== "USD" && (
-                        <p className="text-xs text-muted-foreground font-light mt-1">
-                          ${effectivePriceUSD}/
-                          {billingCycle === "annual" ? "year" : "month"} charged
-                          in USD
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Features */}
-                    <div className="space-y-4 mb-10">
-                      {tier.featureList.map((feature, i) => (
-                        <div key={i} className="flex items-start gap-3">
-                          <div
-                            className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                              isRecommended
-                                ? "bg-ocean-turquoise/20"
-                                : "bg-ocean-teal/20"
-                            }`}
-                          >
-                            <Check
-                              className={`w-3 h-3 ${
-                                isRecommended
-                                  ? "text-ocean-turquoise"
-                                  : "text-ocean-teal"
-                              }`}
-                            />
-                          </div>
-                          <span className="text-sm font-light">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* CTA Button */}
-                    <TierCTAButton
-                      tier={tier}
-                      selectedCurrency={selectedCurrency}
-                      billingCycle={billingCycle}
-                      paymentProvider={paymentProvider}
-                    />
-                  </div>
-                </ScrollReveal>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ========== FEATURES SECTION ========== */}
-      <section className="py-32 px-6 bg-muted/20">
-        <div className="max-w-5xl mx-auto">
-          <ScrollReveal>
-            <p className="text-overline text-muted-foreground mb-6 text-center">
-              What You Get
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={100}>
-            <h2 className="text-display-md text-center mb-16">
-              Dive deeper,{" "}
-              <span className="font-serif italic text-ocean-turquoise">
-                learn faster
-              </span>
-            </h2>
-          </ScrollReveal>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {featureHighlights.map((feature, index) => (
-              <ScrollReveal key={index} delay={200 + index * 100}>
-                <div className="text-center bg-card/60 backdrop-blur-lg rounded-3xl p-8 border border-white/[0.06] shadow-elevation-1 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-elevation-2">
-                  <div className="w-14 h-14 bg-ocean-teal/20 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform duration-300 hover:scale-110">
-                    <feature.icon className="w-6 h-6 text-ocean-turquoise" />
-                  </div>
-                  <h3 className="text-subheading mb-3">{feature.title}</h3>
-                  <p className="text-body text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ========== FAQ SECTION ========== */}
-      <section className="py-40 px-6">
-        <div className="max-w-3xl mx-auto">
-          <ScrollReveal>
-            <p className="text-overline text-muted-foreground mb-6 text-center">
-              Questions
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={100}>
-            <h2 className="text-display-md text-center mb-20">
-              Frequently asked
-            </h2>
-          </ScrollReveal>
-
-          <div className="space-y-8">
-            {[
-              {
-                q: "What is your refund policy?",
-                a: "If you're not satisfied with your Diver or Submariner subscription, you can request a full refund within 7 days of subscribing. Simply contact us or cancel from your settings page.",
-              },
-              {
-                q: "When will I be charged?",
-                a: "You'll be charged immediately when you subscribe. However, you have 7 days to request a full refund if you're not satisfied.",
-              },
-              {
-                q: "Can I upgrade from Diver to Submariner?",
-                a: "Yes! You can upgrade at any time from your settings page. Your new plan starts immediately.",
-              },
-              {
-                q: "What happens to my progress if I downgrade?",
-                a: "Your progress is always saved. If you downgrade, you'll keep access to your learned vocabulary and can continue with the Snorkeler plan's daily limits.",
-              },
-              {
-                q: "Can I use Fluensea on mobile and desktop?",
-                a: "Yes! Fluensea is fully responsive and works great on all devices. Your progress syncs automatically.",
-              },
-              {
-                q: "How do I cancel my subscription?",
-                a: "You can cancel anytime from your account settings. Your access will continue until the end of your billing period.",
-              },
-              {
-                q: "Which languages can I learn using Fluensea?",
-                a: "French, German and Italian are currently available, with more languages being added regularly.",
-              },
-              {
-                q: "Is my payment information secure?",
-                a: "Yes, all payments are processed securely via Paystack (for South African users) or Lemon Squeezy (for international users). We never store your card details.",
-              },
-              {
-                q: "How do I contact support?",
-                a: "You can reach our support team anytime via the contact page. We're here to help!",
-              },
-            ].map((faq, index) => (
-              <ScrollReveal key={index} delay={200 + index * 80}>
-                <div className="border-b border-white/[0.06] pb-8">
-                  <h3 className="text-subheading mb-3">{faq.q}</h3>
-                  <p className="text-body text-muted-foreground leading-relaxed">
-                    {faq.a}
-                  </p>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ========== CTA SECTION ========== */}
-      <section className="py-40 px-6 bg-ocean-teal/10 relative overflow-hidden">
-        {/* Ambient glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-ocean-turquoise/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="max-w-3xl mx-auto text-center relative z-10">
-          <ScrollReveal>
-            <h2 className="text-display-md mb-8">
-              Ready to become{" "}
-              <span className="font-serif italic text-ocean-turquoise">
-                fluent?
-              </span>
-            </h2>
-          </ScrollReveal>
-
-          <ScrollReveal delay={100}>
-            <p className="text-body-lg text-muted-foreground mb-12 max-w-xl mx-auto">
-              Join learners committed to building fluency through discipline and
-              consistent practice.
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={200}>
-            <Link href="/auth/signup">
-              <Button
-                size="lg"
-                className="bg-ocean-turquoise text-ocean-midnight hover:bg-ocean-turquoise/90 h-14 px-10 text-base font-medium rounded-full group shadow-[0_0_30px_rgba(42,169,160,0.3)] hover:shadow-[0_0_40px_rgba(42,169,160,0.4)] transition-all duration-500"
-              >
-                Start learning free
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
-              </Button>
-            </Link>
-          </ScrollReveal>
-
-          <ScrollReveal delay={300}>
-            <p className="text-caption text-muted-foreground/60 mt-8">
-              No credit card required
-            </p>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ========== FOOTER ========== */}
-      <footer className="py-20 px-6 border-t border-ocean-turquoise/10">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-ocean-turquoise to-ocean-teal flex items-center justify-center">
-              <Waves className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-caption text-muted-foreground">
-              &copy; {new Date().getFullYear()} Fluensea. All rights reserved.
-            </span>
-          </div>
-          <div className="flex items-center gap-6 text-caption text-muted-foreground">
-            <Link
-              href="/terms"
-              className="hover:text-ocean-turquoise transition-colors duration-300"
-            >
-              Terms
-            </Link>
-            <Link
-              href="/privacy"
-              className="hover:text-ocean-turquoise transition-colors duration-300"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/contact"
-              className="hover:text-ocean-turquoise transition-colors duration-300"
-            >
-              Contact
-            </Link>
-          </div>
-        </div>
-      </footer>
-    </main>
-  );
-}
-
-/* ========== TIER CTA BUTTON ========== */
-function TierCTAButton({
-  tier,
-  selectedCurrency,
-  billingCycle,
-  paymentProvider,
-}: {
-  tier: (typeof TIERS)[TierSlug];
-  selectedCurrency: string;
-  billingCycle: "monthly" | "annual";
-  paymentProvider: "paystack" | "lemonsqueezy";
-}) {
-  const router = useRouter();
-
-  if (tier.slug === "snorkeler") {
-    return (
-      <Link href="/auth/signup" className="block">
-        <Button
-          variant="accent"
-          size="lg"
-          className="w-full h-12 font-medium rounded-full"
-        >
-          {tier.cta}
-        </Button>
-      </Link>
-    );
-  }
-
-  const handleCheckout = () => {
+  const handleCheckout = (tier: (typeof TIERS)[TierSlug]) => {
+    if (tier.slug === "snorkeler") return;
     const params = new URLSearchParams({
       tier: tier.slug,
       currency: selectedCurrency,
@@ -748,25 +387,672 @@ function TierCTAButton({
   const isLemonSqueezy = paymentProvider === "lemonsqueezy";
 
   return (
-    <div className="space-y-4">
-      <Button
-        size="lg"
-        onClick={handleCheckout}
-        className={`w-full h-12 font-medium rounded-full group ${
-          tier.recommended ? "" : "bg-ocean-teal hover:bg-ocean-teal/90"
-        }`}
-      >
-        {tier.cta}
-        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-      </Button>
-      <p className="text-xs text-muted-foreground text-center">
-        {isLemonSqueezy ? "Powered by Lemon Squeezy" : "Powered by Paystack"}
-        {isLemonSqueezy && <span className="block mt-1">Charged in USD</span>}
-        <span className="block mt-1 font-medium text-ocean-turquoise">
-          7-day money-back guarantee
-        </span>
-      </p>
-    </div>
+    <main className={`lp-root pp-root ${heroLoaded ? "lp-hero-loaded" : ""}`}>
+      <MouseFollower />
+      {/* ============================================================
+          NAVIGATION — same frosted-glass bar as home page
+          ============================================================ */}
+      <nav className="lp-nav">
+        <div className="lp-nav-inner">
+          <Link href="/" className="lp-nav-brand">
+            <WaveIcon />
+            <span className="lp-brand-text">
+              Fluen<span className="lp-brand-serif">sea</span>
+            </span>
+          </Link>
+
+          <div className="lp-nav-links">
+            <Link href="/" className="lp-nav-link">
+              Home
+            </Link>
+            <Link href="/auth/login" className="lp-nav-link">
+              Sign in
+            </Link>
+            <Link href="/auth/signup" className="lp-nav-cta">
+              Sign Up
+            </Link>
+          </div>
+
+          <button
+            onClick={() => setMobileOpen((o) => !o)}
+            className="lp-mobile-toggle"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            ) : (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        {mobileOpen && (
+          <div className="lp-mobile-menu">
+            <Link
+              href="/"
+              onClick={() => setMobileOpen(false)}
+              className="lp-mobile-link"
+            >
+              Home
+            </Link>
+            <Link
+              href="/auth/login"
+              onClick={() => setMobileOpen(false)}
+              className="lp-mobile-link"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/auth/signup"
+              onClick={() => setMobileOpen(false)}
+              className="lp-mobile-cta"
+            >
+              Sign Up
+            </Link>
+          </div>
+        )}
+      </nav>
+
+      {/* ============================================================
+          HERO SECTION — "Choose your depth."
+          Full underwater atmosphere with caustics, rays, bubbles
+          ============================================================ */}
+      <section className="pp-hero">
+        {/* Caustic light patterns — lower opacity than home */}
+        <div className="lp-caustic-layer" aria-hidden="true">
+          <div className="lp-caustic lp-caustic-1 pp-caustic-dim" />
+          <div className="lp-caustic lp-caustic-2 pp-caustic-dim" />
+          <div className="lp-caustic lp-caustic-3 pp-caustic-dim" />
+          <div className="lp-ray lp-ray-1 pp-ray-dim" />
+          <div className="lp-ray lp-ray-2 pp-ray-dim" />
+          <div className="lp-ray lp-ray-3 pp-ray-dim" />
+          <div className="lp-ray lp-ray-4 pp-ray-dim" />
+          <div className="lp-ray lp-ray-5 pp-ray-dim" />
+        </div>
+
+        {/* Rising bubbles */}
+        <div className="lp-bubbles" aria-hidden="true">
+          <div className="lp-bubble lp-bubble-1" />
+          <div className="lp-bubble lp-bubble-2" />
+          <div className="lp-bubble lp-bubble-3" />
+        </div>
+
+        {/* Depth-level indicator (side decoration) */}
+        <div className="pp-depth-gauge" aria-hidden="true">
+          <div className="pp-depth-gauge-line" />
+          <span className="pp-depth-gauge-label" style={{ top: "10%" }}>
+            SURFACE
+          </span>
+          <span className="pp-depth-gauge-label" style={{ top: "45%" }}>
+            REEF
+          </span>
+          <span className="pp-depth-gauge-label" style={{ top: "85%" }}>
+            ABYSS
+          </span>
+        </div>
+
+        <div className="pp-hero-content">
+          <p className="lp-hero-overline">SIMPLE, TRANSPARENT PRICING</p>
+
+          <h1 className="lp-hero-headline">
+            Choose your <br />
+            <em className="lp-hero-brand">depth.</em>
+          </h1>
+
+          <p className="lp-hero-sub pp-hero-sub">
+            From the shallows to the abyss &mdash; pick a plan that matches your
+            commitment to fluency.
+          </p>
+        </div>
+
+        <div className="lp-hero-vignette" aria-hidden="true" />
+      </section>
+
+      {/* ============================================================
+          SOCIAL PROOF TRUST BAR
+          ============================================================ */}
+      <section className="lp-social-strip lp-reveal">
+        <div className="lp-marquee">
+          <div className="lp-marquee-inner">
+            {[1, 2].map((set) => (
+              <div key={set} className="lp-marquee-set">
+                <span className="lp-tele-item">
+                  ACTIVE_DIVERS<span className="lp-tele-value"> 1,200</span>
+                </span>
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+                <span className="lp-tele-item">
+                  SESSIONS_LOGGED<span className="lp-tele-value"> 50,000</span>
+                </span>
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+                <span className="lp-tele-item">
+                  LANGUAGES<span className="lp-tele-value"> 12</span>
+                </span>
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+                <span className="lp-tele-item">
+                  AVG_RATING<span className="lp-tele-value"> 4.9&#x2605;</span>
+                </span>
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+                <span className="lp-tele-item">
+                  WEEK_1_RETENTION<span className="lp-tele-value"> 92%</span>
+                </span>
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+                <span className="lp-tele-item">
+                  METHOD<span className="lp-tele-value"> IMMERSION</span>
+                </span>
+                <span className="lp-tele-sep">&nbsp;//&nbsp;</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          BILLING CONTROLS — glass container
+          ============================================================ */}
+      <section className="pp-controls lp-reveal">
+        <div className="pp-controls-inner">
+          {/* Monthly / Annual toggle */}
+          <div className="pp-billing-toggle">
+            <button
+              onClick={() => setBillingCycle("monthly")}
+              className={`pp-billing-btn ${billingCycle === "monthly" ? "pp-billing-active" : ""}`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingCycle("annual")}
+              className={`pp-billing-btn ${billingCycle === "annual" ? "pp-billing-active" : ""}`}
+            >
+              Annual
+              <span className="pp-savings-badge">2 months free</span>
+            </button>
+          </div>
+
+          {/* Currency pills */}
+          <div className="pp-currency-row">
+            {currencies.map((currency) => (
+              <button
+                key={currency.code}
+                onClick={() => setSelectedCurrency(currency.code)}
+                className={`pp-currency-pill ${selectedCurrency === currency.code ? "pp-currency-active" : ""}`}
+                title={currency.name}
+              >
+                {currency.code}
+              </button>
+            ))}
+            <select
+              className="pp-currency-more"
+              value={isMoreSelected ? selectedCurrency : "MORE"}
+              onChange={(e) => setSelectedCurrency(e.target.value)}
+            >
+              <option value="MORE" disabled>
+                More…
+              </option>
+              {moreCurrencies.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code} – {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          PRICING CARDS — depth-themed, with visual journey
+          ============================================================ */}
+      <section className="pp-cards-section">
+        <div className="pp-cards-grid">
+          {TIER_SLUGS.map((slug, index) => {
+            const tier = TIERS[slug];
+            const meta = TIER_META[slug];
+            const isRecommended = tier.recommended;
+            const isPremium = slug === "submariner";
+            const isFree = slug === "snorkeler";
+            const {
+              zarAmount: effectivePriceZAR,
+              usdAmount: effectivePriceUSD,
+            } = getEffectivePrice(tier);
+            const saving = getAnnualSaving(tier);
+            const savingSymbol = isSA ? "R" : "$";
+
+            return (
+              <div
+                key={slug}
+                className={`pp-card lp-reveal ${
+                  isRecommended ? "pp-card-featured" : ""
+                } ${isPremium ? "pp-card-premium" : ""} ${
+                  isFree ? "pp-card-free" : ""
+                }`}
+                style={{ animationDelay: `${index * 150}ms` }}
+              >
+                {/* Animated border glow for featured card */}
+                {isRecommended && (
+                  <div className="pp-card-glow" aria-hidden="true" />
+                )}
+
+                {/* Recommended badge */}
+                {isRecommended && (
+                  <div className="pp-badge-wrap">
+                    <span className="pp-badge">MOST POPULAR</span>
+                  </div>
+                )}
+
+                {/* Card header with depth icon */}
+                <div className="pp-card-header">
+                  <div
+                    className={`pp-card-icon ${isRecommended ? "pp-card-icon-rec" : ""} ${isPremium ? "pp-card-icon-prem" : ""}`}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d={meta.depthIcon} />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="pp-card-tier">{meta.depthName}</h3>
+                    <span className="pp-card-depth">{meta.depthTag}</span>
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div className="pp-card-price">
+                  <span className="pp-price-amount">
+                    {formatPrice(effectivePriceZAR, effectivePriceUSD)}
+                  </span>
+                  {tier.priceZAR > 0 && (
+                    <span className="pp-price-period">
+                      /{billingCycle === "annual" ? "year" : "month"}
+                    </span>
+                  )}
+                </div>
+
+                {tier.priceZAR > 0 &&
+                  billingCycle === "annual" &&
+                  saving > 0 && (
+                    <div className="pp-card-saving">
+                      Save {savingSymbol}
+                      {saving} vs monthly
+                    </div>
+                  )}
+
+                {tier.priceZAR > 0 && isSA && selectedCurrency !== "ZAR" && (
+                  <p className="pp-card-charge-note">
+                    R{effectivePriceZAR}/
+                    {billingCycle === "annual" ? "year" : "month"} charged in
+                    ZAR
+                  </p>
+                )}
+                {tier.priceUSD && !isSA && selectedCurrency !== "USD" && (
+                  <p className="pp-card-charge-note">
+                    ${effectivePriceUSD}/
+                    {billingCycle === "annual" ? "year" : "month"} charged in
+                    USD
+                  </p>
+                )}
+
+                {/* Description */}
+                <p className="pp-card-desc">{tier.description}</p>
+
+                {/* Features */}
+                <ul className="pp-card-features">
+                  {tier.featureList.map((feature, i) => (
+                    <li key={i} className="pp-feature-item">
+                      <span
+                        className={`pp-feature-check ${isPremium || isRecommended ? "pp-check-teal" : ""}`}
+                      >
+                        <CheckIcon />
+                      </span>
+                      <span className="pp-feature-text">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* CTA Button */}
+                {isFree ? (
+                  <Link href="/auth/signup" className="pp-cta-btn pp-cta-ghost">
+                    {tier.cta}
+                  </Link>
+                ) : isPremium ? (
+                  <button
+                    onClick={() => handleCheckout(tier)}
+                    className="pp-cta-btn pp-cta-premium"
+                  >
+                    {tier.cta}
+                    <ArrowRightIcon className="pp-cta-arrow" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleCheckout(tier)}
+                    className="pp-cta-btn pp-cta-solid"
+                  >
+                    {tier.cta}
+                    <ArrowRightIcon className="pp-cta-arrow" />
+                  </button>
+                )}
+
+                {tier.priceZAR > 0 && (
+                  <p className="pp-card-guarantee">
+                    {isLemonSqueezy
+                      ? "Powered by Lemon Squeezy · "
+                      : "Powered by Paystack · "}
+                    <span className="pp-guarantee-highlight">
+                      7-day money-back guarantee
+                    </span>
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ============================================================
+          LANGUAGE TICKER — ambient atmospheric divider
+          ============================================================ */}
+      <section className="pp-ticker lp-reveal">
+        <div className="lp-marquee">
+          <div className="lp-marquee-inner pp-ticker-inner">
+            {[1, 2].map((set) => (
+              <div key={set} className="lp-marquee-set pp-ticker-set">
+                <span className="pp-ticker-word">Bonjour</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">Guten Tag</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">Buongiorno</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">Merci</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">Danke</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">Grazie</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">Bonsoir</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">Auf Wiedersehen</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">Arrivederci</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">S&rsquo;il vous plaît</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">Bitte</span>
+                <span className="pp-ticker-dot">·</span>
+                <span className="pp-ticker-word">Per favore</span>
+                <span className="pp-ticker-dot">·</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          FEATURES — "What paid plans unlock"
+          ============================================================ */}
+      <section className="pp-features lp-reveal">
+        <p className="lp-section-label">WHAT DIVER & ABYSS UNLOCK</p>
+        <h2 className="lp-section-headline">
+          Go beyond the <span className="lp-highlight">shallows</span>.
+        </h2>
+
+        <div className="pp-features-grid">
+          {[
+            {
+              icon: "M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8",
+              title: "Immersive Listening",
+              desc: "Unlimited native-paced audio content tailored to your exact level",
+              free: "3 sessions/day",
+              paid: "Unlimited",
+            },
+            {
+              icon: "M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z",
+              title: "Intelligent SRS",
+              desc: "Advanced spaced repetition that adapts to your unique memory patterns",
+              free: "Basic SRS",
+              paid: "AI-powered SRS",
+            },
+            {
+              icon: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+              title: "AI Conversation Feedback",
+              desc: "Real-time pronunciation scoring and conversation practice with AI",
+              free: "—",
+              paid: "Full access",
+            },
+          ].map((feat, i) => (
+            <div key={i} className="pp-feature-card lp-reveal">
+              <div className="pp-feature-card-icon">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d={feat.icon} />
+                </svg>
+              </div>
+              <h3 className="pp-feature-card-title">{feat.title}</h3>
+              <p className="pp-feature-card-desc">{feat.desc}</p>
+              <div className="pp-feature-comparison">
+                <div className="pp-feature-comp-row">
+                  <span className="pp-comp-label">Shallows</span>
+                  <span className="pp-comp-value pp-comp-free">
+                    {feat.free}
+                  </span>
+                </div>
+                <div className="pp-feature-comp-row">
+                  <span className="pp-comp-label">Reef & Abyss</span>
+                  <span className="pp-comp-value pp-comp-paid">
+                    {feat.paid}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ============================================================
+          TESTIMONIALS — social proof near decision point
+          ============================================================ */}
+      <section className="pp-testimonials lp-reveal">
+        <p className="lp-section-label">WHAT DIVERS SAY</p>
+        <h2 className="lp-section-headline">
+          Stories from the <span className="lp-highlight">deep</span>.
+        </h2>
+
+        <div className="pp-testimonials-grid">
+          {TESTIMONIALS.map((t, i) => (
+            <div key={i} className="lp-testimonial-card lp-reveal">
+              <div className="lp-testimonial-header">
+                <div
+                  className="lp-testimonial-avatar"
+                  style={{ background: t.color }}
+                >
+                  {t.initials}
+                </div>
+                <div>
+                  <p className="lp-testimonial-name">{t.name}</p>
+                  <p className="lp-testimonial-context">{t.context}</p>
+                </div>
+              </div>
+              <p className="lp-testimonial-quote">&ldquo;{t.quote}&rdquo;</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ============================================================
+          FAQ — glass-container accordion
+          ============================================================ */}
+      <section className="pp-faq lp-reveal">
+        <p className="lp-section-label">QUESTIONS</p>
+        <h2 className="lp-section-headline">
+          Frequently <span className="lp-highlight">asked</span>.
+        </h2>
+
+        <div className="pp-faq-container">
+          {[
+            {
+              q: "What is your refund policy?",
+              a: "If you're not satisfied with your subscription, you can request a full refund within 7 days of subscribing. Simply contact us or cancel from your settings page.",
+            },
+            {
+              q: "When will I be charged?",
+              a: "You'll be charged immediately when you subscribe. However, you have 7 days to request a full refund if you're not satisfied.",
+            },
+            {
+              q: "Can I upgrade from The Reef to The Abyss?",
+              a: "Yes! You can upgrade at any time from your settings page. Your new plan starts immediately.",
+            },
+            {
+              q: "What happens to my progress if I downgrade?",
+              a: "Your progress is always saved. If you downgrade, you'll keep access to your learned vocabulary and can continue with The Shallows plan's daily limits.",
+            },
+            {
+              q: "Can I use Fluensea on mobile and desktop?",
+              a: "Yes! Fluensea is fully responsive and works great on all devices. Your progress syncs automatically.",
+            },
+            {
+              q: "How do I cancel my subscription?",
+              a: "You can cancel anytime from your account settings. Your access will continue until the end of your billing period.",
+            },
+            {
+              q: "Which languages can I learn?",
+              a: "French, German and Italian are currently available, with more languages being added regularly.",
+            },
+            {
+              q: "Is my payment information secure?",
+              a: "Yes, all payments are processed securely via Paystack (for South African users) or Lemon Squeezy (for international users). We never store your card details.",
+            },
+          ].map((faq, index) => (
+            <FAQItem key={index} q={faq.q} a={faq.a} index={index} />
+          ))}
+        </div>
+      </section>
+
+      {/* ============================================================
+          FINAL CTA — "Ready to dive deeper?"
+          ============================================================ */}
+      <section className="pp-final-cta lp-reveal">
+        <div className="pp-final-glow" aria-hidden="true" />
+        <div className="pp-final-caustic" aria-hidden="true" />
+
+        <h2 className="lp-final-headline">
+          Ready to dive <br />
+          <em className="lp-final-brand">deeper?</em>
+        </h2>
+
+        <p className="lp-final-sub">
+          Leave the shallows behind. Your next level of fluency awaits beneath
+          the surface.
+        </p>
+
+        <Link href="/auth/signup" className="lp-cta-primary lp-cta-large">
+          Begin your descent
+          <ArrowRightIcon />
+        </Link>
+
+        <p className="pp-final-trust">No credit card required</p>
+      </section>
+
+      {/* ============================================================
+          FOOTER — wave divider + matching home page footer
+          ============================================================ */}
+      <div className="lp-footer-wave" aria-hidden="true">
+        <svg viewBox="0 0 1440 48" preserveAspectRatio="none" fill="none">
+          <path
+            d="M0 24C80 8 160 40 240 24C320 8 400 40 480 24C560 8 640 40 720 24C800 8 880 40 960 24C1040 8 1120 40 1200 24C1280 8 1360 40 1440 24"
+            stroke="rgba(13,148,136,0.12)"
+            strokeWidth="1"
+            fill="none"
+          >
+            <animate
+              attributeName="d"
+              dur="4s"
+              repeatCount="indefinite"
+              values="M0 24C80 8 160 40 240 24C320 8 400 40 480 24C560 8 640 40 720 24C800 8 880 40 960 24C1040 8 1120 40 1200 24C1280 8 1360 40 1440 24;M0 24C80 16 160 32 240 24C320 16 400 32 480 24C560 16 640 32 720 24C800 16 880 32 960 24C1040 16 1120 32 1200 24C1280 16 1360 32 1440 24;M0 24C80 8 160 40 240 24C320 8 400 40 480 24C560 8 640 40 720 24C800 8 880 40 960 24C1040 8 1120 40 1200 24C1280 8 1360 40 1440 24"
+            />
+          </path>
+        </svg>
+      </div>
+
+      <footer className="lp-footer">
+        <div className="lp-footer-inner">
+          <div className="lp-footer-brand">
+            <WaveIcon />
+            <span className="lp-footer-name">Fluensea</span>
+            <p className="lp-footer-tagline">Surface with confidence.</p>
+          </div>
+          <div className="lp-footer-links">
+            <Link href="/about">About</Link>
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/support">Support</Link>
+            <Link href="/privacy">Privacy</Link>
+          </div>
+          <div className="lp-footer-social">
+            <a href="#" aria-label="Twitter">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </a>
+            <a href="#" aria-label="GitHub">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div className="lp-footer-bottom">
+          <p>
+            &copy; {new Date().getFullYear()} Fluensea &mdash; Surface with
+            confidence.
+          </p>
+        </div>
+      </footer>
+    </main>
   );
 }
 

@@ -1693,6 +1693,932 @@
 }
 
 /* =====================================================================
+   PRICING PAGE — Ocean Depth Experience
+   Immersive pricing page matching the home page's underwater atmosphere.
+   All classes prefixed pp- (pricing page).
+   ===================================================================== */
+
+/* --- Root scope for pricing page --- */
+.pp-root {
+  --lp-bg: #020f14;
+  --lp-surface: #041824;
+  --lp-shallow: #052030;
+  --lp-deep: #03141e;
+  --lp-accent: #0f9b8e;
+  --lp-glow: #2dd4bf;
+  --lp-text: #f0fdfa;
+  --lp-text-secondary: #94a3b8;
+  --lp-footer: #010c10;
+  background: var(--lp-bg);
+  color: var(--lp-text);
+  font-family:
+    "Inter",
+    -apple-system,
+    system-ui,
+    sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Hero section — underwater atmosphere --- */
+.pp-hero {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 96px 24px 0;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      ellipse 120% 35% at 50% -5%,
+      rgba(20, 80, 100, 0.5) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 30% 20%,
+      rgba(15, 155, 142, 0.05) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 70% 25%,
+      rgba(15, 155, 142, 0.04) 0%,
+      transparent 55%
+    ),
+    radial-gradient(ellipse at 50% 40%, #082535 0%, #020f14 100%);
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.lp-hero-loaded .pp-hero,
+.pp-root.lp-hero-loaded .pp-hero {
+  opacity: 1;
+}
+
+/* Dim caustic/rays on pricing (60% of home page opacity) */
+.pp-caustic-dim {
+  opacity: 0.6;
+}
+
+.pp-ray-dim {
+  opacity: 0.5;
+}
+
+/* Hero content */
+.pp-hero-content {
+  text-align: center;
+  position: relative;
+  z-index: 3;
+  max-width: 900px;
+}
+
+.pp-hero-sub {
+  max-width: 520px;
+}
+
+/* Depth gauge decoration (left side of hero) */
+.pp-depth-gauge {
+  position: absolute;
+  left: 48px;
+  top: 15%;
+  bottom: 15%;
+  width: 60px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.pp-depth-gauge-line {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(45, 212, 191, 0.05) 0%,
+    rgba(13, 148, 136, 0.25) 30%,
+    rgba(13, 148, 136, 0.25) 70%,
+    rgba(45, 212, 191, 0.05) 100%
+  );
+}
+
+.pp-depth-gauge-label {
+  position: absolute;
+  right: 14px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: rgba(148, 163, 184, 0.3);
+  text-transform: uppercase;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+/* --- Billing Controls — glassmorphism container --- */
+.pp-controls {
+  padding: 32px 24px 0;
+  display: flex;
+  justify-content: center;
+  background: var(--lp-surface);
+}
+
+.pp-controls-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.pp-billing-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 9999px;
+}
+
+.pp-billing-btn {
+  padding: 10px 24px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--lp-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s var(--lp-ease);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.pp-billing-active {
+  background: rgba(13, 148, 136, 0.12);
+  color: var(--lp-text);
+  box-shadow: 0 0 20px rgba(13, 148, 136, 0.08);
+}
+
+.pp-savings-badge {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: #020f14;
+  white-space: nowrap;
+  animation: ppSavingsPulse 3s ease-in-out infinite;
+}
+
+@keyframes ppSavingsPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.4);
+  }
+}
+
+.pp-currency-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pp-currency-pill {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: var(--lp-text-secondary);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: all 0.2s var(--lp-ease);
+}
+
+.pp-currency-pill:hover {
+  border-color: rgba(13, 148, 136, 0.3);
+  color: var(--lp-text);
+}
+
+.pp-currency-active {
+  background: rgba(13, 148, 136, 0.15);
+  border-color: rgba(13, 148, 136, 0.4);
+  color: var(--lp-glow);
+}
+
+.pp-currency-more {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--lp-text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: all 0.2s var(--lp-ease);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.pp-currency-more:focus {
+  outline: none;
+  border-color: rgba(13, 148, 136, 0.4);
+}
+
+/* --- Pricing Cards — depth-themed visual journey --- */
+.pp-cards-section {
+  padding: 64px 24px 80px;
+  background: var(--lp-surface);
+}
+
+.pp-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.pp-card {
+  position: relative;
+  border-radius: 20px;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.4s var(--lp-ease);
+  overflow: hidden;
+}
+
+/* The Shallows — lightest, most transparent */
+.pp-card-free {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pp-card-free:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-4px);
+}
+
+/* The Reef (featured/recommended) — mid-depth with animated glow border */
+.pp-card-featured {
+  background:
+    linear-gradient(rgba(4, 24, 36, 0.95), rgba(4, 24, 36, 0.95)) padding-box,
+    linear-gradient(
+        145deg,
+        rgba(13, 148, 136, 0.8) 0%,
+        rgba(45, 212, 191, 0.55) 35%,
+        rgba(13, 148, 136, 0.2) 65%,
+        rgba(45, 212, 191, 0.6) 100%
+      )
+      border-box;
+  border: 1.5px solid transparent;
+  box-shadow:
+    0 0 60px rgba(13, 148, 136, 0.15),
+    0 0 120px rgba(13, 148, 136, 0.06),
+    inset 0 1px 0 rgba(45, 212, 191, 0.06);
+  transform: scale(1.03);
+  z-index: 2;
+  padding: 48px 36px;
+}
+
+.pp-card-featured:hover {
+  box-shadow:
+    0 0 80px rgba(13, 148, 136, 0.22),
+    0 0 160px rgba(13, 148, 136, 0.1),
+    inset 0 1px 0 rgba(45, 212, 191, 0.08);
+}
+
+/* Animated border glow for featured card */
+.pp-card-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 22px;
+  background: conic-gradient(
+    from 0deg,
+    rgba(13, 148, 136, 0) 0deg,
+    rgba(45, 212, 191, 0.5) 60deg,
+    rgba(13, 148, 136, 0) 120deg,
+    rgba(13, 148, 136, 0) 180deg,
+    rgba(45, 212, 191, 0.3) 270deg,
+    rgba(13, 148, 136, 0) 360deg
+  );
+  animation: ppBorderGlow 6s linear infinite;
+  z-index: -1;
+  filter: blur(3px);
+}
+
+@keyframes ppBorderGlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* The Abyss (premium) — darkest, deepest */
+.pp-card-premium {
+  background: linear-gradient(
+    180deg,
+    rgba(3, 14, 22, 0.97) 0%,
+    rgba(2, 10, 16, 0.99) 100%
+  );
+  border: 1px solid rgba(13, 148, 136, 0.2);
+  box-shadow:
+    0 0 40px rgba(13, 148, 136, 0.08),
+    inset 0 1px 0 rgba(45, 212, 191, 0.04);
+}
+
+.pp-card-premium:hover {
+  border-color: rgba(13, 148, 136, 0.35);
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 60px rgba(13, 148, 136, 0.15),
+    inset 0 1px 0 rgba(45, 212, 191, 0.06);
+}
+
+/* Badge */
+.pp-badge-wrap {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+.pp-badge {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  background: var(--lp-accent);
+  color: #020f14;
+  border-radius: 9999px;
+  white-space: nowrap;
+  box-shadow: 0 0 24px rgba(13, 148, 136, 0.4);
+}
+
+/* Card header */
+.pp-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.pp-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(13, 148, 136, 0.08);
+  border: 1px solid rgba(13, 148, 136, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lp-accent);
+  flex-shrink: 0;
+  transition: transform 0.3s var(--lp-ease);
+}
+
+.pp-card-icon:hover {
+  transform: scale(1.1);
+}
+
+.pp-card-icon-rec {
+  background: rgba(13, 148, 136, 0.15);
+  border-color: rgba(45, 212, 191, 0.3);
+  color: var(--lp-glow);
+}
+
+.pp-card-icon-prem {
+  background: rgba(13, 148, 136, 0.1);
+  border-color: rgba(13, 148, 136, 0.25);
+  color: var(--lp-glow);
+}
+
+.pp-card-tier {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--lp-text);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.pp-card-depth {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--lp-accent);
+  display: block;
+  margin-top: 2px;
+}
+
+/* Price */
+.pp-card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.pp-price-amount {
+  font-size: 2.8rem;
+  font-weight: 300;
+  color: var(--lp-text);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.pp-price-period {
+  font-size: 0.85rem;
+  color: var(--lp-text-secondary);
+  font-weight: 400;
+}
+
+.pp-card-saving {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--lp-glow);
+  margin-bottom: 8px;
+}
+
+.pp-card-charge-note {
+  font-size: 0.7rem;
+  color: var(--lp-text-secondary);
+  margin: 0 0 4px;
+  opacity: 0.7;
+}
+
+.pp-card-desc {
+  font-size: 0.85rem;
+  color: var(--lp-text-secondary);
+  margin: 12px 0 24px;
+  line-height: 1.5;
+}
+
+/* Features list */
+.pp-card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.pp-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pp-feature-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(13, 148, 136, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--lp-text-secondary);
+}
+
+.pp-check-teal {
+  background: rgba(13, 148, 136, 0.15);
+  color: var(--lp-glow);
+}
+
+.pp-feature-text {
+  font-size: 0.875rem;
+  color: var(--lp-text-secondary);
+  line-height: 1.5;
+}
+
+/* CTA Buttons */
+.pp-cta-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s var(--lp-ease);
+  text-decoration: none;
+  border: none;
+  white-space: nowrap;
+}
+
+/* Ghost btn — for free tier (Shallows) */
+.pp-cta-ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--lp-text);
+}
+
+.pp-cta-ghost:hover {
+  border-color: rgba(45, 212, 191, 0.4);
+  box-shadow: 0 0 20px rgba(45, 212, 191, 0.15);
+}
+
+/* Solid teal — for featured tier (Reef) */
+.pp-cta-solid {
+  background: var(--lp-accent);
+  color: #020f14;
+}
+
+.pp-cta-solid:hover {
+  box-shadow:
+    0 0 40px rgba(13, 148, 136, 0.25),
+    0 0 80px rgba(13, 148, 136, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Premium gold accent — for Abyss tier */
+.pp-cta-premium {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: #020f14;
+}
+
+.pp-cta-premium:hover {
+  box-shadow:
+    0 0 40px rgba(245, 158, 11, 0.25),
+    0 0 80px rgba(245, 158, 11, 0.1);
+  transform: translateY(-2px);
+}
+
+.pp-cta-arrow {
+  transition: transform 0.3s var(--lp-ease);
+}
+
+.pp-cta-btn:hover .pp-cta-arrow {
+  transform: translateX(4px);
+}
+
+.pp-card-guarantee {
+  font-size: 0.7rem;
+  color: var(--lp-text-secondary);
+  text-align: center;
+  margin-top: 16px;
+  opacity: 0.7;
+}
+
+.pp-guarantee-highlight {
+  color: var(--lp-glow);
+  font-weight: 500;
+}
+
+/* --- Language ticker divider --- */
+.pp-ticker {
+  padding: 20px 0;
+  background: rgba(2, 15, 20, 0.85);
+  border-top: 1px solid rgba(13, 148, 136, 0.06);
+  border-bottom: 1px solid rgba(13, 148, 136, 0.06);
+  overflow: hidden;
+}
+
+.pp-ticker-inner {
+  animation-duration: 40s;
+}
+
+.pp-ticker-set {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding-right: 0;
+}
+
+.pp-ticker-word {
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-size: 1.3rem;
+  color: rgba(240, 253, 250, 0.12);
+  padding: 0 28px;
+  white-space: nowrap;
+}
+
+.pp-ticker-dot {
+  font-size: 0.8rem;
+  color: rgba(13, 148, 136, 0.2);
+}
+
+/* --- Features section — what paid tiers unlock --- */
+.pp-features {
+  padding: 100px 24px;
+  background: var(--lp-shallow);
+}
+
+.pp-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.pp-feature-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 36px 28px;
+  transition: all 0.25s var(--lp-ease);
+  position: relative;
+}
+
+.pp-feature-card:hover {
+  border-color: rgba(13, 148, 136, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+/* Gradient border on hover */
+.pp-feature-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 17px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(13, 148, 136, 0) 0%,
+    rgba(45, 212, 191, 0.3) 50%,
+    rgba(13, 148, 136, 0) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s var(--lp-ease);
+  pointer-events: none;
+}
+
+.pp-feature-card:hover::before {
+  opacity: 1;
+}
+
+.pp-feature-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(13, 148, 136, 0.1);
+  border: 1px solid rgba(13, 148, 136, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lp-accent);
+  margin-bottom: 20px;
+  animation: ppIconPulse 4s ease-in-out infinite;
+}
+
+@keyframes ppIconPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(13, 148, 136, 0);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(13, 148, 136, 0.15);
+  }
+}
+
+.pp-feature-card:nth-child(2) .pp-feature-card-icon {
+  animation-delay: 1.3s;
+}
+
+.pp-feature-card:nth-child(3) .pp-feature-card-icon {
+  animation-delay: 2.6s;
+}
+
+.pp-feature-card-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--lp-text);
+  margin: 0 0 8px;
+}
+
+.pp-feature-card-desc {
+  font-size: 0.875rem;
+  color: var(--lp-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.pp-feature-comparison {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pp-feature-comp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pp-comp-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lp-text-secondary);
+}
+
+.pp-comp-value {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.pp-comp-free {
+  color: var(--lp-text-secondary);
+}
+
+.pp-comp-paid {
+  color: var(--lp-glow);
+}
+
+/* --- Testimonials on pricing page --- */
+.pp-testimonials {
+  padding: 80px 24px;
+  background: var(--lp-deep);
+}
+
+.pp-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* --- FAQ — glass container accordion --- */
+.pp-faq {
+  padding: 100px 24px;
+  background: linear-gradient(180deg, var(--lp-deep) 0%, #020c12 100%);
+}
+
+.pp-faq-container {
+  max-width: 720px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 8px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.pp-faq-item {
+  border-radius: 14px;
+  transition: all 0.25s var(--lp-ease);
+  overflow: hidden;
+}
+
+.pp-faq-item + .pp-faq-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.pp-faq-open {
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 2px solid var(--lp-accent);
+}
+
+.pp-faq-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s var(--lp-ease);
+}
+
+.pp-faq-trigger:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pp-faq-question {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--lp-text);
+  line-height: 1.4;
+}
+
+.pp-faq-chevron {
+  color: var(--lp-text-secondary);
+  flex-shrink: 0;
+  transition: transform 0.3s var(--lp-ease);
+}
+
+.pp-faq-chevron-open {
+  transform: rotate(180deg);
+  color: var(--lp-accent);
+}
+
+.pp-faq-answer-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s var(--lp-ease);
+}
+
+.pp-faq-answer-open {
+  max-height: 300px;
+}
+
+.pp-faq-answer {
+  padding: 0 24px 20px;
+  font-size: 0.875rem;
+  color: var(--lp-text-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* --- Final CTA — underwater atmosphere --- */
+.pp-final-cta {
+  position: relative;
+  padding: 140px 24px;
+  text-align: center;
+  overflow: hidden;
+  background: linear-gradient(180deg, #020c12 0%, var(--lp-footer) 100%);
+}
+
+.pp-final-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(13, 148, 136, 0.1) 0%,
+    transparent 65%
+  );
+  pointer-events: none;
+}
+
+.pp-final-caustic {
+  position: absolute;
+  top: 30%;
+  left: 40%;
+  width: 30vw;
+  height: 25vw;
+  border-radius: 55% 45% 60% 40%;
+  background: rgba(15, 155, 142, 0.04);
+  filter: blur(60px);
+  animation: lpCaustic3 14s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.pp-final-trust {
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.4);
+  margin-top: 20px;
+}
+
+/* =====================================================================
    RESPONSIVE — stack at 768px
    ===================================================================== */
 @media (max-width: 768px) {
@@ -1771,6 +2697,67 @@
     grid-template-columns: 44px 20px 1fr;
     gap: 0 10px;
   }
+
+  /* Pricing page responsive */
+  .pp-depth-gauge {
+    display: none;
+  }
+
+  .pp-hero {
+    min-height: 70vh;
+    padding: 80px 16px 0;
+  }
+
+  .pp-cards-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin: 0 auto;
+    gap: 20px;
+  }
+
+  .pp-card-featured {
+    transform: none;
+    order: -1;
+  }
+
+  .pp-controls-inner {
+    padding: 16px 20px;
+  }
+
+  .pp-billing-btn {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+
+  .pp-features-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .pp-testimonials-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .pp-faq-container {
+    padding: 4px;
+  }
+
+  .pp-faq-trigger {
+    padding: 16px 16px;
+  }
+
+  .pp-faq-answer {
+    padding: 0 16px 16px;
+  }
+
+  .pp-cta-btn {
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 /* =====================================================================
@@ -1831,6 +2818,37 @@
 
   .lp-testimonial-card,
   .lp-testimonial-card::before {
+    transition: none !important;
+  }
+
+  /* Pricing page reduced motion */
+  .pp-hero {
+    opacity: 1 !important;
+    transition: none !important;
+  }
+
+  .pp-card-glow {
+    animation: none !important;
+    display: none;
+  }
+
+  .pp-savings-badge {
+    animation: none !important;
+  }
+
+  .pp-feature-card-icon {
+    animation: none !important;
+  }
+
+  .pp-final-caustic {
+    animation: none !important;
+  }
+
+  .pp-faq-chevron {
+    transition: none !important;
+  }
+
+  .pp-faq-answer-wrap {
     transition: none !important;
   }
 }
