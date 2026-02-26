@@ -44,39 +44,49 @@ const ACTIVITY_META: Record<
   conversation: { icon: MessageCircle, label: "Live Conversation" },
 };
 
-function getDepthMessage(words: number): { heading: string; sub: string } {
+function getDepthMessage(words: number): {
+  heading: string;
+  headingEmphasis?: string;
+  sub: string;
+} {
   if (words === 0) {
     return {
-      heading: "Let\u2019s find your depth",
+      heading: "Let\u2019s find your",
+      headingEmphasis: "depth",
       sub: "Listen. Echo. Let the language wash over you.",
     };
   }
   if (words < 50) {
     return {
-      heading: "Let\u2019s find your depth",
+      heading: "Let\u2019s find your",
+      headingEmphasis: "depth",
       sub: "Words are taking shape beneath the surface.",
     };
   }
   if (words < 150) {
     return {
-      heading: "Phrases are forming",
+      heading: "Phrases are",
+      headingEmphasis: "forming",
       sub: "Sentences begin to connect. Keep listening.",
     };
   }
   if (words < 300) {
     return {
-      heading: "Stories await",
+      heading: "Stories",
+      headingEmphasis: "await",
       sub: "Your vocabulary is deep enough for narratives.",
     };
   }
   if (words < 500) {
     return {
-      heading: "The current carries you",
+      heading: "The current",
+      headingEmphasis: "carries you",
       sub: "Full stories, natural speed. You belong here.",
     };
   }
   return {
-    heading: "Deep immersion",
+    heading: "Deep",
+    headingEmphasis: "immersion",
     sub: "The language moves through you now.",
   };
 }
@@ -133,8 +143,6 @@ export function NextLessonHero({
 
   const depthMeters = getDepthMeters(wordsAbsorbed);
   const zoneProgress = getZoneProgress(wordsAbsorbed);
-  const circumference = 2 * Math.PI * 54; // radius 54
-  const strokeOffset = circumference - (zoneProgress / 100) * circumference;
 
   return (
     <div
@@ -258,29 +266,49 @@ export function NextLessonHero({
             </>
           )}
 
-          {/* Fallback state */}
+          {/* Fallback state — editorial typography with italic serif emphasis */}
           {!isLoading && (error || !recommendation) && (
             <>
               <h2
                 style={{
-                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                  fontSize: "clamp(1.6rem, 2.5vw, 2.2rem)",
-                  fontWeight: 600,
+                  fontSize: "clamp(1.6rem, 2.5vw, 2.4rem)",
+                  fontWeight: 300,
                   color: "var(--text-primary, #F0FDFA)",
                   lineHeight: 1.15,
                   margin: 0,
                 }}
               >
-                {fallbackMessage.heading}
+                <span
+                  style={{
+                    fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                    fontWeight: 300,
+                  }}
+                >
+                  {fallbackMessage.heading}{" "}
+                </span>
+                {fallbackMessage.headingEmphasis && (
+                  <em
+                    style={{
+                      fontFamily:
+                        "var(--font-editorial, 'Cormorant Garamond', serif)",
+                      fontWeight: 500,
+                      fontStyle: "italic",
+                      color: "var(--text-primary, #F0FDFA)",
+                    }}
+                  >
+                    {fallbackMessage.headingEmphasis}
+                  </em>
+                )}
               </h2>
               <p
                 style={{
                   fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                   fontSize: 16,
+                  fontWeight: 300,
                   color: "var(--text-secondary, #7BA8A0)",
                   margin: 0,
                   maxWidth: 400,
-                  lineHeight: 1.5,
+                  lineHeight: 1.6,
                 }}
               >
                 {fallbackMessage.sub}
@@ -382,46 +410,96 @@ export function NextLessonHero({
         </div>
 
         {/* Right content — Depth gauge circle + floating word chips */}
-        <div className="hidden md:flex flex-col items-center gap-4 relative">
-          {/* Circular depth gauge */}
+        <div className="hidden md:flex flex-col items-center gap-5 relative">
+          {/* Circular depth gauge with sonar rings */}
           <div
+            className="depth-gauge-pulse"
             style={{
               position: "relative",
-              width: 140,
-              height: 140,
+              width: 160,
+              height: 160,
               flexShrink: 0,
             }}
           >
             <svg
-              width="140"
-              height="140"
-              viewBox="0 0 140 140"
+              width="160"
+              height="160"
+              viewBox="0 0 160 160"
               style={{ transform: "rotate(-90deg)" }}
             >
-              {/* Outer ring */}
+              {/* Sonar ping rings */}
               <circle
-                cx="70"
-                cy="70"
-                r="54"
+                className="sonar-ring"
+                cx="80"
+                cy="80"
+                r="60"
+                fill="none"
+                stroke="rgba(13, 148, 136, 0.12)"
+                strokeWidth="1"
+              />
+              <circle
+                className="sonar-ring"
+                cx="80"
+                cy="80"
+                r="60"
+                fill="none"
+                stroke="rgba(13, 148, 136, 0.08)"
+                strokeWidth="1"
+              />
+              <circle
+                className="sonar-ring"
+                cx="80"
+                cy="80"
+                r="60"
+                fill="none"
+                stroke="rgba(13, 148, 136, 0.05)"
+                strokeWidth="1"
+              />
+              {/* Outer concentric ring */}
+              <circle
+                cx="80"
+                cy="80"
+                r="68"
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.03)"
+                strokeWidth="1"
+              />
+              {/* Main track ring */}
+              <circle
+                cx="80"
+                cy="80"
+                r="60"
                 fill="none"
                 stroke="rgba(255, 255, 255, 0.06)"
                 strokeWidth="3"
               />
               {/* Progress arc */}
               <circle
-                cx="70"
-                cy="70"
-                r="54"
+                cx="80"
+                cy="80"
+                r="60"
                 fill="none"
                 stroke="var(--teal-dim, rgba(13, 148, 136, 0.5))"
                 strokeWidth="3"
                 strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeOffset}
+                strokeDasharray={2 * Math.PI * 60}
+                strokeDashoffset={
+                  2 * Math.PI * 60 - (zoneProgress / 100) * 2 * Math.PI * 60
+                }
                 style={{
                   transition:
                     "stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                  filter: "drop-shadow(0 0 4px rgba(13, 148, 136, 0.3))",
                 }}
+              />
+              {/* Inner subtle ring */}
+              <circle
+                cx="80"
+                cy="80"
+                r="52"
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.03)"
+                strokeWidth="1"
               />
             </svg>
             {/* Center text */}
@@ -438,7 +516,7 @@ export function NextLessonHero({
               <span
                 style={{
                   fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  fontSize: 28,
+                  fontSize: 32,
                   fontWeight: 500,
                   color: "var(--text-primary, #F0FDFA)",
                   lineHeight: 1,
@@ -461,7 +539,7 @@ export function NextLessonHero({
             </div>
           </div>
 
-          {/* Floating word chips with label */}
+          {/* Floating word chips with glass-morphism */}
           <div className="flex flex-col items-center gap-2">
             <span
               style={{
@@ -475,26 +553,32 @@ export function NextLessonHero({
               TODAY&apos;S WORDS
             </span>
             <div className="flex flex-wrap gap-2 justify-center">
-            {["lumière", "mer", "vague"].map((word, i) => (
-              <span
-                key={word}
-                style={{
-                  display: "inline-block",
-                  padding: "4px 12px",
-                  borderRadius: 20,
-                  background: "rgba(255, 255, 255, 0.025)",
-                  border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
-                  fontFamily: "var(--font-display, 'Playfair Display', serif)",
-                  fontSize: 12,
-                  fontStyle: "italic",
-                  color: "var(--text-secondary, #6B9E96)",
-                  letterSpacing: "0.03em",
-                  animation: `chipFloat ${4 + i * 0.5}s ease-in-out ${i * 0.8}s infinite`,
-                }}
-              >
-                {word}
-              </span>
-            ))}
+              {["lumière", "mer", "vague"].map((word, i) => (
+                <span
+                  key={word}
+                  className="floating-chip"
+                  style={{
+                    display: "inline-block",
+                    padding: "5px 14px",
+                    borderRadius: 20,
+                    background: "rgba(255, 255, 255, 0.04)",
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    boxShadow:
+                      "0 2px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06)",
+                    fontFamily:
+                      "var(--font-display, 'Playfair Display', serif)",
+                    fontSize: 13,
+                    fontStyle: "italic",
+                    color: "var(--text-secondary, #6B9E96)",
+                    letterSpacing: "0.03em",
+                    animation: `chipFloat ${4 + i * 0.5}s ease-in-out ${i * 0.8}s infinite`,
+                  }}
+                >
+                  {word}
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -509,6 +593,37 @@ export function NextLessonHero({
           }
           50% {
             transform: translateY(-5px);
+          }
+        }
+        .depth-gauge-pulse {
+          animation: depthBreathe 6s ease-in-out infinite;
+        }
+        @keyframes depthBreathe {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.015);
+          }
+        }
+        .sonar-ring:nth-child(1) {
+          animation: sonarExpand 4s ease-out 0s infinite;
+        }
+        .sonar-ring:nth-child(2) {
+          animation: sonarExpand 4s ease-out 1.3s infinite;
+        }
+        .sonar-ring:nth-child(3) {
+          animation: sonarExpand 4s ease-out 2.6s infinite;
+        }
+        @keyframes sonarExpand {
+          0% {
+            r: 60;
+            opacity: 0.15;
+          }
+          100% {
+            r: 78;
+            opacity: 0;
           }
         }
       `}</style>

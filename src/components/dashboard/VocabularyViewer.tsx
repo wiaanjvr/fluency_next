@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { UserWord } from "@/types";
 import {
@@ -212,14 +213,27 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         <div className="flex items-center gap-3">
           <h2
             style={{
-              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
               fontSize: 20,
-              fontWeight: 600,
+              fontWeight: 300,
               color: "var(--text-primary, #F0FDFA)",
               margin: 0,
             }}
           >
-            Vocabulary
+            <span
+              style={{ fontFamily: "var(--font-inter, 'Inter', sans-serif)" }}
+            >
+              Your{" "}
+            </span>
+            <em
+              style={{
+                fontFamily:
+                  "var(--font-editorial, 'Cormorant Garamond', serif)",
+                fontWeight: 500,
+                fontStyle: "italic",
+              }}
+            >
+              Vocabulary
+            </em>
           </h2>
           {/* Count chip */}
           <span
@@ -257,7 +271,10 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
               )}
               style={{
                 borderRadius: 8,
-                border: viewMode === mode ? "1px solid var(--border-dim, rgba(255,255,255,0.07))" : "none",
+                border:
+                  viewMode === mode
+                    ? "1px solid var(--border-dim, rgba(255,255,255,0.07))"
+                    : "none",
                 cursor: "pointer",
                 background:
                   viewMode === mode
@@ -432,25 +449,38 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         </div>
       </div>
 
-      {/* ── ROW 3: Scrollable word list ── */}
+      {/* ── ROW 3: Scrollable word list with animated transitions ── */}
       <div
         className="dashboard-scroll overflow-y-auto overflow-x-hidden"
         style={{
           maxHeight: 520,
-          borderRadius: 14,
+          borderRadius: 16,
           border: "1px solid rgba(255, 255, 255, 0.04)",
           background: "rgba(2, 15, 20, 0.4)",
         }}
       >
-        {viewMode === "list" && (
-          <VocabularyListView words={paginatedWords} language={language} />
-        )}
-        {viewMode === "network" && (
-          <VocabularyNetworkView words={paginatedWords} language={language} />
-        )}
-        {viewMode === "cards" && (
-          <VocabularyCardView words={paginatedWords} language={language} />
-        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={viewMode}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            {viewMode === "list" && (
+              <VocabularyListView words={paginatedWords} language={language} />
+            )}
+            {viewMode === "network" && (
+              <VocabularyNetworkView
+                words={paginatedWords}
+                language={language}
+              />
+            )}
+            {viewMode === "cards" && (
+              <VocabularyCardView words={paginatedWords} language={language} />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -77,7 +77,7 @@ export function DashboardRightPanel({
 }: RightPanelProps) {
   return (
     <aside
-      className="hidden xl:flex flex-col gap-4 p-4 fixed right-0"
+      className="hidden xl:flex flex-col gap-5 p-5 fixed right-0"
       style={{
         top: 64,
         width: 280,
@@ -90,9 +90,9 @@ export function DashboardRightPanel({
     >
       {/* ── Current Session Card ── */}
       <div
-        className="glass-card flex flex-col gap-4 p-5"
+        className="glass-card flex flex-col gap-4 p-6"
         style={{
-          borderRadius: 14,
+          borderRadius: 16,
           background: "var(--bg-surface, #031820)",
           border: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
         }}
@@ -185,7 +185,12 @@ export function DashboardRightPanel({
           <div className="flex items-center gap-1.5">
             <Flame
               className="w-3 h-3"
-              style={{ color: "var(--text-muted, #2E5C54)" }}
+              style={{
+                color:
+                  streak > 0
+                    ? "var(--biolum-orange, #D4A056)"
+                    : "var(--text-muted, #2E5C54)",
+              }}
             />
             <span
               style={{
@@ -194,7 +199,7 @@ export function DashboardRightPanel({
                 color: "var(--text-secondary, #7BA8A0)",
               }}
             >
-              {streak}d streak
+              {streak > 0 ? `${streak}d streak` : "Day 1 \u2014 begin"}
             </span>
           </div>
         </div>
@@ -203,11 +208,13 @@ export function DashboardRightPanel({
       {/* ── Word Spotlight Card ── */}
       {spotlightWord && (
         <div
-          className="glass-card flex flex-col gap-3 p-5"
+          className="spotlight-card glass-card flex flex-col gap-4 p-6"
           style={{
-            borderRadius: 14,
+            borderRadius: 16,
             background: "var(--bg-surface, #031820)",
             border: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
           <h3
@@ -225,11 +232,11 @@ export function DashboardRightPanel({
           </h3>
 
           {/* Word */}
-          <div>
+          <div className="spotlight-word">
             <span
               style={{
                 fontFamily: "var(--font-display, 'Playfair Display', serif)",
-                fontSize: 22,
+                fontSize: 24,
                 fontWeight: 600,
                 fontStyle: "italic",
                 color: "var(--text-primary, #F0FDFA)",
@@ -265,19 +272,19 @@ export function DashboardRightPanel({
             {spotlightWord.translation}
           </div>
 
-          {/* Example sentence */}
+          {/* Example sentence — candlelight underwater warmth */}
           {spotlightWord.example && (
             <div
               style={{
-                padding: "8px 12px",
-                borderRadius: 10,
-                background: "transparent",
-                borderLeft: "2px solid var(--border-dim, rgba(255,255,255,0.07))",
+                padding: "10px 14px",
+                borderRadius: 12,
+                background: "rgba(212, 160, 86, 0.03)",
+                borderLeft: "2px solid rgba(212, 160, 86, 0.2)",
                 fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                 fontSize: 12,
                 fontStyle: "italic",
-                color: "var(--text-muted, #2E5C54)",
-                lineHeight: 1.5,
+                color: "var(--text-warm, #c8b89a)",
+                lineHeight: 1.6,
               }}
             >
               {spotlightWord.example}
@@ -306,11 +313,13 @@ export function DashboardRightPanel({
               width: "100%",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "var(--teal-border, rgba(13,148,136,0.2))";
+              e.currentTarget.style.borderColor =
+                "var(--teal-border, rgba(13,148,136,0.2))";
               e.currentTarget.style.color = "var(--text-primary, #EDF6F4)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "var(--border-dim, rgba(255,255,255,0.07))";
+              e.currentTarget.style.borderColor =
+                "var(--border-dim, rgba(255,255,255,0.07))";
               e.currentTarget.style.color = "var(--text-secondary, #6B9E96)";
             }}
           >
@@ -321,11 +330,11 @@ export function DashboardRightPanel({
         </div>
       )}
 
-      {/* ── Quick Stats Placeholder ── */}
+      {/* ── This Week — with sparkline ── */}
       <div
-        className="glass-card flex flex-col gap-2 p-4 mt-auto"
+        className="glass-card flex flex-col gap-3 p-5 mt-auto"
         style={{
-          borderRadius: 14,
+          borderRadius: 16,
           background: "var(--bg-surface, #031820)",
           border: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
         }}
@@ -362,6 +371,29 @@ export function DashboardRightPanel({
           >
             words absorbed
           </span>
+        </div>
+
+        {/* Mini sparkline — 7-day activity bars */}
+        <div
+          className="flex items-end gap-1"
+          style={{ height: 24, marginTop: 4 }}
+        >
+          {[0.3, 0.5, 0.7, 0.4, 0.9, 0.6, 1.0].map((h, i) => (
+            <div
+              key={i}
+              className="sparkline-bar"
+              style={{
+                flex: 1,
+                height: `${h * 100}%`,
+                borderRadius: 2,
+                background:
+                  i === 6
+                    ? "var(--teal-dim, rgba(13, 148, 136, 0.5))"
+                    : "rgba(255, 255, 255, 0.06)",
+                transition: "height 0.6s ease",
+              }}
+            />
+          ))}
         </div>
       </div>
     </aside>

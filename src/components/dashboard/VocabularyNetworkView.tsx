@@ -174,7 +174,7 @@ export function VocabularyNetworkView({
           className="relative overflow-hidden rounded-xl"
           style={{
             background:
-              "linear-gradient(180deg, rgba(2,55,90,0.60) 0%, rgba(5,14,50,0.80) 100%)",
+              "linear-gradient(180deg, rgba(2,55,90,0.60) 0%, rgba(3,24,42,0.70) 50%, rgba(5,14,50,0.80) 100%)",
           }}
         >
           <svg
@@ -200,7 +200,27 @@ export function VocabularyNetworkView({
                 <stop offset="0%" stopColor="#818cf8" stopOpacity="0.15" />
                 <stop offset="100%" stopColor="#818cf8" stopOpacity="0" />
               </radialGradient>
+              {/* Depth caustic overlay filter */}
+              <filter id="caustic-noise">
+                <feTurbulence
+                  type="fractalNoise"
+                  baseFrequency="0.015"
+                  numOctaves="2"
+                />
+                <feDisplacementMap in="SourceGraphic" scale="3" />
+              </filter>
             </defs>
+
+            {/* Subtle depth caustic overlay */}
+            <rect
+              x="0"
+              y="0"
+              width="800"
+              height="600"
+              fill="none"
+              opacity="0.3"
+              filter="url(#caustic-noise)"
+            />
 
             {/* Zone blob backgrounds */}
             <circle cx="150" cy="100" r="130" fill="url(#glow-new)" />
@@ -296,15 +316,30 @@ export function VocabularyNetworkView({
               ✨ Abyssal ({stats.mastered})
             </text>
 
-            {/* Word nodes */}
-            {nodes.map((node) => {
+            {/* Word nodes with drift + pulse animation */}
+            {nodes.map((node, nodeIdx) => {
               const isSelected = selectedWord?.id === node.id;
               const isHovered = hoveredWord === node.id;
               const color = getStatusColor(node.word.status);
               const radius = isSelected ? 8 : isHovered ? 6 : 4;
 
               return (
-                <g key={node.id}>
+                <g key={node.id} className="network-node">
+                  {/* Outer glow ring */}
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={radius + 4}
+                    fill="none"
+                    stroke={color}
+                    strokeOpacity={isSelected ? 0.3 : 0.1}
+                    strokeWidth="1"
+                    className="network-node-glow"
+                    style={{
+                      animation: `nodePulse ${3 + (nodeIdx % 4) * 0.5}s ease-in-out ${(nodeIdx % 7) * 0.3}s infinite`,
+                    }}
+                  />
+                  {/* Core node */}
                   <circle
                     cx={node.x}
                     cy={node.y}
@@ -315,6 +350,10 @@ export function VocabularyNetworkView({
                       isSelected && "stroke-white stroke-2",
                       isHovered && "opacity-80",
                     )}
+                    style={{
+                      filter: `drop-shadow(0 0 ${isSelected ? 8 : 3}px ${color}60)`,
+                      animation: `nodeDrift ${8 + (nodeIdx % 5) * 2}s ease-in-out ${(nodeIdx % 10) * 0.5}s infinite`,
+                    }}
                     onClick={() => handleWordClick(node.word)}
                     onMouseEnter={() => setHoveredWord(node.id)}
                     onMouseLeave={() => setHoveredWord(null)}

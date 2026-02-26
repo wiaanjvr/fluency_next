@@ -3,6 +3,9 @@
    Ocean Theme: The Ocean IS the UI
    ========================================================================== */
 
+/* Google Fonts — editorial serif for display headlines */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap");
+
 /* Import Ocean Theme (colors, animations, components) */
 @import url("./ocean-theme.css");
 
@@ -3571,4 +3574,136 @@ body {
   .diff-pulse-dot {
     animation: none !important;
   }
+}
+
+/* ==========================================================================
+   SETTINGS PAGE — Atmospheric & Glass Effects
+   ========================================================================== */
+
+/* Atmospheric background: radial light from above + vignette */
+.settings-atmosphere {
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 50% -5%,
+      rgba(13, 148, 136, 0.09) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse at center,
+      transparent 40%,
+      rgba(0, 0, 0, 0.35) 100%
+    );
+}
+
+/* Noise texture overlay */
+.settings-noise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glass-morphism card for settings */
+.settings-glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 200, 160, 0.1);
+  border-radius: 16px;
+  position: relative;
+}
+
+/* Caustic top-edge highlight */
+.settings-glass::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  border-radius: 1px;
+  z-index: 1;
+}
+
+/* Iridescent avatar orb gradient */
+.avatar-orb-gradient {
+  background: conic-gradient(
+    from 180deg,
+    #0d9488,
+    #3dd6b5,
+    #06b6d4,
+    #14b8a6,
+    #0d9488
+  );
+}
+
+@keyframes orb-shimmer {
+  0%,
+  100% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  50% {
+    filter: hue-rotate(15deg) brightness(1.1);
+  }
+}
+
+.avatar-orb-animate {
+  animation: orb-shimmer 6s ease-in-out infinite;
+}
+
+/* Depth gauge marker glow */
+.depth-marker-active {
+  box-shadow:
+    0 0 10px rgba(42, 169, 160, 0.6),
+    0 0 20px rgba(42, 169, 160, 0.3);
+}
+
+/* Sticky save bar frosted glass */
+.save-bar-glass {
+  background: rgba(10, 15, 30, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0, 200, 160, 0.1);
+}
+
+/* Subscription tier active glow */
+.tier-active-glow {
+  background: linear-gradient(
+    135deg,
+    rgba(13, 148, 136, 0.08) 0%,
+    rgba(0, 200, 160, 0.04) 100%
+  );
+  border: 1px solid rgba(0, 200, 160, 0.25);
+  box-shadow:
+    0 0 24px rgba(13, 148, 136, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Back button surfacing animation */
+.btn-surface-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-surface-hover:hover {
+  transform: translateY(-2px);
+  color: hsl(var(--ocean-turquoise));
+}
+
+/* Annual plans callout */
+.annual-callout {
+  color: hsl(var(--ocean-turquoise));
+  background: rgba(13, 148, 136, 0.08);
+  border: 1px solid rgba(13, 148, 136, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
 }

@@ -117,17 +117,12 @@ export function AppNav({
   return (
     <nav
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "dashboard-topnav fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled && "scrolled",
         className,
       )}
       style={{
         height: 64,
-        background: scrolled
-          ? "rgba(1, 12, 16, 0.92)"
-          : "rgba(1, 12, 16, 0.85)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.04)",
       }}
       role="navigation"
       aria-label="Main navigation"
@@ -180,68 +175,78 @@ export function AppNav({
           </div>
         </div>
 
-        {/* ── Center zone: Primary navigation ────────────────────────── */}
-        <div className="hidden md:flex items-center gap-1">
-          {PRIMARY_NAV.map((item) => {
-            const isActive = isActiveRoute(item.href);
-            const Icon = item.icon;
+        {/* ── Center zone: Primary navigation — pill-style switcher ── */}
+        <div className="hidden md:flex items-center gap-0">
+          <div
+            className="nav-pill-toggle flex"
+            style={{
+              background: "rgba(4, 24, 36, 0.6)",
+              borderRadius: 12,
+              padding: 3,
+              border: "1px solid rgba(255, 255, 255, 0.06)",
+            }}
+          >
+            {PRIMARY_NAV.map((item) => {
+              const isActive = isActiveRoute(item.href);
+              const Icon = item.icon;
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="group"
-                onClick={(e) => handleLinkClick(e, item.href)}
-              >
-                <div
-                  className="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 relative"
-                  style={{
-                    background: isActive
-                      ? `${depthLevel.colorPrimaryHex}18`
-                      : "transparent",
-                    border: isActive
-                      ? `1px solid ${depthLevel.colorPrimaryHex}30`
-                      : "1px solid transparent",
-                  }}
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="group"
+                  onClick={(e) => handleLinkClick(e, item.href)}
                 >
-                  <Icon
-                    className="w-4 h-4"
+                  <div
+                    className="flex items-center gap-2 px-4 py-2 rounded-[10px] transition-all duration-200 relative"
                     style={{
-                      color: isActive
-                        ? depthLevel.colorPrimaryHex
-                        : "var(--text-muted, #2E5C54)",
-                    }}
-                  />
-                  <span
-                    className="text-sm font-medium"
-                    style={{
-                      fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                      color: isActive
-                        ? "var(--text-primary, #F0FDFA)"
-                        : "var(--text-muted, #2E5C54)",
-                      fontWeight: isActive ? 600 : 400,
+                      background: isActive
+                        ? "var(--bg-elevated, #052030)"
+                        : "transparent",
+                      border: isActive
+                        ? "1px solid rgba(255, 255, 255, 0.08)"
+                        : "1px solid transparent",
                     }}
                   >
-                    {item.label}
-                  </span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="primary-nav-indicator"
-                      className="absolute inset-0 rounded-full -z-10"
+                    <Icon
+                      className="w-4 h-4"
                       style={{
-                        background: `${depthLevel.colorPrimaryHex}12`,
-                      }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 380,
-                        damping: 30,
+                        color: isActive
+                          ? depthLevel.colorPrimaryHex
+                          : "var(--text-muted, #2E5C54)",
                       }}
                     />
-                  )}
-                </div>
-              </Link>
-            );
-          })}
+                    <span
+                      className="text-sm font-medium"
+                      style={{
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                        color: isActive
+                          ? "var(--text-primary, #F0FDFA)"
+                          : "var(--text-muted, #2E5C54)",
+                        fontWeight: isActive ? 600 : 400,
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="primary-nav-indicator"
+                        className="absolute inset-0 rounded-[10px] -z-10"
+                        style={{
+                          background: `${depthLevel.colorPrimaryHex}10`,
+                        }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 380,
+                          damping: 30,
+                        }}
+                      />
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
 
         {/* ── Right zone: Secondary nav + Immerse + Depth + Avatar ──── */}

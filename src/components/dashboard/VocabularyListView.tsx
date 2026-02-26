@@ -80,7 +80,7 @@ function DepthGauge({ word }: { word: UserWord }) {
           className="depth-bar-fill absolute inset-y-0 left-0 transition-all"
           style={{
             width: `${pct}%`,
-            height: '100%',
+            height: "100%",
             borderRadius: 2,
             background: "var(--teal-dim, rgba(13, 148, 136, 0.5))",
             transition: "width 600ms cubic-bezier(0.16, 1, 0.3, 1)",
@@ -89,13 +89,20 @@ function DepthGauge({ word }: { word: UserWord }) {
       </div>
       {/* Label */}
       <span
+        className={cn(
+          "depth-state-label",
+          word.status === "mastered" && "state-ready",
+        )}
         style={{
           fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-          fontSize: 9,
-          fontWeight: 400,
+          fontSize: 10,
+          fontWeight: 500,
           letterSpacing: "0.1em",
           textTransform: "uppercase" as const,
-          color: "var(--text-muted, #2E5C54)",
+          color:
+            word.status === "mastered"
+              ? "var(--teal, #0D9488)"
+              : "var(--text-muted, #2E5C54)",
         }}
       >
         {stage.label}
@@ -336,6 +343,8 @@ export function VocabularyListView({
                 onMouseEnter={() => setHoveredId(word.id)}
                 onMouseLeave={() => setHoveredId(null)}
                 style={{
+                  // @ts-expect-error CSS custom property
+                  "--row-index": idx,
                   background: isExpanded
                     ? "rgba(255, 255, 255, 0.02)"
                     : isHovered
@@ -348,7 +357,7 @@ export function VocabularyListView({
                   transition: "background 0.15s ease, border-left 0.15s ease",
                 }}
               >
-                <div className="grid grid-cols-[1fr_180px_110px_28px] gap-3 px-4 py-3 items-center">
+                <div className="grid grid-cols-[1fr_180px_110px_28px] gap-3 px-4 py-3.5 items-center">
                   {/* Word */}
                   <div>
                     <span
@@ -401,7 +410,8 @@ export function VocabularyListView({
                   style={{
                     background:
                       "linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%)",
-                    borderBottom: "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
+                    borderBottom:
+                      "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
                   }}
                 >
                   {/* Translation */}
@@ -464,7 +474,8 @@ export function VocabularyListView({
                           "var(--font-mono, 'JetBrains Mono', monospace)",
                         letterSpacing: "0.06em",
                         background: "rgba(255, 255, 255, 0.03)",
-                        border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+                        border:
+                          "1px solid var(--border-dim, rgba(255,255,255,0.07))",
                         color: "var(--text-muted, #2E5C54)",
                       }}
                     >

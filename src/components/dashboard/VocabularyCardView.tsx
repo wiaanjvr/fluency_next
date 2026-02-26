@@ -78,6 +78,21 @@ export function VocabularyCardView({
     });
   };
 
+  const getMasteryCardClass = (status: string) => {
+    switch (status) {
+      case "new":
+        return "mastery-card-new";
+      case "learning":
+        return "mastery-card-learning";
+      case "known":
+        return "mastery-card-known";
+      case "mastered":
+        return "mastery-card-mastered";
+      default:
+        return "";
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "new":
@@ -143,6 +158,7 @@ export function VocabularyCardView({
             className={cn(
               "relative cursor-pointer transition-all hover:shadow-lg border-2 hover:scale-[1.02]",
               getStatusColor(word.status),
+              getMasteryCardClass(word.status),
             )}
             onClick={() => toggleFlip(word.id, word.word)}
           >

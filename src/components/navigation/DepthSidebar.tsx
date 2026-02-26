@@ -134,20 +134,30 @@ function ZoneRow({
           </motion.div>
         )}
 
-        {/* Zone name */}
+        {/* Zone name — editorial serif for active, mono for rest */}
         <div
-          className="text-[11px] font-semibold tracking-wide mb-0.5"
+          className="mb-0.5"
           style={{
-            fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-            letterSpacing: "0.1em",
+            fontFamily: isActive
+              ? "var(--font-editorial, 'Cormorant Garamond', serif)"
+              : "var(--font-mono, 'JetBrains Mono', monospace)",
+            fontSize: isActive ? 14 : 11,
+            fontWeight: isActive ? 500 : 600,
+            fontStyle: isActive ? "italic" : "normal",
+            letterSpacing: isActive ? "0.02em" : "0.1em",
+            textTransform: isActive
+              ? ("capitalize" as const)
+              : ("uppercase" as const),
             color: isActive
               ? level.colorPrimaryHex
               : isLocked
                 ? "var(--text-ghost, #1E4040)"
                 : "var(--text-secondary, #6B9E96)",
+            filter: isLocked ? "saturate(0.3)" : "none",
+            transition: "all 0.3s ease",
           }}
         >
-          {level.name.toUpperCase()}
+          {isActive ? level.name : level.name.toUpperCase()}
           {isLocked && (
             <Lock
               className="inline-block ml-1.5 w-3 h-3"
@@ -470,15 +480,16 @@ export function DepthSidebar({
         aria-label="Depth gauge navigation"
         role="navigation"
       >
-        {/* Title */}
+        {/* Title — editorial serif */}
         <div
           className="px-3 mb-4"
           style={{
-            fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-            fontSize: 9,
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            color: "var(--text-ghost, #2D5A52)",
+            fontFamily: "var(--font-editorial, 'Cormorant Garamond', serif)",
+            fontSize: 14,
+            fontStyle: "italic",
+            fontWeight: 500,
+            letterSpacing: "0.04em",
+            color: "var(--text-secondary, #6B9E96)",
           }}
         >
           Depth Gauge
