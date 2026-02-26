@@ -18,7 +18,7 @@ import { getDepthLevel } from "@/lib/progression/depthLevels";
 const MOBILE_TABS = [
   { href: "/dashboard", label: "Course", icon: Compass },
   { href: "/propel", label: "Propel", icon: Waves },
-  { href: "/goals", label: "Chart", icon: BarChart3 },
+  { href: "/chart", label: "Chart", icon: BarChart3 },
   { href: "/community", label: "Community", icon: Users },
 ] as const;
 

@@ -47,7 +47,7 @@ const PRIMARY_NAV = [
 
 // Secondary navigation — icon-only with tooltips
 const SECONDARY_NAV = [
-  { href: "/goals", label: "Chart", icon: BarChart3 },
+  { href: "/chart", label: "Chart", icon: BarChart3 },
   { href: "/community", label: "Community", icon: Users },
 ] as const;
 

@@ -232,7 +232,7 @@ export function ContextualNav({
     pathname === "/dashboard" ||
     pathname === "/propel" ||
     pathname === "/community" ||
-    pathname === "/goals";
+    pathname === "/chart";
 
   const showBreadcrumb = routeConfig && !isTopLevel;
 
