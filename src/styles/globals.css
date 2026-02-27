@@ -3,8 +3,8 @@
    Ocean Theme: The Ocean IS the UI
    ========================================================================== */
 
-/* Google Fonts — editorial serif for display headlines */
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap");
+/* Google Fonts — display serif + Inter body + Cormorant editorial */
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap");
 
 /* Import Ocean Theme (colors, animations, components) */
 @import url("./ocean-theme.css");
@@ -14,6 +14,34 @@
 
 /* Import Onboarding Layout (page bg, glow, teal card brand) */
 @import url("./onboarding-layout.css");
+
+/* ==========================================================================
+   FLUENSEA — Pure Deep-Ocean Color System
+   Canonical tokens for the entire application.
+   ========================================================================== */
+:root {
+  /* Depth layers */
+  --ocean-depth-1: #070f1a;
+  --ocean-depth-2: #0d1d2e;
+  --ocean-depth-3: #132638;
+  --ocean-depth-4: #1a3347;
+
+  /* Teal accents */
+  --ocean-teal-primary: #00d4aa;
+  --ocean-teal-secondary: #2dd4bf;
+
+  /* Steel / utility */
+  --ocean-steel: #4a7fa5;
+  --ocean-steel-muted: rgba(74, 127, 165, 0.45);
+
+  /* Teal utility aliases */
+  --teal-glow: rgba(0, 212, 170, 0.08);
+  --teal-border: rgba(0, 212, 170, 0.18);
+
+  /* Font references */
+  --font-inter: "Inter", system-ui, -apple-system, sans-serif;
+  --font-dm-serif: "DM Serif Display", Georgia, serif;
+}
 
 /* Blended swim background for main screen */
 .with-swim-bg::before {

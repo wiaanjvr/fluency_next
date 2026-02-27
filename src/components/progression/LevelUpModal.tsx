@@ -187,7 +187,7 @@ export function LevelUpModal({
               <span
                 className="text-[10px] font-bold uppercase tracking-[0.3em]"
                 style={{
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
                   color: newLevel.colorPrimaryHex,
                   opacity: 0.6,
                 }}

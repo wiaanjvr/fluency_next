@@ -152,7 +152,7 @@ export function DepthIndicator({ wordCount, className }: DepthIndicatorProps) {
           <span
             className="text-[10px] font-medium"
             style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
               color: current.colorPrimaryHex,
               letterSpacing: "0.06em",
             }}
@@ -162,7 +162,7 @@ export function DepthIndicator({ wordCount, className }: DepthIndicatorProps) {
           <span
             className="text-xs tabular-nums"
             style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
               color: "var(--text-secondary, #7BA8A0)",
             }}
           >
@@ -245,7 +245,7 @@ export function DepthIndicator({ wordCount, className }: DepthIndicatorProps) {
                           className="text-[10px] uppercase tracking-wider"
                           style={{
                             fontFamily:
-                              "var(--font-mono, 'JetBrains Mono', monospace)",
+                              "var(--font-inter, 'Inter', system-ui, sans-serif)",
                             color: "var(--text-ghost, #2D5A52)",
                           }}
                         >
@@ -255,7 +255,7 @@ export function DepthIndicator({ wordCount, className }: DepthIndicatorProps) {
                           className="text-[10px] tabular-nums"
                           style={{
                             fontFamily:
-                              "var(--font-mono, 'JetBrains Mono', monospace)",
+                              "var(--font-inter, 'Inter', system-ui, sans-serif)",
                             color: "var(--text-secondary, #7BA8A0)",
                           }}
                         >
@@ -288,7 +288,7 @@ export function DepthIndicator({ wordCount, className }: DepthIndicatorProps) {
                       className="text-xs mb-3"
                       style={{
                         fontFamily:
-                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                          "var(--font-inter, 'Inter', system-ui, sans-serif)",
                         color: "var(--text-secondary, #7BA8A0)",
                       }}
                     >
@@ -327,7 +327,7 @@ export function DepthIndicator({ wordCount, className }: DepthIndicatorProps) {
                           className="text-[10px] uppercase tracking-wider"
                           style={{
                             fontFamily:
-                              "var(--font-mono, 'JetBrains Mono', monospace)",
+                              "var(--font-inter, 'Inter', system-ui, sans-serif)",
                             color: "var(--text-ghost, #2D5A52)",
                           }}
                         >

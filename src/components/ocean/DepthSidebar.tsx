@@ -36,8 +36,8 @@ export function DepthSidebar({
         width: 220,
         height: "calc(100vh - 64px)",
         padding: "24px 16px 20px",
-        background: "linear-gradient(to bottom, #031A22 0%, #020F16 40%, #010C12 100%)",
-        borderRight: "1px solid rgba(255, 255, 255, 0.04)",
+        background: "linear-gradient(180deg, #0a1628 0%, #0d1f35 100%)",
+        borderRight: "1px solid rgba(45, 212, 191, 0.15)",
       }}
     >
       <DepthChart

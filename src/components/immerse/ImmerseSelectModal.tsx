@@ -110,7 +110,7 @@ function StreamCard({
             className="text-[9px] font-medium"
             style={{
               color: "var(--teal, #0D9488)",
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
             }}
           >
             PLAYING
@@ -131,7 +131,7 @@ function StreamCard({
             className="text-[9px] font-medium"
             style={{
               color: "var(--text-muted, #2E5C54)",
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
             }}
           >
             LAST PLAYED
@@ -174,7 +174,7 @@ function StreamCard({
                 background: typeColors[stream.type],
                 color: "var(--text-secondary, #7BA8A0)",
                 border: "1px solid rgba(255,255,255,0.06)",
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
               }}
             >
               <TypeIcon className="w-3 h-3" />
@@ -189,7 +189,7 @@ function StreamCard({
                 background: diffColors[stream.difficulty],
                 color: "var(--text-secondary, #7BA8A0)",
                 border: "1px solid rgba(255,255,255,0.06)",
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
               }}
             >
               {stream.difficulty}
@@ -358,7 +358,7 @@ export function ImmerseSelectModal() {
                           : "rgba(255,255,255,0.04)"
                       }`,
                       fontFamily:
-                        "var(--font-mono, 'JetBrains Mono', monospace)",
+                        "var(--font-inter, 'Inter', system-ui, sans-serif)",
                     }}
                   >
                     {label}

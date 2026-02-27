@@ -370,7 +370,7 @@ export function AppNav({
               <span
                 className="text-xs font-semibold tabular-nums"
                 style={{
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
                   color: "var(--text-secondary, #6B9E96)",
                 }}
               >

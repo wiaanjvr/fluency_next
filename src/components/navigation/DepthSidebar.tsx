@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,12 +8,11 @@ import {
   DEPTH_LEVELS,
   getDepthLevel,
   getProgressToNextLevel,
-  type DepthLevel,
 } from "@/lib/progression/depthLevels";
 
 // ============================================================================
-// DepthSidebar — Rebuilt as a deep-sea sonar instrument
-// Precision underwater gauge with glowing depth column and position marker.
+// DepthSidebar — Submarine observation deck aesthetic
+// Calm, dark, slightly luminous. Deep ocean, not spaceship.
 // ============================================================================
 
 interface DepthSidebarProps {
@@ -22,32 +21,37 @@ interface DepthSidebarProps {
   className?: string;
 }
 
-// ── Zone config for the depth column gradient ───────────────────────────────
-const ZONE_GRADIENT_COLORS = [
-  "#00e5cc", // The Shallows (bright cyan)
-  "#00b4a0", // Sunlit Zone
-  "#007a6e", // Twilight Zone
-  "#004d45", // The Deep
-  "#001f1c", // The Abyss (near black-teal)
-];
+// ── Design tokens ────────────────────────────────────────────────────────────
+const T = {
+  bgFrom: "var(--ocean-depth-1, #070f1a)",
+  bgTo: "var(--ocean-depth-1, #070f1a)",
+  gaugeTop: "#00d4aa",
+  gaugeBottom: "#0891b2",
+  gaugeTrack: "rgba(74, 127, 165, 0.2)",
+  accentTeal: "#00d4aa",
+  accentTealDim: "rgba(0, 212, 170, 0.12)",
+  activeRowBg: "rgba(0, 212, 170, 0.07)",
+  activeRowBdr: "#00d4aa",
+  textPrimary: "#e2e8f0",
+  textMuted: "#4a6580",
+  textSub: "#94a3b8",
+  divider: "rgba(0, 212, 170, 0.18)",
+  dividerFaint: "rgba(0, 212, 170, 0.08)",
+  font: "'Inter', 'DM Sans', system-ui, sans-serif",
+} as const;
 
-// ── Pulse animation keyframes ───────────────────────────────────────────────
-const pulseKeyframes = `
-@keyframes sonarPulseMarker {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.3);
-    opacity: 0.6;
-  }
+// ── Keyframes ────────────────────────────────────────────────────────────────
+const keyframes = `
+@keyframes depthPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.15), 0 0 12px rgba(0, 212, 170, 0.3); }
+  50%       { box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.04), 0 0 6px rgba(0, 212, 170, 0.08); }
 }
 `;
 
 // ── Depth Gauge Content (shared by desktop & mobile) ────────────────────────
 
 function DepthGaugeContent({ wordCount }: { wordCount: number }) {
+  const [hoveredZone, setHoveredZone] = useState<number | null>(null);
   const currentLevel = getDepthLevel(wordCount);
   const progress = getProgressToNextLevel(wordCount);
   const currentIndex = DEPTH_LEVELS.findIndex((l) => l.id === currentLevel.id);
@@ -55,61 +59,92 @@ function DepthGaugeContent({ wordCount }: { wordCount: number }) {
 
   // Each zone occupies an equal fraction of the bar
   const zoneHeight = 100 / totalZones;
-  // Marker position: center of the current zone + partial progress
-  const markerPercent = currentIndex * zoneHeight + zoneHeight * 0.5;
+  // Marker: center of current zone + partial progress within it
+  const progressFrac = progress.next
+    ? (wordCount - currentLevel.wordRange[0]) /
+      (progress.next.unlocksAt - currentLevel.wordRange[0])
+    : 1;
+  const markerPercent = currentIndex * zoneHeight + zoneHeight * progressFrac;
 
-  // Words to go for the target (next zone or infinity)
   const wordsToGo = progress.next ? progress.next.unlocksAt - wordCount : 0;
 
   return (
     <div className="flex flex-col h-full">
-      {/* ── TOP LABEL ── */}
+      {/* ── SECTION LABEL ── */}
       <div
         style={{
-          borderTop: "1px solid rgba(0, 210, 180, 0.2)",
+          borderTop: `1px solid ${T.divider}`,
           paddingTop: 12,
-          paddingBottom: 16,
+          paddingBottom: 14,
           textAlign: "center",
         }}
       >
         <span
           style={{
-            fontFamily: "'Inter', system-ui, sans-serif",
+            fontFamily: T.font,
             fontSize: 9,
-            fontWeight: 500,
-            letterSpacing: "0.2em",
+            fontWeight: 600,
+            letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "#4a9e96",
+            color: T.textMuted,
           }}
         >
           DEPTH GAUGE
         </span>
       </div>
 
-      {/* ── DEPTH COLUMN AREA ─ bar + labels + marker ── */}
+      {/* ── GAUGE COLUMN: track + gradient fill + labels + marker ── */}
       <div
         className="relative flex-1"
         style={{ minHeight: 0, paddingLeft: 16, paddingRight: 16 }}
       >
-        {/* The vertical gradient bar — centered */}
+        {/* Track (barely visible background line) */}
         <div
           style={{
             position: "absolute",
             left: "50%",
-            top: "4%",
-            bottom: "4%",
-            width: 3,
+            top: "3%",
+            bottom: "3%",
+            width: 2,
             transform: "translateX(-50%)",
             borderRadius: 2,
-            background: `linear-gradient(to bottom, ${ZONE_GRADIENT_COLORS.join(", ")})`,
-            filter: "drop-shadow(0 0 6px rgba(0, 229, 204, 0.5))",
+            background: T.gaugeTrack,
           }}
         />
 
-        {/* Zone labels + tick marks — all labels LEFT of bar */}
+        {/* Filled gradient: from top down to current marker */}
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "3%",
+            height: `${markerPercent * 0.94}%`,
+            width: 2,
+            transform: "translateX(-50%)",
+            borderRadius: 2,
+            background: `linear-gradient(to bottom, ${T.gaugeTop}, ${T.gaugeBottom})`,
+            transition: "height 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        />
+
+        {/* Dashed remaining: marker to bottom — "yet to be explored" */}
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: `${3 + markerPercent * 0.94}%`,
+            bottom: "3%",
+            width: 0,
+            transform: "translateX(-50%)",
+            borderLeft: "2px dashed var(--ocean-depth-4, #1a3347)",
+          }}
+        />
+
+        {/* Depth labels — left of bar with tick marks */}
         {DEPTH_LEVELS.map((level, idx) => {
           const topPercent = idx * zoneHeight + zoneHeight * 0.5;
           const isActive = level.id === currentLevel.id;
+          const isPast = idx < currentIndex;
 
           return (
             <div
@@ -125,103 +160,125 @@ function DepthGaugeContent({ wordCount }: { wordCount: number }) {
                 justifyContent: "center",
               }}
             >
-              {/* Label to the LEFT of the bar */}
-              <span
+              {/* Label + depth number — right-aligned, connects to tick */}
+              <div
                 style={{
                   position: "absolute",
-                  right: "calc(50% + 16px)",
-                  fontFamily: "'Inter', system-ui, sans-serif",
-                  fontSize: 8,
-                  fontWeight: isActive ? 500 : 400,
-                  fontStyle: "normal",
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: isActive ? "#c0ebe5" : "#4a9e96",
+                  right: "calc(50% + 22px)",
                   textAlign: "right",
-                  whiteSpace: "nowrap",
                 }}
               >
-                {level.name.toUpperCase()}
-              </span>
-              {/* Tick mark from label to bar */}
+                <span
+                  style={{
+                    display: "block",
+                    fontFamily: T.font,
+                    fontSize: 9,
+                    fontWeight: isActive ? 600 : 400,
+                    letterSpacing: "0.09em",
+                    textTransform: "uppercase",
+                    color: isActive
+                      ? T.textPrimary
+                      : isPast
+                        ? T.textSub
+                        : T.textMuted,
+                    whiteSpace: "nowrap",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {level.name}
+                </span>
+                <span
+                  style={{
+                    display: "block",
+                    fontFamily: T.font,
+                    fontSize: 8,
+                    fontWeight: 400,
+                    color: T.textMuted,
+                    whiteSpace: "nowrap",
+                    lineHeight: 1.3,
+                    marginTop: 1,
+                  }}
+                >
+                  {level.wordRange[0].toLocaleString()}w
+                </span>
+              </div>
+              {/* 16px horizontal tick — ocean-depth-4 */}
               <div
                 style={{
                   position: "absolute",
                   right: "calc(50% + 2px)",
-                  width: 12,
+                  width: 16,
                   height: 1,
                   background: isActive
-                    ? "rgba(0, 229, 204, 0.5)"
-                    : "rgba(74, 158, 150, 0.25)",
+                    ? T.accentTealDim
+                    : "var(--ocean-depth-4, #1a3347)",
                 }}
               />
             </div>
           );
         })}
 
-        {/* ── CURRENT POSITION MARKER ── */}
+        {/* ── POSITION MARKER: diver descends on load ── */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+          initial={{ opacity: 0, top: "3%" }}
+          animate={{ opacity: 1, top: `${3 + markerPercent * 0.94}%` }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
           style={{
             position: "absolute",
-            top: `${markerPercent}%`,
             left: "50%",
             transform: "translate(-50%, -50%)",
+            zIndex: 10,
             display: "flex",
             alignItems: "center",
-            gap: 6,
-            zIndex: 10,
+            gap: 7,
           }}
         >
-          {/* Diamond marker */}
+          {/* Glow circle */}
           <div
             style={{
-              width: 12,
-              height: 12,
-              transform: "rotate(45deg)",
-              background: "#00e5cc",
-              borderRadius: 2,
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background: T.accentTeal,
               boxShadow:
-                "0 0 10px rgba(0, 229, 204, 0.7), 0 0 20px rgba(0, 229, 204, 0.3)",
-              animation: "sonarPulseMarker 2.5s ease-in-out infinite",
+                "0 0 0 4px rgba(0, 212, 170, 0.15), 0 0 12px rgba(0, 212, 170, 0.3)",
               flexShrink: 0,
+              animation: "depthPulse 2.5s ease-in-out infinite",
             }}
           />
-          {/* Current zone name */}
+          {/* Current zone label to the right of marker */}
           <span
             style={{
-              fontFamily: "'Inter', system-ui, sans-serif",
-              fontSize: 11,
+              fontFamily: T.font,
+              fontSize: 10,
               fontWeight: 600,
-              textTransform: "uppercase",
-              color: "#ffffff",
-              whiteSpace: "nowrap",
               letterSpacing: "0.08em",
-              textShadow: "0 0 8px rgba(0, 229, 204, 0.4)",
+              textTransform: "uppercase",
+              color: T.accentTeal,
+              whiteSpace: "nowrap",
             }}
           >
-            {currentLevel.name.toUpperCase()}
+            {currentLevel.name}
           </span>
         </motion.div>
       </div>
 
-      {/* ── WORD COUNT DISPLAY ── */}
+      {/* ── WORD COUNT STATS ── */}
       <div
         style={{
           textAlign: "center",
-          paddingTop: 16,
-          borderTop: "1px solid rgba(0, 210, 180, 0.1)",
+          padding: "14px 0 4px",
+          borderTop: `1px solid ${T.dividerFaint}`,
         }}
       >
         <div
           style={{
-            fontFamily: "'Inter', system-ui, sans-serif",
-            fontSize: 13,
-            fontWeight: 600,
-            color: "#00e5cc",
-            marginBottom: 2,
+            fontFamily: T.font,
+            fontSize: 22,
+            fontWeight: 700,
+            color: T.accentTeal,
+            marginBottom: 3,
+            letterSpacing: "-0.02em",
           }}
         >
           {wordCount.toLocaleString()} words learned
@@ -229,25 +286,25 @@ function DepthGaugeContent({ wordCount }: { wordCount: number }) {
         {wordsToGo > 0 && (
           <div
             style={{
-              fontFamily: "'Inter', system-ui, sans-serif",
-              fontSize: 11,
-              fontWeight: 400,
-              color: "#4a9e96",
+              fontFamily: T.font,
+              fontSize: 12,
+              fontWeight: 500,
+              color: T.textMuted,
+              letterSpacing: "0.01em",
             }}
           >
-            {wordsToGo.toLocaleString()} words to go
+            {wordsToGo.toLocaleString()} to next depth
           </div>
         )}
       </div>
 
-      {/* ── ZONE LIST ── */}
+      {/* ── ZONE LIST — landing page table aesthetic ── */}
       <div
         style={{
-          marginTop: 12,
-          paddingTop: 12,
-          borderTop: "1px solid rgba(0, 210, 180, 0.08)",
+          borderTop: `1px solid ${T.divider}`,
+          margin: "16px 0 0",
+          paddingTop: 8,
           flexShrink: 0,
-          overflowY: "auto",
         }}
       >
         {DEPTH_LEVELS.map((level) => {
@@ -255,40 +312,55 @@ function DepthGaugeContent({ wordCount }: { wordCount: number }) {
           const rangeLabel =
             level.wordRange[1] === Infinity
               ? `${level.wordRange[0].toLocaleString()}+`
-              : `${level.wordRange[0].toLocaleString()} – ${level.wordRange[1].toLocaleString()}`;
+              : `${level.wordRange[0].toLocaleString()}–${level.wordRange[1].toLocaleString()}`;
 
+          const isHoveredZone = !isActive && hoveredZone === level.id;
           return (
             <div
               key={level.id}
+              onMouseEnter={() => setHoveredZone(level.id)}
+              onMouseLeave={() => setHoveredZone(null)}
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: "5px 8px 5px 10px",
-                borderLeft: isActive
-                  ? "2px solid #00e5cc"
-                  : "2px solid transparent",
+                padding: "10px 16px",
                 marginBottom: 2,
+                borderLeft: isActive
+                  ? `3px solid ${T.activeRowBdr}`
+                  : isHoveredZone
+                    ? `3px solid var(--ocean-steel, #4a7fa5)`
+                    : "3px solid transparent",
+                background: isActive
+                  ? T.activeRowBg
+                  : isHoveredZone
+                    ? "rgba(74, 127, 165, 0.08)"
+                    : "transparent",
+                borderRadius: 6,
+                cursor: "pointer",
+                transition: "background 0.15s ease, border-color 0.15s ease",
               }}
             >
               <span
                 style={{
-                  fontFamily: "'Inter', system-ui, sans-serif",
-                  fontSize: 9,
-                  fontWeight: 400,
-                  fontStyle: "normal",
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: isActive ? "#c0ebe5" : "#4a9e96",
+                  fontFamily: T.font,
+                  fontSize: 11,
+                  fontWeight: 500,
+                  color: isActive
+                    ? T.accentTeal
+                    : "var(--ocean-steel-muted, rgba(74,127,165,0.45))",
                 }}
               >
-                {level.name.toUpperCase()}
+                {level.name}
               </span>
               <span
                 style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 9,
-                  color: "#4a9e96",
+                  fontFamily: T.font,
+                  fontSize: 11,
+                  fontWeight: 400,
+                  color: isActive
+                    ? T.textMuted
+                    : "var(--ocean-steel-muted, rgba(74,127,165,0.45))",
                 }}
               >
                 {rangeLabel}
@@ -298,8 +370,8 @@ function DepthGaugeContent({ wordCount }: { wordCount: number }) {
         })}
       </div>
 
-      {/* Inject pulse keyframes */}
-      <style>{pulseKeyframes}</style>
+      {/* Inject keyframes */}
+      <style>{keyframes}</style>
     </div>
   );
 }
@@ -324,7 +396,7 @@ function MobileDepthSheet({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/60"
+            className="fixed inset-0 z-[60] bg-black/50"
             onClick={onClose}
           />
 
@@ -336,14 +408,17 @@ function MobileDepthSheet({
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
             className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl overflow-hidden"
             style={{
-              background: "#060f0f",
-              borderTop: "1px solid rgba(0, 210, 180, 0.15)",
+              background: `linear-gradient(180deg, ${T.bgFrom} 0%, ${T.bgTo} 100%)`,
+              borderTop: `1px solid ${T.divider}`,
               maxHeight: "80vh",
             }}
           >
             {/* Drag handle */}
             <div className="flex justify-center py-3">
-              <div className="w-10 h-1 rounded-full bg-white/10" />
+              <div
+                className="w-10 h-1 rounded-full"
+                style={{ background: "rgba(148, 163, 184, 0.2)" }}
+              />
             </div>
 
             {/* Content */}
@@ -384,8 +459,8 @@ export function DepthSidebar({
           minWidth: 200,
           height: "calc(100vh - 64px)",
           padding: "0 16px 16px 16px",
-          background: "#060f0f",
-          boxShadow: "inset -1px 0 0 rgba(0, 210, 180, 0.15)",
+          background: `linear-gradient(180deg, ${T.bgFrom} 0%, ${T.bgTo} 100%)`,
+          borderRight: `1px solid ${T.divider}`,
         }}
         aria-label="Depth gauge navigation"
         role="navigation"
@@ -397,11 +472,9 @@ export function DepthSidebar({
       <button
         className="fixed bottom-6 left-6 z-50 lg:hidden flex items-center gap-2 px-4 py-2.5 rounded-full"
         style={{
-          background: "rgba(6, 15, 15, 0.85)",
-          border: "1px solid rgba(0, 229, 204, 0.25)",
-          boxShadow:
-            "0 4px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(0, 229, 204, 0.1)",
-          backdropFilter: "blur(16px)",
+          background: "var(--ocean-depth-2, #0d1d2e)",
+          border: `1px solid ${T.divider}`,
+          boxShadow: `0 4px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(0, 212, 170, 0.08)`,
         }}
         onClick={() => setMobileOpen(true)}
         aria-label={`Open depth gauge. Current depth: ${currentLevel.name}`}
@@ -409,23 +482,23 @@ export function DepthSidebar({
         <div
           className="w-2.5 h-2.5 rounded-full"
           style={{
-            background: "#00e5cc",
-            boxShadow: "0 0 6px rgba(0, 229, 204, 0.8)",
+            background: T.accentTeal,
+            boxShadow: `0 0 6px rgba(0, 212, 170, 0.6)`,
           }}
         />
         <span
           style={{
-            fontFamily: "'Inter', system-ui, sans-serif",
+            fontFamily: T.font,
             fontSize: 12,
             fontWeight: 500,
-            color: "#00e5cc",
+            color: T.accentTeal,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
           }}
         >
           {currentLevel.name}
         </span>
-        <ChevronDown className="w-3 h-3" style={{ color: "#00e5cc" }} />
+        <ChevronDown className="w-3 h-3" style={{ color: T.textMuted }} />
       </button>
 
       {/* Mobile bottom sheet */}

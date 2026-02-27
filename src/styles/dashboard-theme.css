@@ -5,67 +5,105 @@
    ========================================================================== */
 
 /* ===== Google Fonts ===== */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap");
 
-/* ===== Core Color System — Matched to Landing Page Ocean Aesthetic ===== */
+/* ===== Core Color System — Pure Deep-Ocean ===== */
 :root {
-  /* Backgrounds — layered darkness matching landing page (#020F14) */
-  --bg-abyss: #010c10;
-  --bg-deep: #020f14;
-  --bg-surface: #041824;
-  --bg-elevated: #052030;
-  --bg-glass: rgba(4, 24, 36, 0.85);
-  --bg-overlay: rgba(2, 15, 20, 0.85);
+  /* ── Ocean Depth Layers ── */
+  --ocean-depth-1: #070f1a; /* deepest background — page bg */
+  --ocean-depth-2: #0d1d2e; /* card / surface layer */
+  --ocean-depth-3: #132638; /* elevated cards, hover surfaces */
+  --ocean-depth-4: #1a3347; /* borders, dividers */
 
-  /* The ONE teal — matching landing page --lp-accent: #0f9b8e */
-  --teal: #0f9b8e;
-  --teal-surface: #0f9b8e;
-  --teal-dim: rgba(15, 155, 142, 0.5);
-  --teal-ghost: rgba(15, 155, 142, 0.15);
-  --teal-border: rgba(15, 155, 142, 0.2);
-  --teal-glow: #0f9b8e;
-  --teal-glow-sm: 0 0 16px rgba(15, 155, 142, 0.25);
-  --teal-glow-md: 0 0 32px rgba(15, 155, 142, 0.2);
+  /* ── Teal Accent ── */
+  --ocean-teal-primary: #00d4aa; /* primary accent — CTAs, active states */
+  --ocean-teal-secondary: #2dd4bf; /* secondary teal — icons, highlights */
+
+  /* ── Steel / Utility ── */
+  --ocean-steel: #4a7fa5;
+  --ocean-steel-muted: rgba(74, 127, 165, 0.45);
+
+  /* ── Text ── */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #4a6580;
+  --text-ghost: #2a3f55;
+  --text-warm: #c8b89a;
+
+  /* ── Teal utility aliases (keeps legacy references working) ── */
+  --teal: var(--ocean-teal-primary);
+  --teal-surface: var(--ocean-teal-primary);
+  --teal-dim: rgba(0, 212, 170, 0.45);
+  --teal-ghost: rgba(0, 212, 170, 0.12);
+  --teal-border: rgba(0, 212, 170, 0.18);
+  --teal-glow: rgba(0, 212, 170, 0.08);
+  --teal-glow-sm: 0 0 16px rgba(0, 212, 170, 0.25);
+  --teal-glow-md: 0 0 32px rgba(0, 212, 170, 0.2);
   --teal-glow-lg:
-    0 0 48px rgba(15, 155, 142, 0.15), 0 0 96px rgba(15, 155, 142, 0.08);
-  --teal-deep: #0a7b72;
-  --teal-abyss: #064d46;
+    0 0 48px rgba(0, 212, 170, 0.15), 0 0 96px rgba(0, 212, 170, 0.08);
+  --teal-deep: #0a9a82;
+  --teal-abyss: #055c48;
 
-  /* Bioluminescent glow — matching landing page --lp-glow: #2dd4bf */
+  /* ── Bioluminescent ── */
   --biolum: #2dd4bf;
   --biolum-dim: rgba(45, 212, 191, 0.12);
   --biolum-ghost: rgba(45, 212, 191, 0.06);
 
-  /* Text — warmer tones matching landing page typography */
-  --text-primary: #f0fdfa;
-  --text-secondary: #94a3b8;
-  --text-muted: #2e5c54;
-  --text-ghost: #1a3832;
-  --text-warm: #c8b89a; /* candlelight-underwater tint for example text */
-
-  /* Structural */
+  /* ── Structural ── */
   --border-subtle: rgba(255, 255, 255, 0.04);
   --border-dim: rgba(255, 255, 255, 0.07);
 
-  /* Depth state colors — ALL desaturated, NOT neon */
+  /* ── Background aliases (keep legacy refs working) ── */
+  --bg-abyss: var(--ocean-depth-1);
+  --bg-deep: var(--ocean-depth-1);
+  --bg-surface: var(--ocean-depth-2);
+  --bg-elevated: var(--ocean-depth-3);
+  --bg-glass: rgba(13, 29, 46, 0.9);
+  --bg-overlay: rgba(7, 15, 26, 0.88);
+
+  /* ── Depth state colors ── */
   --state-drifting: #4a8a82;
   --state-surfacing: #3a7870;
   --state-diving: #2a6560;
   --state-cruising: #1a5248;
   --state-abyss: #0d3d38;
-
-  /* Legacy depth state aliases */
   --depth-drifting: #4a8a82;
   --depth-surfacing: #3a7870;
   --depth-diving: #2a6560;
   --depth-cruising: #1a5248;
   --depth-abyss-state: #0d3d38;
 
-  /* Typography */
+  /* ── Typography — fonts ── */
   --font-inter: "Inter", system-ui, -apple-system, sans-serif;
+  --font-dm-serif: "DM Serif Display", Georgia, serif;
   --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
   --font-display: "Playfair Display", Georgia, serif;
   --font-editorial: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+
+  /* ── Type Scale ── */
+  --text-display-size: 28px;
+  --text-display-weight: 700;
+  --text-display-lh: 1.2;
+
+  --text-heading-size: 20px;
+  --text-heading-weight: 600;
+  --text-heading-lh: 1.35;
+
+  --text-subheading-size: 15px;
+  --text-subheading-weight: 600;
+  --text-subheading-lh: 1.4;
+
+  --text-body-size: 14px;
+  --text-body-weight: 400;
+  --text-body-lh: 1.6;
+
+  --text-caption-size: 12px;
+  --text-caption-weight: 500;
+  --text-caption-lh: 1.5;
+
+  --text-label-size: 11px;
+  --text-label-weight: 600;
+  --text-label-ls: 0.08em;
 }
 
 /* ===== prefers-reduced-motion ===== */
@@ -82,14 +120,14 @@
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  background: #040d0d;
+  background: var(--ocean-depth-1);
   color: var(--text-primary);
   font-family: var(--font-inter);
 }
 
 /* ===== Environmental Depth — Underwater Light Bloom ===== */
 .dashboard-shell {
-  background: #020f14;
+  background: var(--ocean-depth-1);
 }
 
 /* Primary bloom — teal/cyan light source from top-center */
@@ -136,8 +174,17 @@
   pointer-events: none;
   z-index: 1;
   background:
-    radial-gradient(ellipse 50% 50% at 50% 50%, transparent 55%, rgba(2, 15, 20, 0.6) 100%),
-    linear-gradient(180deg, transparent 0%, transparent 85%, rgba(2, 12, 16, 0.4) 100%);
+    radial-gradient(
+      ellipse 50% 50% at 50% 50%,
+      transparent 55%,
+      rgba(2, 15, 20, 0.6) 100%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 85%,
+      rgba(2, 12, 16, 0.4) 100%
+    );
 }
 
 /* ── Caustic light layer — animated organic blobs like landing page ── */
@@ -186,19 +233,36 @@
 }
 
 @keyframes dbCaustic1 {
-  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
-  33% { transform: translate(-3%, 2%) scale(1.05) rotate(1deg); }
-  66% { transform: translate(2%, -1%) scale(0.97) rotate(-1deg); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(-3%, 2%) scale(1.05) rotate(1deg);
+  }
+  66% {
+    transform: translate(2%, -1%) scale(0.97) rotate(-1deg);
+  }
 }
 
 @keyframes dbCaustic2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-4%, 3%) scale(1.08); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-4%, 3%) scale(1.08);
+  }
 }
 
 @keyframes dbCaustic3 {
-  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
-  50% { transform: translate(3%, -2%) scale(1.06) rotate(2deg); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate(3%, -2%) scale(1.06) rotate(2deg);
+  }
 }
 
 /* ── Water-surface light rays — angled beams from above ── */
@@ -216,57 +280,112 @@
 
 .db-ray-1 {
   left: 8%;
-  background: linear-gradient(to bottom, rgba(15, 155, 142, 0.14) 0%, transparent 70%);
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 155, 142, 0.14) 0%,
+    transparent 70%
+  );
   animation: dbRay1 9s ease-in-out infinite;
 }
 
 .db-ray-2 {
   left: 24%;
   width: 55px;
-  background: linear-gradient(to bottom, rgba(45, 212, 191, 0.08) 0%, transparent 60%);
+  background: linear-gradient(
+    to bottom,
+    rgba(45, 212, 191, 0.08) 0%,
+    transparent 60%
+  );
   animation: dbRay2 11s ease-in-out infinite;
 }
 
 .db-ray-3 {
   left: 48%;
   width: 100px;
-  background: linear-gradient(to bottom, rgba(15, 155, 142, 0.1) 0%, transparent 65%);
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 155, 142, 0.1) 0%,
+    transparent 65%
+  );
   animation: dbRay3 13s ease-in-out infinite;
 }
 
 .db-ray-4 {
   left: 68%;
   width: 60px;
-  background: linear-gradient(to bottom, rgba(45, 212, 191, 0.07) 0%, transparent 60%);
+  background: linear-gradient(
+    to bottom,
+    rgba(45, 212, 191, 0.07) 0%,
+    transparent 60%
+  );
   animation: dbRay4 10s ease-in-out infinite 2s;
 }
 
 .db-ray-5 {
   left: 85%;
   width: 50px;
-  background: linear-gradient(to bottom, rgba(15, 155, 142, 0.09) 0%, transparent 55%);
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 155, 142, 0.09) 0%,
+    transparent 55%
+  );
   animation: dbRay5 12s ease-in-out infinite 4s;
 }
 
 @keyframes dbRay1 {
-  0%, 100% { transform: rotate(-13deg) scaleX(1); opacity: 0.7; }
-  50% { transform: rotate(-7deg) scaleX(1.15); opacity: 1; }
+  0%,
+  100% {
+    transform: rotate(-13deg) scaleX(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: rotate(-7deg) scaleX(1.15);
+    opacity: 1;
+  }
 }
 @keyframes dbRay2 {
-  0%, 100% { transform: rotate(-4deg) scaleX(1); opacity: 0.5; }
-  50% { transform: rotate(2deg) scaleX(0.85); opacity: 0.8; }
+  0%,
+  100% {
+    transform: rotate(-4deg) scaleX(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: rotate(2deg) scaleX(0.85);
+    opacity: 0.8;
+  }
 }
 @keyframes dbRay3 {
-  0%, 100% { transform: rotate(4deg) scaleX(1); opacity: 0.6; }
-  50% { transform: rotate(9deg) scaleX(1.12); opacity: 0.9; }
+  0%,
+  100% {
+    transform: rotate(4deg) scaleX(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: rotate(9deg) scaleX(1.12);
+    opacity: 0.9;
+  }
 }
 @keyframes dbRay4 {
-  0%, 100% { transform: rotate(11deg) scaleX(1); opacity: 0.45; }
-  50% { transform: rotate(5deg) scaleX(0.9); opacity: 0.7; }
+  0%,
+  100% {
+    transform: rotate(11deg) scaleX(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: rotate(5deg) scaleX(0.9);
+    opacity: 0.7;
+  }
 }
 @keyframes dbRay5 {
-  0%, 100% { transform: rotate(16deg) scaleX(1); opacity: 0.55; }
-  50% { transform: rotate(21deg) scaleX(1.18); opacity: 0.85; }
+  0%,
+  100% {
+    transform: rotate(16deg) scaleX(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: rotate(21deg) scaleX(1.18);
+    opacity: 0.85;
+  }
 }
 
 /* ── Rising bubbles — ambient floating bubbles ── */
@@ -286,17 +405,61 @@
   animation: dbBubbleRise linear infinite;
 }
 
-.db-bubble-1 { width: 4px; height: 4px; left: 15%; bottom: 3%; animation-duration: 20s; }
-.db-bubble-2 { width: 3px; height: 3px; left: 42%; bottom: 8%; animation-duration: 25s; animation-delay: 5s; }
-.db-bubble-3 { width: 5px; height: 5px; left: 65%; bottom: 2%; animation-duration: 18s; animation-delay: 9s; }
-.db-bubble-4 { width: 3px; height: 3px; left: 30%; bottom: 6%; animation-duration: 28s; animation-delay: 14s; }
-.db-bubble-5 { width: 4px; height: 4px; left: 80%; bottom: 5%; animation-duration: 22s; animation-delay: 7s; }
+.db-bubble-1 {
+  width: 4px;
+  height: 4px;
+  left: 15%;
+  bottom: 3%;
+  animation-duration: 20s;
+}
+.db-bubble-2 {
+  width: 3px;
+  height: 3px;
+  left: 42%;
+  bottom: 8%;
+  animation-duration: 25s;
+  animation-delay: 5s;
+}
+.db-bubble-3 {
+  width: 5px;
+  height: 5px;
+  left: 65%;
+  bottom: 2%;
+  animation-duration: 18s;
+  animation-delay: 9s;
+}
+.db-bubble-4 {
+  width: 3px;
+  height: 3px;
+  left: 30%;
+  bottom: 6%;
+  animation-duration: 28s;
+  animation-delay: 14s;
+}
+.db-bubble-5 {
+  width: 4px;
+  height: 4px;
+  left: 80%;
+  bottom: 5%;
+  animation-duration: 22s;
+  animation-delay: 7s;
+}
 
 @keyframes dbBubbleRise {
-  0% { transform: translateY(0) translateX(0); opacity: 0; }
-  5% { opacity: 0.1; }
-  90% { opacity: 0.1; }
-  100% { transform: translateY(-110vh) translateX(10px); opacity: 0; }
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.1;
+  }
+  90% {
+    opacity: 0.1;
+  }
+  100% {
+    transform: translateY(-110vh) translateX(10px);
+    opacity: 0;
+  }
 }
 
 @keyframes bloomShift {
@@ -344,7 +507,7 @@
   opacity: 0;
 }
 
-/* ===== Top Navigation Bar — Frosted Glass (matching landing page) ===== */
+/* ===== Top Navigation Bar ===== */
 .dashboard-topnav {
   position: fixed;
   top: 0;
@@ -356,19 +519,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: rgba(2, 15, 20, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(45, 212, 191, 0.1);
+  background: var(--ocean-depth-2, #0d1d2e);
+  border-bottom: 1px solid var(--teal-border);
   transition:
     background 0.3s ease,
     box-shadow 0.3s ease;
 }
 
 .dashboard-topnav.scrolled {
-  background: rgba(2, 15, 20, 0.92);
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.4);
-  border-bottom-color: rgba(45, 212, 191, 0.08);
+  background: var(--ocean-depth-2, #0d1d2e);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
 }
 
 .dashboard-topnav .nav-logo {
@@ -390,9 +550,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-mono);
+  font-family: var(--font-inter);
   font-size: 12px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
   color: var(--text-secondary);
 }
 
@@ -412,15 +572,15 @@
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
-  border-radius: 100px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-dim);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  border-radius: 20px;
+  background: var(--ocean-depth-3, #132638);
+  border: 1px solid var(--teal-border);
+  font-family: var(--font-inter);
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
-/* ===== Left Sidebar — Depth Gauge (matching landing page depth indicator) ===== */
+/* ===== Left Sidebar — Depth Gauge (submarine observation deck) ===== */
 .depth-sidebar {
   position: fixed;
   top: 64px;
@@ -431,75 +591,16 @@
   display: flex;
   flex-direction: column;
   padding: 24px 16px 20px;
-  background: linear-gradient(
-    to bottom,
-    rgba(15, 155, 142, 0.06) 0%,
-    rgba(4, 24, 36, 0.9) 15%,
-    rgba(2, 15, 20, 0.95) 50%,
-    #010c10 85%,
-    #010a0e 100%
-  );
-  border-right: 1px solid rgba(45, 212, 191, 0.08);
+  background: var(--ocean-depth-1);
+  border-right: 1px solid var(--teal-border);
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* Animated shimmer current on sidebar */
-.depth-sidebar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(13, 148, 136, 0.03) 0%,
-    transparent 20%,
-    transparent 80%,
-    rgba(6, 61, 56, 0.02) 100%
-  );
-  animation: sidebarShimmer 8s ease-in-out infinite alternate;
-  pointer-events: none;
-  z-index: 0;
-}
-
-@keyframes sidebarShimmer {
-  0% {
-    opacity: 0.4;
-    transform: translateY(-5px);
-  }
-  50% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0.5;
-    transform: translateY(5px);
-  }
-}
-
-/* Particle drift on sidebar */
+/* Remove any pseudo-element overlays that cause shimmer/particle effects */
+.depth-sidebar::before,
 .depth-sidebar::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(13, 148, 136, 0.15), transparent),
-    radial-gradient(1px 1px at 60% 60%, rgba(13, 148, 136, 0.1), transparent),
-    radial-gradient(1px 1px at 40% 80%, rgba(13, 148, 136, 0.08), transparent);
-  animation: particleDrift 15s linear infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-
-@keyframes particleDrift {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-30px);
-  }
+  content: none;
 }
 
 /* Depth cable — vertical line */
@@ -512,7 +613,7 @@
   background: linear-gradient(
     to bottom,
     var(--teal-border),
-    rgba(13, 148, 136, 0.05) 60%,
+    rgba(0, 212, 170, 0.05) 60%,
     transparent
   );
 }
@@ -555,8 +656,8 @@
   background: var(--teal);
   border-color: var(--teal);
   box-shadow:
-    0 0 10px rgba(13, 148, 136, 0.5),
-    0 0 20px rgba(13, 148, 136, 0.2);
+    0 0 10px rgba(0, 212, 170, 0.5),
+    0 0 20px rgba(0, 212, 170, 0.2);
 }
 
 .depth-node.locked {
@@ -567,7 +668,7 @@
 .depth-node.active {
   background: linear-gradient(
     90deg,
-    rgba(13, 148, 136, 0.08) 0%,
+    rgba(0, 212, 170, 0.08) 0%,
     transparent 100%
   );
 }
@@ -634,7 +735,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(13, 148, 136, 0.15),
+    rgba(0, 212, 170, 0.15),
     transparent
   );
 }
@@ -662,35 +763,17 @@
   color: var(--text-ghost);
 }
 
-/* ===== Hero Dive Card — immersive depth card with landing-page quality ===== */
+/* ===== Hero Dive Card — pure deep-ocean surface ===== */
 .hero-dive-card {
   position: relative;
   width: 100%;
   min-height: 260px;
-  border-radius: 20px;
+  border-radius: 16px;
   overflow: hidden;
-  background:
-    radial-gradient(
-      ellipse 60% 80% at 20% 30%,
-      rgba(15, 155, 142, 0.1) 0%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 40% 60% at 80% 70%,
-      rgba(8, 37, 53, 0.6) 0%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 80% 50% at 50% 0%,
-      rgba(15, 155, 142, 0.05) 0%,
-      transparent 60%
-    ),
-    #04100f;
-  border: 1px solid rgba(45, 212, 191, 0.12);
-  box-shadow:
-    0 12px 50px rgba(0, 0, 0, 0.4),
-    0 0 80px rgba(15, 155, 142, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--ocean-depth-2);
+  border: none;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.35);
+  padding: 32px;
 }
 
 /* Caustic light shimmer — subtle animated light rays */
@@ -702,8 +785,8 @@
     105deg,
     transparent 0px,
     transparent 80px,
-    rgba(13, 148, 136, 0.025) 80px,
-    rgba(13, 148, 136, 0.025) 82px,
+    rgba(0, 212, 170, 0.025) 80px,
+    rgba(0, 212, 170, 0.025) 82px,
     transparent 82px,
     transparent 160px
   );
@@ -760,8 +843,8 @@
     -45deg,
     transparent,
     transparent 40px,
-    rgba(13, 148, 136, 0.03) 40px,
-    rgba(13, 148, 136, 0.03) 42px
+    rgba(0, 212, 170, 0.03) 40px,
+    rgba(0, 212, 170, 0.03) 42px
   );
   animation: caustic-flow 18s linear infinite;
 }
@@ -810,72 +893,31 @@
   background: var(--text-muted);
 }
 
-/* Dive CTA button — THE one teal element, matching landing page CTA */
+/* Dive CTA button — primary ocean teal, NOT full pill */
 .dive-cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 30px;
-  border-radius: 9999px;
+  padding: 12px 28px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  background: #0f9b8e;
-  color: #020f14;
+  background: var(--ocean-teal-primary);
+  color: #070f1a;
   font-family: var(--font-inter);
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  box-shadow:
-    0 0 16px rgba(15, 155, 142, 0.25),
-    0 0 48px rgba(15, 155, 142, 0.08);
-  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   text-decoration: none;
-  animation: divePulse 3s ease-in-out infinite;
   position: relative;
   overflow: hidden;
 }
 
-.dive-cta::after {
-  content: "";
-  position: absolute;
-  inset: -50%;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(45, 212, 191, 0.3) 0%,
-    transparent 60%
-  );
-  opacity: 0;
-  transform: scale(0);
-  transition:
-    opacity 0.4s ease,
-    transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-  pointer-events: none;
-}
-
 .dive-cta:hover {
-  background: #0f9b8e;
-  box-shadow: var(--teal-glow-md);
-  transform: translateY(-2px);
-}
-
-.dive-cta:hover::after {
-  opacity: 1;
-  transform: scale(1);
-}
-
-@keyframes divePulse {
-  0%,
-  100% {
-    box-shadow: 0 0 16px rgba(13, 148, 136, 0.25);
-  }
-  50% {
-    box-shadow: 0 0 32px rgba(13, 148, 136, 0.45);
-  }
-}
-
-/* Legacy class — map to same animation */
-.dive-cta-pulse {
-  animation: divePulse 3s ease-in-out infinite;
+  background: var(--ocean-teal-secondary);
+  box-shadow: 0 0 24px rgba(0, 212, 170, 0.25);
+  transform: translateY(-1px);
 }
 
 /* Meta chip */
@@ -885,10 +927,9 @@
   gap: 4px;
   padding: 4px 10px;
   border-radius: 100px;
-  background: var(--bg-glass);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  font-family: var(--font-mono);
+  background: var(--ocean-depth-3, #132638);
+  border: 1px solid var(--teal-border);
+  font-family: var(--font-inter);
   font-size: 11px;
   color: var(--text-secondary);
 }
@@ -958,30 +999,24 @@
 /* Floating word chips */
 .floating-chip {
   display: inline-block;
-  padding: 5px 14px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 2px 12px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-style: normal;
+  padding: 6px 14px;
+  border-radius: 100px;
+  background: var(--ocean-depth-3, #132638);
+  border: 1px solid var(--teal-border);
+  font-family: var(--font-inter);
+  font-size: 13px;
+  font-style: italic;
   color: var(--text-secondary);
-  letter-spacing: 0.03em;
   animation: chipFloat 4s ease-in-out infinite;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .floating-chip:hover {
-  background: rgba(13, 148, 136, 0.06);
-  border-color: rgba(13, 148, 136, 0.15);
+  background: rgba(0, 212, 170, 0.06);
+  border-color: rgba(0, 212, 170, 0.15);
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.3),
-    0 0 16px rgba(13, 148, 136, 0.08),
+    0 0 16px rgba(0, 212, 170, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -1015,13 +1050,11 @@
   }
 }
 
-/* ===== Vocabulary Table — Ocean frosted glass ===== */
+/* ===== Vocabulary Table ===== */
 .vocab-section {
-  border-radius: 20px;
-  background: rgba(4, 24, 36, 0.5);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(45, 212, 191, 0.06);
+  border-radius: 16px;
+  background: var(--ocean-depth-2);
+  border: 1px solid var(--teal-border);
   box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
   overflow: hidden;
 }
@@ -1110,10 +1143,9 @@
 .vocab-search input {
   width: 100%;
   padding: 8px 12px 8px 36px;
-  border-radius: 10px;
-  border: none;
-  background: var(--bg-glass);
-  backdrop-filter: blur(12px);
+  border-radius: 8px;
+  border: 1px solid var(--ocean-depth-4, #1a3347);
+  background: var(--ocean-depth-2, #0d1d2e);
   color: var(--text-primary);
   font-family: var(--font-inter);
   font-size: 13px;
@@ -1136,10 +1168,9 @@
 
 .vocab-filter-select {
   padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: var(--bg-glass);
-  backdrop-filter: blur(12px);
+  border-radius: 8px;
+  border: 1px solid var(--ocean-depth-4, #1a3347);
+  background: var(--ocean-depth-2, #0d1d2e);
   color: var(--text-primary);
   font-family: var(--font-inter);
   font-size: 13px;
@@ -1171,19 +1202,19 @@
   color: var(--text-secondary);
 }
 
-/* Depth bar — 50% opacity teal fill, variable width */
+/* Depth bar — ocean teal gradient fill */
 .depth-bar-track {
   width: 140px;
   height: 4px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  background: rgba(74, 127, 165, 0.2);
   overflow: hidden;
 }
 
 .depth-bar-fill {
   height: 100%;
-  border-radius: 2px;
-  background: var(--teal-dim);
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--ocean-teal-primary), #0891b2);
   transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1);
   animation: barReveal 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: calc(var(--row-index, 0) * 60ms);
@@ -1248,9 +1279,9 @@
   color: var(--text-ghost);
 }
 
-/* Row hover states */
+/* Row hover states — teal-glow bg, no zebra striping */
 .vocab-row {
-  transition: all 200ms ease;
+  transition: all 0.18s ease;
   border-bottom: 1px solid var(--border-subtle);
   border-left: 2px solid transparent;
   position: relative;
@@ -1259,6 +1290,7 @@
   opacity: 0;
   transform: translateY(8px);
   padding: 14px 16px;
+  background: transparent;
 }
 
 @keyframes rowFadeIn {
@@ -1269,16 +1301,8 @@
 }
 
 .vocab-row:hover {
-  background: rgba(13, 148, 136, 0.04);
-  border-left-color: var(--teal);
-}
-
-.vocab-row:nth-child(even) {
-  background: rgba(13, 148, 136, 0.01);
-}
-
-.vocab-row:nth-child(even):hover {
-  background: rgba(13, 148, 136, 0.04);
+  background: var(--teal-glow);
+  border-left: 2px solid var(--ocean-teal-primary);
 }
 
 /* ===== Right Panel — Frosted glass matching landing page panels ===== */
@@ -1294,32 +1318,22 @@
   flex-direction: column;
   gap: 20px;
   overflow-y: auto;
-  background: linear-gradient(
-    180deg,
-    rgba(4, 24, 36, 0.5) 0%,
-    rgba(2, 15, 20, 0.7) 100%
-  );
-  border-left: 1px solid rgba(45, 212, 191, 0.08);
+  background: var(--ocean-depth-1);
+  border-left: 1px solid var(--teal-border);
 }
 
 .right-panel .panel-card {
-  border-radius: 20px;
-  padding: 24px;
-  background: rgba(4, 24, 36, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(45, 212, 191, 0.06);
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px;
+  padding: 20px;
+  background: var(--ocean-depth-2);
+  border: none;
+  border-top: 2px solid rgba(0, 212, 170, 0.6);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.3s ease;
 }
 
 .right-panel .panel-card:hover {
-  border-color: rgba(45, 212, 191, 0.1);
-  box-shadow:
-    0 6px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .right-panel .panel-card-title {
@@ -1348,8 +1362,8 @@
   height: 200%;
   background: radial-gradient(
     ellipse 40% 50% at 50% 50%,
-    rgba(13, 148, 136, 0.06) 0%,
-    rgba(13, 148, 136, 0.02) 40%,
+    rgba(0, 212, 170, 0.06) 0%,
+    rgba(0, 212, 170, 0.02) 40%,
     transparent 70%
   );
   pointer-events: none;
@@ -1369,7 +1383,7 @@
 
 /* Spotlight word cross-fade animation */
 .spotlight-word {
-  animation: spotlightFadeIn 0.6s ease-out;
+  animation: spotlightFadeIn 0.4s ease-out;
 }
 
 @keyframes spotlightFadeIn {
@@ -1383,6 +1397,21 @@
   }
 }
 
+/* ===== Depth position indicator pulse (sonar ping) ===== */
+@keyframes depthPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px rgba(0, 212, 170, 0.15),
+      0 0 12px rgba(0, 212, 170, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(0, 212, 170, 0.04),
+      0 0 6px rgba(0, 212, 170, 0.08);
+  }
+}
+
 /* ===== Scrollbar ===== */
 .dashboard-scroll::-webkit-scrollbar {
   width: 3px;
@@ -1391,17 +1420,17 @@
   background: transparent;
 }
 .dashboard-scroll::-webkit-scrollbar-thumb {
-  background: rgba(13, 148, 136, 0.2);
+  background: rgba(0, 212, 170, 0.2);
   border-radius: 2px;
 }
 .dashboard-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(13, 148, 136, 0.4);
+  background: rgba(0, 212, 170, 0.4);
 }
 
 /* Firefox scrollbar */
 .dashboard-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(13, 148, 136, 0.2) transparent;
+  scrollbar-color: rgba(0, 212, 170, 0.2) transparent;
 }
 
 /* ===== Loading Skeleton ===== */
@@ -1417,9 +1446,9 @@
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(13, 148, 136, 0.05) 25%,
-    rgba(13, 148, 136, 0.1) 50%,
-    rgba(13, 148, 136, 0.05) 75%
+    rgba(0, 212, 170, 0.05) 25%,
+    rgba(0, 212, 170, 0.1) 50%,
+    rgba(0, 212, 170, 0.05) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
@@ -1433,27 +1462,19 @@
   }
 }
 
-/* ===== Glass card base — matching landing page frosted glass ===== */
+/* ===== Glass card base ===== */
 .glass-card {
-  border-radius: 20px;
-  background: rgba(4, 24, 36, 0.65);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(45, 212, 191, 0.08);
-  box-shadow:
-    0 8px 40px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  background: var(--ocean-depth-2);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.35);
   transition:
     transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-    box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-    border-color 0.3s ease;
+    box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(45, 212, 191, 0.12);
-  box-shadow:
-    0 16px 60px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.45);
 }
 
 /* ===== Responsive ===== */
@@ -1477,13 +1498,13 @@
   0%,
   100% {
     box-shadow:
-      0 0 0 0 rgba(13, 148, 136, 0.15),
-      0 0 16px rgba(13, 148, 136, 0.08);
+      0 0 0 0 rgba(0, 212, 170, 0.15),
+      0 0 16px rgba(0, 212, 170, 0.08);
   }
   50% {
     box-shadow:
-      0 0 0 8px rgba(13, 148, 136, 0),
-      0 0 24px rgba(13, 148, 136, 0.12);
+      0 0 0 8px rgba(0, 212, 170, 0),
+      0 0 24px rgba(0, 212, 170, 0.12);
   }
 }
 
@@ -1585,35 +1606,19 @@
 
 /* ===== Card View Mastery Backgrounds ===== */
 .mastery-card-new {
-  background: linear-gradient(
-    135deg,
-    rgba(74, 138, 130, 0.06) 0%,
-    rgba(3, 24, 32, 0.8) 100%
-  );
+  background: var(--ocean-depth-2);
 }
 
 .mastery-card-learning {
-  background: linear-gradient(
-    135deg,
-    rgba(58, 120, 112, 0.06) 0%,
-    rgba(3, 24, 32, 0.8) 100%
-  );
+  background: var(--ocean-depth-2);
 }
 
 .mastery-card-known {
-  background: linear-gradient(
-    135deg,
-    rgba(42, 101, 96, 0.08) 0%,
-    rgba(3, 24, 32, 0.8) 100%
-  );
+  background: var(--ocean-depth-2);
 }
 
 .mastery-card-mastered {
-  background: linear-gradient(
-    135deg,
-    rgba(13, 61, 56, 0.12) 0%,
-    rgba(2, 15, 20, 0.9) 100%
-  );
+  background: var(--ocean-depth-2);
 }
 
 /* ===== Pill-Style Course/Propel Toggle ===== */
@@ -1642,27 +1647,27 @@
 }
 
 .nav-pill-toggle .active {
-  background: var(--teal);
-  color: #020f14;
+  background: var(--ocean-teal-primary);
+  color: #070f1a;
   box-shadow: var(--teal-glow-sm);
 }
 
 /* ===== Progress Arc (teal arc indicator) ===== */
 .progress-arc-track {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.05);
+  stroke: rgba(74, 127, 165, 0.2);
 }
 
 .progress-arc-fill {
   fill: none;
-  stroke: var(--teal-dim);
+  stroke: url(#progressGradient);
   stroke-linecap: round;
   transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ===== Weekly Sparkline ===== */
 .sparkline-bar {
-  fill: rgba(13, 148, 136, 0.3);
+  fill: rgba(0, 212, 170, 0.3);
   transition: all 0.3s ease;
 }
 

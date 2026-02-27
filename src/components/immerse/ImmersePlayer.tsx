@@ -88,7 +88,7 @@ function TypeBadge({ type }: { type: ImmerseContentType }) {
         background: color,
         color: "var(--text-secondary, #7BA8A0)",
         border: "1px solid rgba(255,255,255,0.06)",
-        fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+        fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
       }}
     >
       <Icon className="w-3 h-3" />
@@ -112,7 +112,7 @@ function DifficultyBadge({ level }: { level: ImmerseDifficulty }) {
         background: colors[level],
         color: "var(--text-secondary, #7BA8A0)",
         border: "1px solid rgba(255,255,255,0.06)",
-        fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+        fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
       }}
     >
       {level}
@@ -237,7 +237,7 @@ function RelatedStreams({
         className="text-xs font-medium uppercase tracking-wider"
         style={{
           color: "var(--text-muted, #2E5C54)",
-          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+          fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
         }}
       >
         Up next
@@ -523,7 +523,7 @@ export function ImmersePlayer() {
                       style={{
                         color: "var(--text-muted, #2E5C54)",
                         fontFamily:
-                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                          "var(--font-inter, 'Inter', system-ui, sans-serif)",
                       }}
                     >
                       {currentStream.language_code.toUpperCase()}

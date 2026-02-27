@@ -116,6 +116,8 @@ export function NextLessonHero({
   divesRemaining = 5,
 }: SessionHeroProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [isButtonPressed, setIsButtonPressed] = useState(false);
   const [pillarsVisible, setPillarsVisible] = useState(false);
   const { recommendation, isLoading, error } = useNextActivity();
   const fallbackMessage = getDepthMessage(wordsAbsorbed);
@@ -174,15 +176,15 @@ export function NextLessonHero({
                 alignItems: "center",
                 gap: 6,
                 padding: "4px 12px",
-                borderRadius: 100,
-                border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
-                background: "rgba(255, 255, 255, 0.03)",
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                fontSize: 11,
-                fontWeight: 500,
-                letterSpacing: "0.08em",
+                borderRadius: 6,
+                border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+                background: "var(--ocean-depth-3, #132638)",
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                fontSize: "var(--text-label-size, 11px)",
+                fontWeight: 600,
+                letterSpacing: "var(--text-label-ls, 0.08em)",
                 textTransform: "uppercase" as const,
-                color: "var(--text-secondary, #6B9E96)",
+                color: "var(--text-secondary, #94a3b8)",
               }}
             >
               <span
@@ -201,10 +203,10 @@ export function NextLessonHero({
             <div
               className="hidden md:flex items-center gap-1.5"
               style={{
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                fontSize: 10,
-                color: "var(--text-ghost, #2D5A52)",
-                letterSpacing: "0.04em",
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                fontSize: 12,
+                fontWeight: 500,
+                color: "var(--text-muted, #4a6580)",
               }}
             >
               {Array.from({ length: 5 }, (_, i) => (
@@ -242,10 +244,10 @@ export function NextLessonHero({
               <h2
                 style={{
                   fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                  fontSize: "clamp(1.6rem, 2.5vw, 2.2rem)",
-                  fontWeight: 600,
-                  color: "var(--text-primary, #F0FDFA)",
-                  lineHeight: 1.15,
+                  fontSize: 28,
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  color: "var(--text-primary, #e2e8f0)",
                   margin: 0,
                 }}
               >
@@ -254,11 +256,12 @@ export function NextLessonHero({
               <p
                 style={{
                   fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                  fontSize: 16,
-                  color: "var(--text-secondary, #7BA8A0)",
+                  fontSize: 14,
+                  fontWeight: 400,
+                  lineHeight: 1.6,
+                  color: "var(--text-secondary, #94a3b8)",
                   margin: 0,
-                  maxWidth: 400,
-                  lineHeight: 1.5,
+                  maxWidth: 420,
                 }}
               >
                 {recommendation.subtext}
@@ -271,43 +274,30 @@ export function NextLessonHero({
             <>
               <h2
                 style={{
-                  fontSize: "clamp(1.6rem, 2.5vw, 2.4rem)",
-                  fontWeight: 300,
-                  color: "var(--text-primary, #F0FDFA)",
-                  lineHeight: 1.15,
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                  fontSize: 28,
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  color: "var(--text-primary, #e2e8f0)",
                   margin: 0,
                 }}
               >
-                <span
-                  style={{
-                    fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                    fontWeight: 300,
-                  }}
-                >
-                  {fallbackMessage.heading}{" "}
-                </span>
+                {fallbackMessage.heading}{" "}
                 {fallbackMessage.headingEmphasis && (
-                  <em
-                    style={{
-                      fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                      fontWeight: 500,
-                      fontStyle: "normal",
-                      color: "var(--text-primary, #F0FDFA)",
-                    }}
-                  >
+                  <span style={{ color: "var(--ocean-teal-primary, #00d4aa)" }}>
                     {fallbackMessage.headingEmphasis}
-                  </em>
+                  </span>
                 )}
               </h2>
               <p
                 style={{
                   fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                  fontSize: 16,
-                  fontWeight: 300,
-                  color: "var(--text-secondary, #7BA8A0)",
-                  margin: 0,
-                  maxWidth: 400,
+                  fontSize: 14,
+                  fontWeight: 400,
                   lineHeight: 1.6,
+                  color: "var(--text-secondary, #94a3b8)",
+                  margin: 0,
+                  maxWidth: 420,
                 }}
               >
                 {fallbackMessage.sub}
@@ -331,20 +321,19 @@ export function NextLessonHero({
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 4,
-                  padding: "4px 10px",
+                  gap: 6,
+                  padding: "6px 14px",
                   borderRadius: 100,
-                  background: "rgba(4, 24, 36, 0.7)",
-                  backdropFilter: "blur(8px)",
-                  border: "1px solid rgba(255, 255, 255, 0.06)",
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  fontSize: 11,
-                  color: "var(--text-secondary, #7BA8A0)",
+                  background: "var(--ocean-depth-3, #132638)",
+                  border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                  fontSize: 13,
+                  color: "var(--text-secondary, #94a3b8)",
                 }}
               >
                 <ActivityIcon
                   className="w-3.5 h-3.5"
-                  style={{ color: "var(--text-muted, #2E5C54)" }}
+                  style={{ color: "var(--ocean-teal-primary, #00d4aa)" }}
                 />
                 <span>{activityInfo?.label || "Flashcards"}</span>
               </div>
@@ -355,15 +344,14 @@ export function NextLessonHero({
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 4,
-                  padding: "4px 10px",
+                  gap: 6,
+                  padding: "6px 14px",
                   borderRadius: 100,
-                  background: "rgba(4, 24, 36, 0.7)",
-                  backdropFilter: "blur(8px)",
-                  border: "1px solid rgba(255, 255, 255, 0.06)",
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  fontSize: 11,
-                  color: "var(--text-secondary, #7BA8A0)",
+                  background: "var(--ocean-depth-3, #132638)",
+                  border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                  fontSize: 13,
+                  color: "var(--text-secondary, #94a3b8)",
                 }}
               >
                 <Clock className="w-3 h-3" style={{ opacity: 0.6 }} />
@@ -379,29 +367,49 @@ export function NextLessonHero({
             <div className="mt-2">
               <Link href={ctaHref} onClick={handleDiveClick}>
                 <button
-                  className={cn(
-                    "dive-cta dive-cta-pulse",
-                    "relative flex items-center gap-2",
-                  )}
+                  className={cn("dive-cta", "relative flex items-center gap-2")}
+                  onMouseEnter={() => setIsButtonHovered(true)}
+                  onMouseLeave={() => {
+                    setIsButtonHovered(false);
+                    setIsButtonPressed(false);
+                  }}
+                  onMouseDown={() => setIsButtonPressed(true)}
+                  onMouseUp={() => setIsButtonPressed(false)}
                   style={{
                     padding: "12px 28px",
-                    borderRadius: 100,
+                    borderRadius: 8,
                     border: "none",
                     cursor: "pointer",
-                    background: "var(--teal-surface, #0D9488)",
-                    color: "#020F14",
+                    background: isButtonHovered
+                      ? "var(--ocean-teal-secondary, #2dd4bf)"
+                      : "var(--ocean-teal-primary, #00d4aa)",
+                    color: "#070f1a",
                     fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                     fontSize: 15,
                     fontWeight: 600,
-                    boxShadow: isHovered
-                      ? "0 0 40px rgba(13, 148, 136, 0.4)"
-                      : "0 0 24px rgba(13, 148, 136, 0.25)",
-                    transition: "all 300ms cubic-bezier(0.4, 0, 0.2, 1)",
-                    transform: isHovered ? "translateY(-1px)" : "translateY(0)",
+                    boxShadow: isButtonPressed
+                      ? "0 2px 8px rgba(0, 212, 170, 0.15)"
+                      : isButtonHovered
+                        ? "0 8px 24px rgba(0, 212, 170, 0.3)"
+                        : "none",
+                    transition: "all 0.2s ease",
+                    transform: isButtonPressed
+                      ? "translateY(0)"
+                      : isButtonHovered
+                        ? "translateY(-2px)"
+                        : "translateY(0)",
                   }}
                 >
                   <span>Dive in</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight
+                    className="w-4 h-4"
+                    style={{
+                      transition: "transform 0.2s ease",
+                      transform: isButtonHovered
+                        ? "translateX(3px)"
+                        : "translateX(0)",
+                    }}
+                  />
                 </button>
               </Link>
             </div>
@@ -433,7 +441,7 @@ export function NextLessonHero({
                 cy="80"
                 r="60"
                 fill="none"
-                stroke="rgba(13, 148, 136, 0.12)"
+                stroke="rgba(0, 212, 170, 0.12)"
                 strokeWidth="1"
               />
               <circle
@@ -442,7 +450,7 @@ export function NextLessonHero({
                 cy="80"
                 r="60"
                 fill="none"
-                stroke="rgba(13, 148, 136, 0.08)"
+                stroke="rgba(0, 212, 170, 0.08)"
                 strokeWidth="1"
               />
               <circle
@@ -451,7 +459,7 @@ export function NextLessonHero({
                 cy="80"
                 r="60"
                 fill="none"
-                stroke="rgba(13, 148, 136, 0.05)"
+                stroke="rgba(0, 212, 170, 0.05)"
                 strokeWidth="1"
               />
               {/* Outer concentric ring */}
@@ -469,7 +477,7 @@ export function NextLessonHero({
                 cy="80"
                 r="60"
                 fill="none"
-                stroke="rgba(255, 255, 255, 0.06)"
+                stroke="rgba(74, 127, 165, 0.2)"
                 strokeWidth="3"
               />
               {/* Progress arc */}
@@ -478,7 +486,7 @@ export function NextLessonHero({
                 cy="80"
                 r="60"
                 fill="none"
-                stroke="var(--teal-dim, rgba(13, 148, 136, 0.5))"
+                stroke="var(--ocean-teal-primary, #00d4aa)"
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray={2 * Math.PI * 60}
@@ -488,7 +496,7 @@ export function NextLessonHero({
                 style={{
                   transition:
                     "stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                  filter: "drop-shadow(0 0 4px rgba(13, 148, 136, 0.3))",
+                  filter: "drop-shadow(0 0 4px rgba(0, 212, 170, 0.3))",
                 }}
               />
               {/* Inner subtle ring */}
@@ -514,10 +522,10 @@ export function NextLessonHero({
             >
               <span
                 style={{
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  fontSize: 32,
-                  fontWeight: 500,
-                  color: "var(--text-primary, #F0FDFA)",
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                  fontSize: 34,
+                  fontWeight: 700,
+                  color: "var(--text-primary, #e2e8f0)",
                   lineHeight: 1,
                 }}
               >
@@ -525,12 +533,13 @@ export function NextLessonHero({
               </span>
               <span
                 style={{
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  fontSize: 8,
-                  letterSpacing: "0.2em",
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
                   textTransform: "uppercase" as const,
-                  color: "var(--text-ghost, #2D5A52)",
-                  marginTop: 4,
+                  color: "var(--text-muted, #4a6580)",
+                  marginTop: 6,
                 }}
               >
                 DEPTH
@@ -542,14 +551,15 @@ export function NextLessonHero({
           <div className="flex flex-col items-center gap-2">
             <span
               style={{
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                fontSize: 8,
-                letterSpacing: "0.15em",
-                color: "var(--text-ghost, #1A3832)",
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.08em",
                 textTransform: "uppercase" as const,
+                color: "var(--text-muted, #4a6580)",
               }}
             >
-              TODAY&apos;S WORDS
+              Words you&apos;ll meet
             </span>
             <div className="flex flex-wrap gap-2 justify-center">
               {["lumière", "mer", "vague"].map((word, i) => (
@@ -558,20 +568,15 @@ export function NextLessonHero({
                   className="floating-chip"
                   style={{
                     display: "inline-block",
-                    padding: "5px 14px",
-                    borderRadius: 20,
-                    background: "rgba(255, 255, 255, 0.04)",
-                    backdropFilter: "blur(12px)",
-                    WebkitBackdropFilter: "blur(12px)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
-                    boxShadow:
-                      "0 2px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06)",
-                    fontFamily:
-                      "var(--font-display, 'Playfair Display', serif)",
+                    padding: "6px 14px",
+                    borderRadius: 100,
+                    background: "var(--ocean-depth-3, #132638)",
+                    border:
+                      "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+                    fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                     fontSize: 13,
-                    fontStyle: "normal",
-                    color: "var(--text-secondary, #6B9E96)",
-                    letterSpacing: "0.03em",
+                    fontStyle: "italic",
+                    color: "var(--text-secondary, #94a3b8)",
                     animation: `chipFloat ${4 + i * 0.5}s ease-in-out ${i * 0.8}s infinite`,
                   }}
                 >

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Flame, BookOpen, Clock, ArrowRight } from "lucide-react";
 
 // ============================================================================
@@ -46,7 +46,7 @@ function ProgressRing({
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke="rgba(255, 255, 255, 0.05)"
+        stroke="rgba(74, 127, 165, 0.2)"
         strokeWidth={strokeWidth}
       />
       {/* Progress */}
@@ -55,7 +55,7 @@ function ProgressRing({
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke="var(--teal-dim, rgba(13, 148, 136, 0.5))"
+        stroke="var(--ocean-teal-primary, #00d4aa)"
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeDasharray={circumference}
@@ -75,41 +75,45 @@ export function DashboardRightPanel({
   streak,
   spotlightWord,
 }: RightPanelProps) {
+  const [sessionHovered, setSessionHovered] = useState(false);
+  const [spotlightHovered, setSpotlightHovered] = useState(false);
+  const [weekHovered, setWeekHovered] = useState(false);
   return (
     <aside
-      className="hidden xl:flex flex-col gap-5 p-5 fixed right-0"
+      className="hidden xl:flex flex-col gap-4 p-5 fixed right-0"
       style={{
         top: 64,
         width: 280,
         height: "calc(100vh - 64px)",
         overflowY: "auto",
-        background:
-          "linear-gradient(180deg, rgba(3, 24, 32, 0.4) 0%, rgba(2, 15, 20, 0.6) 100%)",
-        borderLeft: "1px solid rgba(255, 255, 255, 0.04)",
+        background: "var(--ocean-depth-1, #070f1a)",
+        borderLeft: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
       }}
     >
       {/* ── Current Session Card ── */}
       <div
         className="flex flex-col gap-4"
+        onMouseEnter={() => setSessionHovered(true)}
+        onMouseLeave={() => setSessionHovered(false)}
         style={{
-          borderRadius: 12,
-          padding: 16,
-          background: "#060f0f",
-          border: "1px solid rgba(0, 229, 204, 0.12)",
-          boxShadow: "0 0 20px rgba(0,0,0,0.4)",
+          borderRadius: 10,
+          padding: 20,
+          background: "var(--ocean-depth-2, #0d1d2e)",
+          borderTop: "2px solid rgba(0, 212, 170, 0.5)",
+          boxShadow: sessionHovered
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 2px 16px rgba(0,0,0,0.3)",
+          transition: "box-shadow 0.2s ease",
         }}
       >
         <h3
           style={{
-            fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-            fontSize: 9,
-            fontWeight: 500,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "#4a9e96",
-            fontStyle: "normal",
+            fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+            fontSize: 20,
+            fontWeight: 600,
+            lineHeight: 1.35,
+            color: "var(--text-primary, #e2e8f0)",
             margin: 0,
-            marginBottom: 8,
           }}
         >
           Today&apos;s Session
@@ -130,10 +134,10 @@ export function DashboardRightPanel({
             >
               <span
                 style={{
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "var(--text-primary, #F0FDFA)",
+                  color: "var(--text-primary, #e2e8f0)",
                 }}
               >
                 {wordsToday}
@@ -144,18 +148,19 @@ export function DashboardRightPanel({
             <span
               style={{
                 fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: 500,
-                color: "var(--text-primary, #F0FDFA)",
+                color: "var(--text-primary, #e2e8f0)",
               }}
             >
               {wordsToday} / {dailyGoal} words
             </span>
             <span
               style={{
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                fontSize: 10,
-                color: "var(--text-ghost, #2D5A52)",
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                fontSize: 12,
+                fontWeight: 500,
+                color: "var(--text-muted, #4a6580)",
               }}
             >
               Daily goal
@@ -166,7 +171,9 @@ export function DashboardRightPanel({
         {/* Stats row */}
         <div
           className="flex items-center gap-4 pt-3"
-          style={{ borderTop: "1px solid rgba(255, 255, 255, 0.04)" }}
+          style={{
+            borderTop: "1px solid var(--ocean-depth-4, rgba(26,51,71,1))",
+          }}
         >
           {/* Time */}
           <div className="flex items-center gap-1.5">
@@ -176,9 +183,10 @@ export function DashboardRightPanel({
             />
             <span
               style={{
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                fontSize: 11,
-                color: "var(--text-secondary, #7BA8A0)",
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                fontSize: 12,
+                fontWeight: 500,
+                color: "var(--text-secondary, #94a3b8)",
               }}
             >
               {minutesToday}m
@@ -198,9 +206,10 @@ export function DashboardRightPanel({
             />
             <span
               style={{
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                fontSize: 11,
-                color: "var(--text-secondary, #7BA8A0)",
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                fontSize: 12,
+                fontWeight: 500,
+                color: "var(--text-secondary, #94a3b8)",
               }}
             >
               {streak > 0 ? `${streak}d streak` : "Day 1 \u2014 begin"}
@@ -213,27 +222,29 @@ export function DashboardRightPanel({
       {spotlightWord && (
         <div
           className="spotlight-card flex flex-col gap-4"
+          onMouseEnter={() => setSpotlightHovered(true)}
+          onMouseLeave={() => setSpotlightHovered(false)}
           style={{
-            borderRadius: 12,
-            padding: 16,
-            background: "#060f0f",
-            border: "1px solid rgba(0, 229, 204, 0.12)",
-            boxShadow: "0 0 20px rgba(0,0,0,0.4)",
+            borderRadius: 10,
+            padding: 20,
+            background: "var(--ocean-depth-2, #0d1d2e)",
+            borderTop: "2px solid rgba(0, 212, 170, 0.5)",
+            boxShadow: spotlightHovered
+              ? "0 4px 24px rgba(0,0,0,0.4)"
+              : "0 2px 16px rgba(0,0,0,0.3)",
             position: "relative",
             overflow: "hidden",
+            transition: "box-shadow 0.2s ease",
           }}
         >
           <h3
             style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              fontSize: 9,
-              fontWeight: 500,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              color: "#4a9e96",
-              fontStyle: "normal",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+              fontSize: 20,
+              fontWeight: 600,
+              lineHeight: 1.35,
+              color: "var(--text-primary, #e2e8f0)",
               margin: 0,
-              marginBottom: 8,
             }}
           >
             Word Spotlight
@@ -243,25 +254,27 @@ export function DashboardRightPanel({
           <div className="spotlight-word">
             <span
               style={{
-                fontFamily: "var(--font-display, 'Playfair Display', serif)",
-                fontSize: 24,
-                fontWeight: 600,
+                fontFamily:
+                  "var(--font-dm-serif, 'DM Serif Display', Georgia, serif)",
+                fontSize: 36,
+                fontWeight: 400,
                 fontStyle: "italic",
-                color: "var(--text-primary, #F0FDFA)",
+                color: "var(--text-primary, #e2e8f0)",
                 display: "block",
-                lineHeight: 1.2,
+                lineHeight: 1.1,
               }}
             >
               {spotlightWord.word}
             </span>
             <span
               style={{
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                fontSize: 10,
-                color: "var(--text-ghost, #2D5A52)",
-                letterSpacing: "0.06em",
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                marginTop: 2,
+                color: "var(--text-muted, #4a6580)",
+                marginTop: 6,
                 display: "block",
               }}
             >
@@ -308,14 +321,13 @@ export function DashboardRightPanel({
               justifyContent: "center",
               gap: 6,
               padding: "8px 16px",
-              borderRadius: 100,
-              border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
+              borderRadius: 8,
+              border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
               background: "transparent",
-              color: "var(--text-secondary, #6B9E96)",
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              fontSize: 11,
+              color: "var(--text-secondary, #94a3b8)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+              fontSize: 13,
               fontWeight: 500,
-              letterSpacing: "0.04em",
               cursor: "pointer",
               transition: "all 200ms ease",
               marginTop: 4,
@@ -323,13 +335,16 @@ export function DashboardRightPanel({
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor =
-                "var(--teal-border, rgba(13,148,136,0.2))";
-              e.currentTarget.style.color = "var(--text-primary, #EDF6F4)";
+                "var(--ocean-teal-primary, #00d4aa)";
+              e.currentTarget.style.color = "var(--text-primary, #e2e8f0)";
+              e.currentTarget.style.background =
+                "var(--teal-glow, rgba(0,212,170,0.08))";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor =
-                "var(--border-dim, rgba(255,255,255,0.07))";
-              e.currentTarget.style.color = "var(--text-secondary, #6B9E96)";
+                "var(--teal-border, rgba(0,212,170,0.18))";
+              e.currentTarget.style.color = "var(--text-secondary, #94a3b8)";
+              e.currentTarget.style.background = "transparent";
             }}
           >
             <BookOpen className="w-3.5 h-3.5" />
@@ -342,34 +357,38 @@ export function DashboardRightPanel({
       {/* ── This Week — with sparkline ── */}
       <div
         className="flex flex-col gap-3 mt-auto"
+        onMouseEnter={() => setWeekHovered(true)}
+        onMouseLeave={() => setWeekHovered(false)}
         style={{
-          borderRadius: 12,
-          padding: 16,
-          background: "#060f0f",
-          border: "1px solid rgba(0, 229, 204, 0.12)",
-          boxShadow: "0 0 20px rgba(0,0,0,0.4)",
+          borderRadius: 10,
+          padding: 20,
+          background: "var(--ocean-depth-2, #0d1d2e)",
+          borderTop: "2px solid rgba(0, 212, 170, 0.5)",
+          boxShadow: weekHovered
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 2px 16px rgba(0,0,0,0.3)",
+          transition: "box-shadow 0.2s ease",
         }}
       >
-        <span
+        <h3
           style={{
-            fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-            fontSize: 9,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "#4a9e96",
-            fontStyle: "normal",
-            marginBottom: 8,
+            fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+            fontSize: 20,
+            fontWeight: 600,
+            lineHeight: 1.35,
+            color: "var(--text-primary, #e2e8f0)",
+            margin: 0,
           }}
         >
-          This week
-        </span>
-        <div className="flex items-baseline gap-2">
+          This Week
+        </h3>
+        <div className="flex flex-col gap-0.5">
           <span
             style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              fontSize: 24,
-              fontWeight: 500,
-              color: "var(--text-primary, #F0FDFA)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+              fontSize: 40,
+              fontWeight: 700,
+              color: "var(--ocean-teal-primary, #00d4aa)",
               lineHeight: 1,
             }}
           >
@@ -377,12 +396,13 @@ export function DashboardRightPanel({
           </span>
           <span
             style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              fontSize: 10,
-              color: "var(--text-ghost, #2D5A52)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+              fontSize: 12,
+              fontWeight: 500,
+              color: "var(--text-muted, #4a6580)",
             }}
           >
-            words absorbed
+            words this week
           </span>
         </div>
 
@@ -401,8 +421,8 @@ export function DashboardRightPanel({
                 borderRadius: 2,
                 background:
                   i === 6
-                    ? "var(--teal-dim, rgba(13, 148, 136, 0.5))"
-                    : "rgba(255, 255, 255, 0.06)",
+                    ? "var(--ocean-teal-primary, #00d4aa)"
+                    : "rgba(74, 127, 165, 0.15)",
                 transition: "height 0.6s ease",
               }}
             />

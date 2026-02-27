@@ -105,17 +105,7 @@ function DashboardContent({
     <ProgressionProvider initialWordCount={stats.wordsEncountered}>
       <div
         className="dashboard-shell min-h-screen relative"
-        style={{
-          background: `
-            radial-gradient(ellipse 120% 35% at 50% -5%,
-              rgba(20, 80, 100, 0.65) 0%, transparent 65%),
-            radial-gradient(ellipse 60% 50% at 30% 20%,
-              rgba(15, 155, 142, 0.07) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 50% at 70% 25%,
-              rgba(15, 155, 142, 0.05) 0%, transparent 55%),
-            radial-gradient(ellipse at 50% 40%, #082535 0%, #020f14 100%)
-          `,
-        }}
+        style={{ background: "var(--ocean-depth-1, #070f1a)" }}
       >
         {/* ── Cinematic vignette overlay — darkened edges ── */}
         <div className="db-vignette" />
@@ -229,10 +219,9 @@ function DashboardContent({
               <div
                 className="glass-card p-4"
                 style={{
-                  background: "rgba(4, 24, 36, 0.75)",
-                  border: "1px solid rgba(45, 212, 191, 0.1)",
-                  borderRadius: 20,
-                  backdropFilter: "blur(24px) saturate(180%)",
+                  background: "var(--ocean-depth-2, #0d1d2e)",
+                  border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+                  borderRadius: 16,
                 }}
               >
                 <div className="flex items-start gap-3">
@@ -288,7 +277,7 @@ function DashboardContent({
             />
           )}
 
-          <div className="max-w-4xl mx-auto space-y-10">
+          <div className="max-w-4xl mx-auto space-y-6">
             {/* Usage Limit Banner */}
             <UsageLimitBanner className="mb-4" />
 
@@ -298,10 +287,9 @@ function DashboardContent({
                 <div
                   className="flex items-center gap-2 px-4 py-2 rounded-full"
                   style={{
-                    background: "rgba(4, 24, 36, 0.6)",
+                    background: "var(--ocean-depth-2, #0d1d2e)",
                     border:
-                      "1px solid rgba(45, 212, 191, 0.1)",
-                    backdropFilter: "blur(16px)",
+                      "1px solid var(--teal-border, rgba(0,212,170,0.18))",
                   }}
                 >
                   <Crown
@@ -312,10 +300,8 @@ function DashboardContent({
                     style={{
                       fontSize: 12,
                       fontWeight: 500,
-                      color: "var(--text-secondary, #6B9E96)",
-                      fontFamily:
-                        "var(--font-mono, 'JetBrains Mono', monospace)",
-                      letterSpacing: "0.04em",
+                      color: "var(--text-secondary, #94a3b8)",
+                      fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                     }}
                   >
                     {getTierConfig(subscriptionTier as TierSlug)?.displayName ||
@@ -337,7 +323,7 @@ function DashboardContent({
 
             {/* ========== VOCABULARY VIEWER ========== */}
             {userId && (
-              <section>
+              <section style={{ marginTop: 24 }}>
                 <VocabularyViewer userId={userId} language={targetLanguage} />
               </section>
             )}
@@ -348,12 +334,11 @@ function DashboardContent({
                 <section
                   className="glass-card p-8"
                   style={{
-                    borderRadius: 20,
-                    background:
-                      "linear-gradient(135deg, rgba(4, 24, 36, 0.6) 0%, rgba(2, 15, 20, 0.8) 100%)",
+                    borderRadius: 16,
+                    background: "var(--ocean-depth-2, #0d1d2e)",
                     border:
-                      "1px solid rgba(45, 212, 191, 0.08)",
-                    boxShadow: "0 8px 40px rgba(0,0,0,0.3), 0 0 60px rgba(15,155,142,0.03)",
+                      "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+                    boxShadow: "0 4px 32px rgba(0,0,0,0.3)",
                   }}
                 >
                   <div className="flex items-center justify-between">

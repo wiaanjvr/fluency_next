@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 // ============================================================================
-// Depth Chart — Physical depth gauge visualization
-// Vertical cable with depth marker nodes. Active zone glows.
+// Depth Chart — Submarine observation deck aesthetic
+// Vertical gauge with soft teal accents. No neon, no monospace.
 // ============================================================================
 
 interface DepthChartProps {
@@ -14,6 +14,21 @@ interface DepthChartProps {
   shadowingSessions?: number;
   className?: string;
 }
+
+// Design tokens (mirror navigation/DepthSidebar)
+const T = {
+  gaugeTop: "#2dd4bf",
+  gaugeBottom: "#0891b2",
+  gaugeTrack: "rgba(148, 163, 184, 0.15)",
+  accentTeal: "#00d4aa",
+  activeRowBg: "rgba(0, 212, 170, 0.07)",
+  activeRowBdr: "#00d4aa",
+  textPrimary: "#e2e8f0",
+  textMuted: "#64748b",
+  textSub: "#8ba3b8",
+  dividerFaint: "rgba(45, 212, 191, 0.08)",
+  font: "'Inter', 'DM Sans', system-ui, sans-serif",
+} as const;
 
 const ZONES = [
   {
@@ -83,19 +98,7 @@ export function DepthChart({
     <div className={cn("w-full flex flex-col h-full", className)}>
       {/* Zone nodes along the depth cable */}
       <div className="relative flex-1 flex flex-col" style={{ minHeight: 0 }}>
-        {/* Depth cable — vertical line */}
-        <div
-          className="absolute"
-          style={{
-            left: 11,
-            top: 10,
-            bottom: 10,
-            width: 1,
-            borderRadius: 1,
-            background:
-              "linear-gradient(to bottom, var(--teal-border, rgba(13,148,136,0.2)) 0%, rgba(13, 148, 136, 0.05) 60%, transparent 100%)",
-          }}
-        />
+        {/* No vertical cable — zone list is the gauge in this variant */}
 
         {/* Zone nodes */}
         {ZONES.map((zone, i) => {
@@ -106,104 +109,64 @@ export function DepthChart({
           return (
             <div
               key={zone.id}
-              className="relative"
               style={{
                 flex: 1,
-                minHeight: 48,
-                paddingLeft: 36,
-                paddingTop: 10,
-                paddingBottom: 10,
+                minHeight: 44,
                 display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                opacity: isLocked ? 0.35 : isPast ? 0.6 : 1,
-                background: isActive
-                  ? "linear-gradient(90deg, rgba(13, 148, 136, 0.06) 0%, transparent 100%)"
-                  : "transparent",
-                transition: "opacity 0.5s ease, background 0.4s ease",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "5px 8px 5px 10px",
+                marginBottom: 1,
+                borderLeft: isActive
+                  ? `3px solid ${T.activeRowBdr}`
+                  : "3px solid transparent",
+                background: isActive ? T.activeRowBg : "transparent",
+                borderRadius: "0 4px 4px 0",
+                opacity: isLocked ? 0.4 : 1,
+                transition: "background 0.25s, opacity 0.3s",
               }}
             >
-              {/* Horizontal tick mark from cable */}
-              <div
-                style={{
-                  position: "absolute",
-                  left: 12,
-                  top: "50%",
-                  width: 14,
-                  height: 1,
-                  background: isActive
-                    ? "rgba(255, 255, 255, 0.12)"
-                    : "rgba(255, 255, 255, 0.06)",
-                  transform: "translateY(-50%)",
-                }}
-              />
-
-              {/* Circle indicator on cable */}
-              <div
-                style={{
-                  position: "absolute",
-                  left: 8,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: isActive ? "var(--teal, #0D9488)" : "transparent",
-                  border: isActive
-                    ? "none"
-                    : `1.5px solid ${isPast ? "rgba(255, 255, 255, 0.08)" : "#1A3832"}`,
-                  boxShadow: isActive
-                    ? "0 0 10px rgba(13, 148, 136, 0.5), 0 0 20px rgba(13, 148, 136, 0.2)"
-                    : "none",
-                  transition: "all 0.4s ease",
-                }}
-              />
-
-              {/* Zone name */}
-              <div
-                style={{
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  fontSize: 10,
-                  fontWeight: 500,
-                  letterSpacing: "0.12em",
-                  color: isActive
-                    ? "var(--text-primary, #EDF6F4)"
-                    : isLocked
-                      ? "#1E4040"
-                      : "var(--text-ghost, #1A3832)",
-                  lineHeight: 1.2,
-                  transition: "color 0.3s ease",
-                }}
-              >
-                {zone.name}
+              <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <span
+                  style={{
+                    fontFamily: T.font,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: isActive
+                      ? T.textPrimary
+                      : isPast
+                        ? T.textSub
+                        : T.textMuted,
+                    lineHeight: 1,
+                  }}
+                >
+                  {zone.name}
+                </span>
+                <span
+                  style={{
+                    fontFamily: T.font,
+                    fontSize: 9,
+                    color: T.textMuted,
+                    opacity: 0.7,
+                  }}
+                >
+                  {zone.description}
+                </span>
               </div>
-
-              {/* Word count range */}
-              <div
+              <span
                 style={{
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  fontFamily: T.font,
                   fontSize: 9,
-                  color: "var(--text-ghost, #2D5A52)",
-                  opacity: 0.6,
-                  marginTop: 2,
+                  fontWeight: 400,
+                  color: T.textMuted,
+                  opacity: isActive ? 0.9 : 0.55,
+                  whiteSpace: "nowrap",
                 }}
               >
                 {zone.depthLabel}
-              </div>
-
-              {/* Zone descriptor */}
-              <div
-                style={{
-                  fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                  fontSize: 9,
-                  fontStyle: "italic",
-                  color: "var(--text-ghost, #2D5A52)",
-                  opacity: isActive ? 0.6 : 0.4,
-                  marginTop: 1,
-                }}
-              >
-                {zone.description}
-              </div>
+              </span>
             </div>
           );
         })}
@@ -213,59 +176,31 @@ export function DepthChart({
       <div
         style={{
           marginTop: "auto",
-          paddingTop: 16,
-          borderTop: "1px solid rgba(255, 255, 255, 0.04)",
+          paddingTop: 14,
+          borderTop: `1px solid rgba(45, 212, 191, 0.08)`,
+          textAlign: "center",
         }}
       >
-        <div style={{ marginBottom: 12 }}>
-          <div
-            style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              fontSize: 14,
-              fontWeight: 500,
-              color: "var(--text-secondary, #7BA8A0)",
-              letterSpacing: "-0.01em",
-            }}
-          >
-            {wordCount} WORDS
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              fontSize: 9,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase" as const,
-              color: "var(--text-ghost, #2D5A52)",
-              marginTop: 2,
-            }}
-          >
-            Absorbed
-          </div>
+        <div
+          style={{
+            fontFamily: "'Inter', 'DM Sans', system-ui, sans-serif",
+            fontSize: 15,
+            fontWeight: 600,
+            color: "#00d4aa",
+            marginBottom: 3,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {wordCount.toLocaleString()} words
         </div>
-        <div>
-          <div
-            style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              fontSize: 14,
-              fontWeight: 500,
-              color: "var(--text-secondary, #7BA8A0)",
-              letterSpacing: "-0.01em",
-            }}
-          >
-            {timeLabel}
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              fontSize: 9,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase" as const,
-              color: "var(--text-ghost, #2D5A52)",
-              marginTop: 2,
-            }}
-          >
-            Immersed
-          </div>
+        <div
+          style={{
+            fontFamily: "'Inter', 'DM Sans', system-ui, sans-serif",
+            fontSize: 11,
+            color: "#64748b",
+          }}
+        >
+          {timeLabel} immersed
         </div>
       </div>
     </div>

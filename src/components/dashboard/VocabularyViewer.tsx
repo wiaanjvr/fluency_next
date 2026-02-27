@@ -195,7 +195,7 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
           />
           <span
             style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
               fontSize: 13,
             }}
           >
@@ -213,39 +213,28 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         <div className="flex items-center gap-3">
           <h2
             style={{
-              fontSize: 18,
-              fontWeight: 700,
+              fontSize: 20,
+              fontWeight: 600,
+              lineHeight: 1.35,
               fontStyle: "normal",
-              color: "#ffffff",
+              color: "var(--text-primary, #e2e8f0)",
               margin: 0,
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
             }}
           >
-            <span
-              style={{ fontFamily: "var(--font-inter, 'Inter', sans-serif)" }}
-            >
-              Your{" "}
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
-                fontWeight: 700,
-                fontStyle: "normal",
-              }}
-            >
-              Vocabulary
-            </span>
+            Your Vocabulary
           </h2>
           {/* Count chip */}
           <span
             style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              fontSize: 11,
-              color: "var(--text-muted, #2E5C54)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+              fontSize: 12,
+              fontWeight: 500,
+              color: "var(--text-muted, #4a6580)",
               padding: "2px 8px",
-              borderRadius: 100,
+              borderRadius: 4,
               background: "transparent",
               border: "none",
-              letterSpacing: "0.06em",
             }}
           >
             {filteredWords.length} / {words.length}
@@ -256,10 +245,10 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         <div
           className="pill-toggle-group flex"
           style={{
-            background: "rgba(4, 24, 36, 0.6)",
+            background: "var(--ocean-depth-2, #0d1d2e)",
             borderRadius: 10,
             padding: 3,
-            border: "1px solid rgba(255, 255, 255, 0.06)",
+            border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
           }}
         >
           {viewButtons.map(({ mode, icon: Icon, label }) => (
@@ -278,15 +267,15 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
                 cursor: "pointer",
                 background:
                   viewMode === mode
-                    ? "var(--bg-elevated, #052030)"
+                    ? "var(--ocean-depth-3, #132638)"
                     : "transparent",
                 color:
                   viewMode === mode
-                    ? "var(--text-primary, #EDF6F4)"
-                    : "var(--text-ghost, #1A3832)",
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                fontSize: 11,
-                letterSpacing: "0.02em",
+                    ? "var(--text-primary, #e2e8f0)"
+                    : "var(--text-muted, #4a6580)",
+                fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+                fontSize: 12,
+                fontWeight: 500,
               }}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -298,12 +287,12 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
 
       {/* ── ROW 2: Frosted search / filter bar ── */}
       <div
-        className="vocab-filter-bar flex flex-wrap items-center gap-3 px-4 py-3"
+        className="vocab-filter-bar flex flex-wrap items-center gap-3"
         style={{
-          borderRadius: 14,
-          background: "rgba(4, 24, 36, 0.5)",
-          backdropFilter: "blur(12px)",
-          border: "1px solid rgba(255, 255, 255, 0.06)",
+          borderRadius: 8,
+          padding: "12px 16px",
+          background: "var(--ocean-depth-2, #0d1d2e)",
+          border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
         }}
       >
         {/* Search */}
@@ -320,9 +309,9 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             className="w-full pl-9 pr-3 py-2 text-sm outline-none"
             style={{
               borderRadius: 10,
-              background: "rgba(255, 255, 255, 0.04)",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
-              color: "var(--text-primary, #F0FDFA)",
+              background: "var(--ocean-depth-3, #132638)",
+              border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+              color: "var(--text-primary, #e2e8f0)",
               fontFamily: "var(--font-inter, 'Inter', sans-serif)",
               fontSize: 13,
             }}
@@ -342,10 +331,10 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             style={{
               borderRadius: 10,
               padding: "6px 12px",
-              background: "rgba(255, 255, 255, 0.04)",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
-              color: "var(--text-secondary, #7BA8A0)",
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              background: "var(--ocean-depth-3, #132638)",
+              border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+              color: "var(--text-secondary, #94a3b8)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
               fontSize: 11,
             }}
           >
@@ -363,7 +352,7 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             className="text-xs whitespace-nowrap"
             style={{
               color: "var(--text-ghost, #2D5A52)",
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
               fontSize: 10,
             }}
           >
@@ -376,10 +365,10 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             style={{
               borderRadius: 8,
               padding: "4px 8px",
-              background: "rgba(255, 255, 255, 0.03)",
-              border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
-              color: "var(--text-secondary, #6B9E96)",
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              background: "var(--ocean-depth-3, #132638)",
+              border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+              color: "var(--text-secondary, #94a3b8)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
               fontSize: 11,
               fontWeight: 600,
             }}
@@ -395,7 +384,7 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         {/* Divider */}
         <div
           className="hidden sm:block w-px h-5"
-          style={{ background: "rgba(255, 255, 255, 0.06)" }}
+          style={{ background: "var(--ocean-depth-4, #1a3347)", width: 1 }}
         />
 
         {/* Pagination controls */}
@@ -406,10 +395,10 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
             style={{
               borderRadius: 8,
-              border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
-              background: "rgba(255, 255, 255, 0.03)",
-              color: "var(--text-secondary, #6B9E96)",
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+              background: "var(--ocean-depth-3, #132638)",
+              color: "var(--text-secondary, #94a3b8)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
               fontSize: 11,
               cursor: currentPage === 1 ? "not-allowed" : "pointer",
             }}
@@ -421,7 +410,7 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
           <span
             className="tabular-nums px-1"
             style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
               fontSize: 11,
               color: "var(--text-ghost, #1A3832)",
             }}
@@ -435,10 +424,10 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
             className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
             style={{
               borderRadius: 8,
-              border: "1px solid var(--border-dim, rgba(255,255,255,0.07))",
-              background: "rgba(255, 255, 255, 0.03)",
-              color: "var(--text-secondary, #6B9E96)",
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+              background: "var(--ocean-depth-3, #132638)",
+              color: "var(--text-secondary, #94a3b8)",
+              fontFamily: "var(--font-inter, 'Inter', sans-serif)",
               fontSize: 11,
               cursor: currentPage === totalPages ? "not-allowed" : "pointer",
             }}
@@ -455,8 +444,8 @@ export function VocabularyViewer({ userId, language }: VocabularyViewerProps) {
         style={{
           maxHeight: 520,
           borderRadius: 16,
-          border: "1px solid rgba(0, 229, 204, 0.12)",
-          background: "#060f0f",
+          border: "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+          background: "var(--ocean-depth-1, #070f1a)",
         }}
       >
         <AnimatePresence mode="wait">

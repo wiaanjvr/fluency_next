@@ -308,7 +308,7 @@ export function ContextualNav({
                     className="text-[10px] tabular-nums font-medium"
                     style={{
                       fontFamily:
-                        "var(--font-mono, 'JetBrains Mono', monospace)",
+                        "var(--font-inter, 'Inter', system-ui, sans-serif)",
                       color: "var(--text-secondary, #7BA8A0)",
                     }}
                   >

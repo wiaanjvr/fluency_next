@@ -196,7 +196,7 @@ export function OceanNavigation({
           <div
             className="flex items-center gap-2"
             style={{
-              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
               fontSize: 12,
               letterSpacing: "0.06em",
               color: "var(--text-secondary, #7BA8A0)",
@@ -509,7 +509,7 @@ export function OceanNavigation({
               <span
                 className="text-xs font-semibold tabular-nums"
                 style={{
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  fontFamily: "var(--font-inter, 'Inter', system-ui, sans-serif)",
                   color: "var(--text-secondary, #6B9E96)",
                 }}
               >

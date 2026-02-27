@@ -77,12 +77,12 @@ export function LanguageDepthSelector({
       {/* Trigger pill */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 group"
+        className="flex items-center gap-2 transition-all duration-200 group"
         style={{
-          background: isOpen
-            ? "rgba(255, 255, 255, 0.08)"
-            : "rgba(255, 255, 255, 0.03)",
-          border: `1px solid ${isOpen ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.07)"}`,
+          padding: "4px 12px",
+          borderRadius: 20,
+          background: "var(--ocean-depth-3, #132638)",
+          border: `1px solid ${isOpen ? "var(--ocean-teal-primary, #00d4aa)" : "var(--teal-border, rgba(0,212,170,0.18))"}`,
         }}
         aria-label={`${activeLanguage.name}, ${depthLevel.name}. Click to switch language.`}
         aria-expanded={isOpen}
@@ -90,18 +90,22 @@ export function LanguageDepthSelector({
       >
         <span className="text-base leading-none">{activeLanguage.flag}</span>
         <span
-          className="text-xs font-medium hidden sm:inline"
+          className="hidden sm:inline"
           style={{
             fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+            fontSize: 13,
+            fontWeight: 500,
             color: "var(--text-primary, #F0FDFA)",
           }}
         >
           {activeLanguage.name}
         </span>
         <span
-          className="text-[10px] hidden sm:inline"
+          className="hidden sm:inline"
           style={{
-            fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+            fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+            fontSize: 12,
+            fontWeight: 400,
             color: depthLevel.colorPrimaryHex,
           }}
         >
@@ -134,7 +138,6 @@ export function LanguageDepthSelector({
                 borderColor: "rgba(255,255,255,0.08)",
                 boxShadow:
                   "0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
-                backdropFilter: "blur(24px)",
               }}
               role="listbox"
               aria-label="Select language"
@@ -145,7 +148,8 @@ export function LanguageDepthSelector({
                   className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider"
                   style={{
                     color: "var(--text-ghost, #2D5A52)",
-                    fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                    fontFamily:
+                      "var(--font-inter, 'Inter', system-ui, sans-serif)",
                   }}
                 >
                   Languages
@@ -207,7 +211,7 @@ export function LanguageDepthSelector({
                               style={{
                                 color: "var(--text-muted, #2E5C54)",
                                 fontFamily:
-                                  "var(--font-mono, 'JetBrains Mono', monospace)",
+                                  "var(--font-inter, 'Inter', system-ui, sans-serif)",
                               }}
                             >
                               {lang.wordCount.toLocaleString()} words
@@ -274,7 +278,8 @@ export function LanguageDepthSelector({
                   className="text-[10px] font-semibold uppercase tracking-wider mb-2"
                   style={{
                     color: "var(--text-ghost, #2D5A52)",
-                    fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                    fontFamily:
+                      "var(--font-inter, 'Inter', system-ui, sans-serif)",
                   }}
                 >
                   Current Depth
@@ -294,7 +299,7 @@ export function LanguageDepthSelector({
                       style={{
                         color: depthLevel.colorPrimaryHex,
                         fontFamily:
-                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                          "var(--font-inter, 'Inter', system-ui, sans-serif)",
                       }}
                     >
                       {depthLevel.id}
@@ -317,7 +322,7 @@ export function LanguageDepthSelector({
                         style={{
                           color: "var(--text-muted, #2E5C54)",
                           fontFamily:
-                            "var(--font-mono, 'JetBrains Mono', monospace)",
+                            "var(--font-inter, 'Inter', system-ui, sans-serif)",
                         }}
                       >
                         {progress.percentage}%
@@ -344,7 +349,7 @@ export function LanguageDepthSelector({
                         style={{
                           color: "var(--text-muted, #2E5C54)",
                           fontFamily:
-                            "var(--font-mono, 'JetBrains Mono', monospace)",
+                            "var(--font-inter, 'Inter', system-ui, sans-serif)",
                         }}
                       >
                         {progress.wordsRemaining} words to {progress.next.name}

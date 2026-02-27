@@ -69,20 +69,21 @@ function DepthGauge({ word }: { word: UserWord }) {
       <div
         className="depth-bar-track relative w-full overflow-hidden"
         style={{
-          height: 3,
-          borderRadius: 2,
-          background: "rgba(255, 255, 255, 0.06)",
+          height: 4,
+          borderRadius: 4,
+          background: "rgba(74, 127, 165, 0.2)",
           width: 140,
         }}
       >
-        {/* Fill — 50% opacity teal, variable width */}
+        {/* Fill — teal gradient, variable width */}
         <div
           className="depth-bar-fill absolute inset-y-0 left-0 transition-all"
           style={{
             width: `${pct}%`,
             height: "100%",
-            borderRadius: 2,
-            background: "var(--teal-dim, rgba(13, 148, 136, 0.5))",
+            borderRadius: 4,
+            background:
+              "linear-gradient(90deg, var(--ocean-teal-primary, #00d4aa), #0891b2)",
             transition: "width 600ms cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         />
@@ -94,15 +95,18 @@ function DepthGauge({ word }: { word: UserWord }) {
           word.status === "mastered" && "state-ready",
         )}
         style={{
-          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-          fontSize: 10,
+          fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+          fontSize: 11,
           fontWeight: 500,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase" as const,
+          letterSpacing: "0.03em",
+          padding: "2px 8px",
+          borderRadius: 4,
+          background: "var(--ocean-depth-3, #132638)",
           color:
             word.status === "mastered"
-              ? "var(--teal, #0D9488)"
-              : "var(--text-muted, #2E5C54)",
+              ? "var(--ocean-teal-primary, #00d4aa)"
+              : "var(--ocean-steel, #4a7fa5)",
+          display: "inline-block",
         }}
       >
         {stage.label}
@@ -113,6 +117,7 @@ function DepthGauge({ word }: { word: UserWord }) {
 
 // --- Review chip (teal badges, no red) ----------------------------------------
 function ReviewChip({ nextReview }: { nextReview: string }) {
+  const [badgeHovered, setBadgeHovered] = useState(false);
   const reviewDate = new Date(nextReview);
   const now = new Date();
   const isDue = reviewDate <= now;
@@ -123,18 +128,27 @@ function ReviewChip({ nextReview }: { nextReview: string }) {
     return (
       <span
         className="review-badge review-badge-ready inline-flex items-center gap-1"
+        onMouseEnter={() => setBadgeHovered(true)}
+        onMouseLeave={() => setBadgeHovered(false)}
         style={{
-          fontSize: 10,
-          fontWeight: 400,
-          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-          background: "transparent",
+          fontSize: 11,
+          fontWeight: 500,
+          fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+          background: badgeHovered
+            ? "var(--ocean-teal-primary, #00d4aa)"
+            : "transparent",
           border: "none",
-          color: "var(--text-secondary, #6B9E96)",
-          letterSpacing: "0.08em",
-          padding: 0,
+          color: badgeHovered ? "#070f1a" : "var(--text-secondary, #94a3b8)",
+          padding: badgeHovered ? "2px 8px" : 0,
+          borderRadius: 4,
+          transition: "all 0.15s ease",
         }}
       >
-        <span style={{ color: "var(--teal, #0D9488)", fontSize: 10 }}>↑</span>
+        <span
+          style={{ color: "var(--ocean-teal-primary, #00d4aa)", fontSize: 10 }}
+        >
+          ↑
+        </span>
         READY
       </span>
     );
@@ -144,10 +158,10 @@ function ReviewChip({ nextReview }: { nextReview: string }) {
       <span
         className="review-badge review-badge-soon"
         style={{
-          fontSize: 10,
-          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-          color: "var(--text-muted, #2E5C54)",
-          letterSpacing: "0.08em",
+          fontSize: 11,
+          fontWeight: 500,
+          fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+          color: "var(--text-muted, #4a6580)",
           background: "transparent",
           border: "none",
           padding: 0,
@@ -161,10 +175,10 @@ function ReviewChip({ nextReview }: { nextReview: string }) {
       <span
         className="review-badge review-badge-later"
         style={{
-          fontSize: 10,
-          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-          color: "var(--text-ghost, #1A3832)",
-          letterSpacing: "0.08em",
+          fontSize: 11,
+          fontWeight: 500,
+          fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+          color: "var(--text-muted, #4a6580)",
           background: "transparent",
           border: "none",
           padding: 0,
@@ -177,7 +191,7 @@ function ReviewChip({ nextReview }: { nextReview: string }) {
     <span
       style={{
         fontSize: 10,
-        fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
         color: "var(--text-ghost, #2D5A52)",
       }}
     >
@@ -268,9 +282,9 @@ export function VocabularyListView({
         <span className="text-4xl">🌊</span>
         <p
           style={{
-            color: "var(--text-ghost, #2D5A52)",
-            fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-            fontSize: 13,
+            color: "var(--text-muted, #4a6580)",
+            fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+            fontSize: 14,
           }}
         >
           No words found in these waters.
@@ -290,15 +304,15 @@ export function VocabularyListView({
       onClick={() => handleSort(field)}
       className="text-left transition-colors"
       style={{
-        fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-        fontSize: 9,
+        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+        fontSize: 11,
         fontWeight: 600,
-        letterSpacing: "0.12em",
+        letterSpacing: "0.08em",
         textTransform: "uppercase" as const,
         color:
           sortField === field
-            ? "var(--text-secondary, #6B9E96)"
-            : "var(--text-ghost, #1A3832)",
+            ? "var(--text-secondary, #94a3b8)"
+            : "var(--text-muted, #4a6580)",
         background: "none",
         border: "none",
         cursor: "pointer",
@@ -319,7 +333,9 @@ export function VocabularyListView({
       {/* Column headers */}
       <div
         className="grid grid-cols-[1fr_180px_110px_28px] gap-3 px-4 py-2.5"
-        style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.04)" }}
+        style={{
+          borderBottom: "1px solid var(--ocean-depth-4, rgba(26,51,71,0.6))",
+        }}
       >
         <ColHeader field="word">Word</ColHeader>
         <ColHeader field="status">Depth</ColHeader>
@@ -346,15 +362,15 @@ export function VocabularyListView({
                   // @ts-expect-error CSS custom property
                   "--row-index": idx,
                   background: isExpanded
-                    ? "rgba(255, 255, 255, 0.02)"
+                    ? "var(--teal-glow, rgba(0, 212, 170, 0.08))"
                     : isHovered
-                      ? "rgba(13, 148, 136, 0.03)"
+                      ? "var(--teal-glow, rgba(0, 212, 170, 0.08))"
                       : "transparent",
                   borderLeft:
                     isHovered || isExpanded
-                      ? "2px solid var(--teal, #0D9488)"
+                      ? "2px solid var(--ocean-teal-primary, #00d4aa)"
                       : "2px solid transparent",
-                  transition: "background 0.15s ease, border-left 0.15s ease",
+                  transition: "all 0.18s ease",
                 }}
               >
                 <div className="grid grid-cols-[1fr_180px_110px_28px] gap-3 px-4 py-3.5 items-center">
@@ -364,8 +380,11 @@ export function VocabularyListView({
                       style={{
                         fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                         fontWeight: 500,
-                        color: "var(--text-primary, #F0FDFA)",
+                        color: isHovered
+                          ? "var(--text-primary, #e2e8f0)"
+                          : "var(--text-secondary, #94a3b8)",
                         fontSize: 14,
+                        transition: "color 0.15s ease",
                       }}
                     >
                       {word.word}
@@ -408,18 +427,15 @@ export function VocabularyListView({
                 <div
                   className="px-4 pb-4 pt-2 grid grid-cols-2 sm:grid-cols-4 gap-4"
                   style={{
-                    background:
-                      "linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%)",
-                    borderBottom:
-                      "1px solid var(--border-subtle, rgba(255,255,255,0.04))",
+                    background: "var(--ocean-depth-3, #132638)",
+                    borderBottom: "1px solid var(--ocean-depth-4, #1a3347)",
                   }}
                 >
                   {/* Translation */}
                   <div className="col-span-2 sm:col-span-1">
                     <div
                       style={{
-                        fontFamily:
-                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                         fontSize: 9,
                         letterSpacing: "0.1em",
                         textTransform: "uppercase" as const,
@@ -454,8 +470,7 @@ export function VocabularyListView({
                   <div>
                     <div
                       style={{
-                        fontFamily:
-                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                         fontSize: 9,
                         letterSpacing: "0.1em",
                         textTransform: "uppercase" as const,
@@ -470,13 +485,12 @@ export function VocabularyListView({
                       style={{
                         fontSize: 10,
                         fontWeight: 500,
-                        fontFamily:
-                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                         letterSpacing: "0.06em",
-                        background: "rgba(255, 255, 255, 0.03)",
+                        background: "var(--ocean-depth-3, #132638)",
                         border:
-                          "1px solid var(--border-dim, rgba(255,255,255,0.07))",
-                        color: "var(--text-muted, #2E5C54)",
+                          "1px solid var(--teal-border, rgba(0,212,170,0.18))",
+                        color: "var(--text-muted, #4a6580)",
                       }}
                     >
                       {stage.label}
@@ -496,8 +510,7 @@ export function VocabularyListView({
                   <div>
                     <div
                       style={{
-                        fontFamily:
-                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                         fontSize: 9,
                         letterSpacing: "0.1em",
                         textTransform: "uppercase" as const,
@@ -511,8 +524,7 @@ export function VocabularyListView({
                       style={{
                         fontSize: 14,
                         color: "var(--text-secondary, #7BA8A0)",
-                        fontFamily:
-                          "var(--font-mono, 'JetBrains Mono', monospace)",
+                        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                       }}
                     >
                       {word.repetitions} review
@@ -525,8 +537,7 @@ export function VocabularyListView({
                     <div>
                       <div
                         style={{
-                          fontFamily:
-                            "var(--font-mono, 'JetBrains Mono', monospace)",
+                          fontFamily: "var(--font-inter, 'Inter', sans-serif)",
                           fontSize: 9,
                           letterSpacing: "0.1em",
                           textTransform: "uppercase" as const,
