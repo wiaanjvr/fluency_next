@@ -3,11 +3,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatTimeMs } from "@/lib/reading-utils";
-import { Play, Pause } from "lucide-react";
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Mic2,
+  Loader2,
+} from "lucide-react";
 
 interface AudioPlayerProps {
-  /** URL of the audio file */
-  audioUrl: string;
+  /** URL of the audio file (null = not yet available) */
+  audioUrl: string | null;
   /** Called on each animation frame with current time in ms */
   onTimeUpdate: (currentTimeMs: number) => void;
   /** Called when playback starts/stops */
@@ -22,17 +29,18 @@ interface AudioPlayerProps {
   onPlaybackRateChange: (rate: number) => void;
   /** Called when audio reaches the end */
   onEnded?: () => void;
+  /** Whether karaoke highlighting is active */
+  karaokeEnabled?: boolean;
+  /** Toggle karaoke mode */
+  onToggleKaraoke?: () => void;
 }
 
 const PLAYBACK_RATES = [0.75, 1, 1.25] as const;
 
 /**
- * Sticky bottom audio player with seekable progress bar,
- * playback speed control, and frame-accurate time updates
- * for word highlighting sync.
- *
- * Style: bg-[#0d2137]/95 backdrop-blur-sm border-t border-white/10
- * Rounded top corners, ~80px mobile / ~72px desktop.
+ * Floating audio player dock — centered, minimal, glassy.
+ * Rewind/Forward 10s, Play/Pause circle, thin progress bar,
+ * time display, karaoke toggle.
  */
 export function AudioPlayer({
   audioUrl,
@@ -43,6 +51,8 @@ export function AudioPlayer({
   playbackRate,
   onPlaybackRateChange,
   onEnded,
+  karaokeEnabled = true,
+  onToggleKaraoke,
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -90,7 +100,6 @@ export function AudioPlayer({
     if (!audioRef.current) return;
     if (isPlaying) {
       audioRef.current.play().catch(() => {
-        // Browser may block autoplay; that's okay
         onPlayStateChange(false);
       });
     } else {
@@ -111,6 +120,26 @@ export function AudioPlayer({
   const togglePlay = useCallback(() => {
     onPlayStateChange(!isPlaying);
   }, [isPlaying, onPlayStateChange]);
+
+  // ─── Skip forward/back 10s ───────────────────────────────────────
+
+  const skip = useCallback(
+    (seconds: number) => {
+      if (!audioRef.current) return;
+      const newTime = Math.max(
+        0,
+        Math.min(
+          audioRef.current.duration,
+          audioRef.current.currentTime + seconds,
+        ),
+      );
+      audioRef.current.currentTime = newTime;
+      const ms = newTime * 1000;
+      setCurrentTimeMs(ms);
+      onTimeUpdate(ms);
+    },
+    [onTimeUpdate],
+  );
 
   // ─── Seek on progress bar click/drag ─────────────────────────────
 
@@ -181,88 +210,115 @@ export function AudioPlayer({
   const progress = durationMs > 0 ? (currentTimeMs / durationMs) * 100 : 0;
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-50 bg-[#0d2137]/95 backdrop-blur-sm border-t border-white/10 rounded-t-2xl">
-      <audio
-        ref={audioRef}
-        src={audioUrl}
-        preload="auto"
-        onLoadedMetadata={handleLoadedMetadata}
-        onEnded={handleEnded}
-      />
+    <div
+      className={cn(
+        "fixed bottom-8 left-1/2 -translate-x-1/2 z-50",
+        "bg-[#0d1b2a]/90 backdrop-blur-xl",
+        "border border-white/[0.08] rounded-2xl",
+        "px-6 py-3 min-w-[320px] max-w-[420px]",
+        "shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+        "flex items-center gap-4",
+      )}
+    >
+      {audioUrl && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          preload="auto"
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
+        />
+      )}
 
-      <div className="max-w-2xl mx-auto px-4 md:px-6 py-3 md:py-2.5">
-        {/* Progress bar */}
+      {/* Rewind 10s */}
+      <button
+        onClick={() => skip(-10)}
+        disabled={!audioUrl}
+        className={cn(
+          "transition-colors shrink-0",
+          audioUrl
+            ? "text-[var(--seafoam)]/60 hover:text-[var(--seafoam)]"
+            : "text-[var(--seafoam)]/20 cursor-default",
+        )}
+        aria-label="Rewind 10 seconds"
+      >
+        <SkipBack className="w-4 h-4" />
+      </button>
+
+      {/* Play/Pause — circle accent */}
+      <button
+        onClick={togglePlay}
+        disabled={!audioUrl}
+        className={cn(
+          "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+          "border transition-all duration-300",
+          audioUrl
+            ? "bg-[#3dd6b5]/10 border-[#3dd6b5]/20 text-[#3dd6b5] hover:bg-[#3dd6b5]/20 active:scale-95"
+            : "bg-white/5 border-white/10 text-white/20 cursor-default",
+        )}
+        aria-label={isPlaying ? "Pause" : "Play"}
+      >
+        {!audioUrl ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : isPlaying ? (
+          <Pause className="w-4 h-4" />
+        ) : (
+          <Play className="w-4 h-4 ml-0.5" />
+        )}
+      </button>
+
+      {/* Forward 10s */}
+      <button
+        onClick={() => skip(10)}
+        disabled={!audioUrl}
+        className={cn(
+          "transition-colors shrink-0",
+          audioUrl
+            ? "text-[var(--seafoam)]/60 hover:text-[var(--seafoam)]"
+            : "text-[var(--seafoam)]/20 cursor-default",
+        )}
+        aria-label="Forward 10 seconds"
+      >
+        <SkipForward className="w-4 h-4" />
+      </button>
+
+      {/* Progress bar — thin, minimal */}
+      <div
+        ref={progressRef}
+        className="flex-1 h-0.5 bg-white/10 rounded-full cursor-pointer relative group"
+        onClick={handleProgressClick}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+      >
         <div
-          ref={progressRef}
-          className="relative h-1.5 bg-white/10 rounded-full cursor-pointer mb-3 group"
-          onClick={handleProgressClick}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-        >
-          {/* Filled portion */}
-          <div
-            className="absolute inset-y-0 left-0 bg-teal-400 rounded-full transition-[width] duration-75"
-            style={{ width: `${progress}%` }}
-          />
-          {/* Seek thumb */}
-          <div
-            className={cn(
-              "absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-teal-400 rounded-full",
-              "shadow-[0_0_8px_rgba(45,212,191,0.4)]",
-              "opacity-0 group-hover:opacity-100 transition-opacity duration-200",
-              isDragging && "opacity-100",
-            )}
-            style={{ left: `calc(${progress}% - 6px)` }}
-          />
-        </div>
-
-        {/* Controls row */}
-        <div className="flex items-center gap-4">
-          {/* Play/Pause — large teal filled circle */}
-          <button
-            onClick={togglePlay}
-            className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
-              "bg-teal-400 text-white hover:bg-teal-300",
-              "transition-all duration-300",
-              "active:scale-95",
-              "shadow-[0_0_16px_rgba(45,212,191,0.3)]",
-            )}
-            aria-label={isPlaying ? "Pause" : "Play"}
-          >
-            {isPlaying ? (
-              <Pause className="w-5 h-5" />
-            ) : (
-              <Play className="w-5 h-5 ml-0.5" />
-            )}
-          </button>
-
-          {/* Time display */}
-          <div className="flex-1 flex items-center justify-center text-sm font-body text-gray-400 tabular-nums">
-            <span>{formatTimeMs(currentTimeMs)}</span>
-            <span className="mx-1.5 text-gray-600">/</span>
-            <span>{formatTimeMs(durationMs)}</span>
-          </div>
-
-          {/* Speed controls — text buttons */}
-          <div className="flex items-center gap-0.5">
-            {PLAYBACK_RATES.map((rate) => (
-              <button
-                key={rate}
-                onClick={() => onPlaybackRateChange(rate)}
-                className={cn(
-                  "px-2 py-1 rounded text-xs font-body transition-all duration-200",
-                  playbackRate === rate
-                    ? "text-teal-400 font-medium"
-                    : "text-gray-500 hover:text-gray-300",
-                )}
-              >
-                {rate}x
-              </button>
-            ))}
-          </div>
-        </div>
+          className="absolute inset-y-0 left-0 bg-[#3dd6b5] rounded-full transition-[width] duration-75"
+          style={{ width: `${progress}%` }}
+        />
       </div>
+
+      {/* Time display */}
+      <span className="text-xs text-[var(--seafoam)]/50 font-body tabular-nums whitespace-nowrap shrink-0">
+        {formatTimeMs(currentTimeMs)}
+        <span className="mx-1 text-[var(--seafoam)]/30">/</span>
+        {formatTimeMs(durationMs)}
+      </span>
+
+      {/* Karaoke toggle */}
+      {onToggleKaraoke && (
+        <button
+          onClick={onToggleKaraoke}
+          className={cn(
+            "p-1.5 rounded-lg transition-all duration-200 shrink-0",
+            karaokeEnabled
+              ? "text-[#3dd6b5]"
+              : "text-[var(--seafoam)]/40 hover:text-[var(--seafoam)]/70",
+          )}
+          aria-label={karaokeEnabled ? "Disable karaoke" : "Enable karaoke"}
+          title={karaokeEnabled ? "Karaoke on" : "Karaoke off"}
+        >
+          <Mic2 className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 }

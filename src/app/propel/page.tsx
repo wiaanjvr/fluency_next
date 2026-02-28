@@ -15,6 +15,7 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 import { cn } from "@/lib/utils";
 import "@/styles/ocean-theme.css";
+import "@/styles/propel-theme.css";
 
 import {
   activityRegistry,
@@ -43,9 +44,9 @@ import type {
 // Grid class per category
 // ============================================================================
 const GRID_CLASS: Record<ActivityCategory, string> = {
-  Immersion: "grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4",
-  Study: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4",
-  Produce: "grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4",
+  Immersion: "grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6",
+  Study: "grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6",
+  Produce: "grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6",
   Compete: "flex justify-center",
 };
 
@@ -182,42 +183,28 @@ function PropelContent({
       <ContextualNav />
       <MobileBottomNav wordsEncountered={wordsEncountered} />
 
-      <div className="relative z-10 min-h-screen pt-24 pb-16 px-6 lg:pl-[370px]">
-        <div className="max-w-5xl mx-auto w-full">
-          {/* ── Page header ── */}
-          <div className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-            <div className="space-y-1">
-              <h1
-                className="font-display text-4xl md:text-5xl font-bold tracking-tight"
-                style={{ color: "var(--sand)" }}
-              >
-                Propel
-              </h1>
-              <p
-                className="font-body text-base md:text-lg"
-                style={{ color: "var(--seafoam)", opacity: 0.65 }}
-              >
-                Choose your training. Build your depth.
-              </p>
-            </div>
-            {/* Decorative accent line — desktop only */}
-            <div
-              className="hidden md:block h-px w-24 mb-1.5 flex-shrink-0"
-              style={{
-                background:
-                  "linear-gradient(90deg, var(--turquoise) 0%, transparent 100%)",
-                opacity: 0.4,
-              }}
-            />
+      <div className="propel-root relative z-10 min-h-screen pt-28 pb-20 px-6 lg:pl-[280px]">
+        <div className="max-w-4xl mx-auto w-full">
+          {/* ── Page header — landing page style ── */}
+          <div className="mb-10 propel-stagger-hero">
+            <p className="propel-eyebrow mb-3">Training Hub</p>
+            <h1 className="propel-title">Propel</h1>
+            <p className="propel-subtitle mt-2">
+              Choose your training. Build your depth.
+            </p>
+            {/* Decorative accent line */}
+            <div className="mt-5 propel-accent-rule" />
           </div>
 
           {/* ── Personalization banner ── */}
-          <Suspense fallback={<PersonalizationBannerSkeleton />}>
-            <PersonalizationBanner personalization={personalization} />
-          </Suspense>
+          <div className="propel-stagger-banner">
+            <Suspense fallback={<PersonalizationBannerSkeleton />}>
+              <PersonalizationBanner personalization={personalization} />
+            </Suspense>
+          </div>
 
           {/* ── Filter bar ── */}
-          <div className="mb-8">
+          <div className="mb-10">
             <TagFilterBar
               allTags={allTags}
               activeTags={activeTags}
@@ -227,49 +214,47 @@ function PropelContent({
           </div>
 
           {/* ── Category sections ── */}
-          <div className="space-y-10">
+          <div className="space-y-14">
             <AnimatePresence mode="popLayout">
-              {filteredCategories.map(({ category, meta, activities }) => (
-                <section key={category}>
-                  {/* Section label */}
-                  <div className="mb-4">
-                    <span
-                      className="font-body text-[11px] font-semibold tracking-[0.18em] uppercase"
-                      style={{ color: "var(--seafoam)", opacity: 0.35 }}
-                    >
-                      {meta.label}
-                    </span>
-                    <div
-                      className="mt-2 h-px w-full"
-                      style={{
-                        background:
-                          "linear-gradient(90deg, rgba(255,255,255,0.06) 0%, transparent 60%)",
-                      }}
-                    />
-                  </div>
+              {filteredCategories.map(
+                ({ category, meta, activities }, catIdx) => (
+                  <section
+                    key={category}
+                    className={
+                      catIdx === 0
+                        ? "propel-stagger-primary"
+                        : "propel-stagger-secondary"
+                    }
+                  >
+                    {/* Section label — eyebrow style */}
+                    <div className="mb-6">
+                      <span className="propel-eyebrow">{meta.label}</span>
+                      <div className="mt-3 propel-section-divider" />
+                    </div>
 
-                  {/* Card grid */}
-                  <div className={GRID_CLASS[category]}>
-                    <AnimatePresence mode="popLayout">
-                      {activities.map((activity) => (
-                        <div
-                          key={activity.id}
-                          className={cn(
-                            category === "Compete" && "w-full max-w-md",
-                          )}
-                        >
-                          <ActivityCard
-                            activity={activity}
-                            personalization={activityPersonalization.get(
-                              activity.id,
+                    {/* Card grid */}
+                    <div className={GRID_CLASS[category]}>
+                      <AnimatePresence mode="popLayout">
+                        {activities.map((activity) => (
+                          <div
+                            key={activity.id}
+                            className={cn(
+                              category === "Compete" && "w-full max-w-md",
                             )}
-                          />
-                        </div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </section>
-              ))}
+                          >
+                            <ActivityCard
+                              activity={activity}
+                              personalization={activityPersonalization.get(
+                                activity.id,
+                              )}
+                            />
+                          </div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </section>
+                ),
+              )}
             </AnimatePresence>
           </div>
         </div>

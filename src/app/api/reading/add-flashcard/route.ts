@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     language?: string;
     exampleSentence?: string;
     textId?: string;
+    deckId?: string;
   };
   try {
     body = await request.json();
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { word, definition, language, exampleSentence, textId } = body;
+  const { word, definition, language, exampleSentence, textId, deckId } = body;
   if (!word || !definition || !language) {
     return NextResponse.json(
       { error: "word, definition, and language are required" },
@@ -42,35 +43,53 @@ export async function POST(request: NextRequest) {
   const lowerWord = word.toLowerCase();
 
   try {
-    // 1. Find or create a "Free Reading" deck for this user + language
-    const langName = LANGUAGE_DISPLAY[language] || language;
-    const deckName = `Free Reading — ${langName}`;
+    // 1. Find or create the target deck
+    let deck: { id: string } | null = null;
 
-    let { data: deck } = await supabase
-      .from("decks")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("name", deckName)
-      .single();
-
-    if (!deck) {
-      const { data: newDeck, error: deckError } = await supabase
+    // If caller supplied a specific deck, verify it belongs to this user
+    if (deckId) {
+      const { data: selectedDeck } = await supabase
         .from("decks")
-        .insert({
-          user_id: user.id,
-          name: deckName,
-          language,
-        })
         .select("id")
+        .eq("id", deckId)
+        .eq("user_id", user.id)
+        .single();
+      if (selectedDeck) deck = selectedDeck;
+    }
+
+    // Fall back to the default "Free Reading — {Language}" deck
+    if (!deck) {
+      const langName = LANGUAGE_DISPLAY[language] || language;
+      const deckName = `Free Reading — ${langName}`;
+
+      const { data: existing } = await supabase
+        .from("decks")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("name", deckName)
         .single();
 
-      if (deckError || !newDeck) {
-        return NextResponse.json(
-          { error: "Failed to create deck" },
-          { status: 500 },
-        );
+      if (existing) {
+        deck = existing;
+      } else {
+        const { data: newDeck, error: deckError } = await supabase
+          .from("decks")
+          .insert({
+            user_id: user.id,
+            name: deckName,
+            language,
+          })
+          .select("id")
+          .single();
+
+        if (deckError || !newDeck) {
+          return NextResponse.json(
+            { error: "Failed to create deck" },
+            { status: 500 },
+          );
+        }
+        deck = newDeck;
       }
-      deck = newDeck;
     }
 
     // 2. Check the card doesn't already exist in this deck

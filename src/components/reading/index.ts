@@ -1,6 +1,7 @@
 export { ReadingTextArea } from "./ReadingTextArea";
 export { AudioPlayer } from "./AudioPlayer";
 export { WordDrawer } from "./WordDrawer";
+export { WordLookupPopup } from "./WordLookupPopup";
 export { ReadingSkeletonLoader } from "./ReadingSkeletonLoader";
 export { ReadingHeader } from "./ReadingHeader";
 export { SessionCompleteOverlay } from "./SessionCompleteOverlay";

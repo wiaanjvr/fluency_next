@@ -32,15 +32,15 @@ const ICON_MAP: Record<string, LucideIcon> = {
 };
 
 const ACCENT_MAP: Record<string, string> = {
-  teal: "#3dd6b5",
-  amber: "#fbbf24",
-  blue: "#8ab4f8",
-  cyan: "#22d3ee",
-  violet: "#a78bfa",
-  purple: "#c084fc",
-  pink: "#f9a8d4",
-  rose: "#fb7185",
-  orange: "#fb923c",
+  teal: "var(--color-bioluminescent)",
+  amber: "var(--color-bioluminescent)",
+  blue: "var(--color-bioluminescent)",
+  cyan: "var(--color-bioluminescent)",
+  violet: "rgba(45,212,191,0.6)",
+  purple: "rgba(45,212,191,0.6)",
+  pink: "rgba(45,212,191,0.6)",
+  rose: "rgba(45,212,191,0.6)",
+  orange: "rgba(45,212,191,0.6)",
 };
 
 // Estimated session times per activity (in minutes)
@@ -177,7 +177,7 @@ function SuggestedSessionModal({
 
       {/* Modal */}
       <motion.div
-        className="relative w-full max-w-sm rounded-2xl overflow-hidden border border-white/[0.08]
+        className="relative w-full max-w-sm rounded-2xl overflow-hidden border
                     mb-20 sm:mb-24"
         initial={{ opacity: 0, scale: 0.85, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -186,17 +186,28 @@ function SuggestedSessionModal({
         style={{
           transformOrigin: "bottom right",
           background:
-            "linear-gradient(180deg, rgba(14,35,64,0.97) 0%, rgba(9,21,39,0.99) 100%)",
+            "linear-gradient(160deg, var(--color-surface) 0%, var(--color-mid) 100%)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderColor: "var(--border-active)",
+          boxShadow: "var(--glow-medium)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-2">
-            <Compass className="w-4 h-4" style={{ color: "#3dd6b5" }} />
+            <Compass
+              className="w-4 h-4"
+              style={{ color: "var(--color-bioluminescent)" }}
+            />
             <h3
-              className="font-display text-base font-semibold"
-              style={{ color: "var(--sand)" }}
+              className="text-base font-medium"
+              style={{
+                color: "var(--color-text-primary)",
+                fontFamily: "var(--font-serif)",
+                fontStyle: "italic",
+              }}
             >
               Today&apos;s dive plan
             </h3>
@@ -206,7 +217,10 @@ function SuggestedSessionModal({
             className="p-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08]
                         transition-colors duration-200"
           >
-            <X className="w-3.5 h-3.5" style={{ color: "var(--seafoam)" }} />
+            <X
+              className="w-3.5 h-3.5"
+              style={{ color: "var(--color-text-secondary)" }}
+            />
           </button>
         </div>
 
@@ -214,7 +228,6 @@ function SuggestedSessionModal({
         <div className="px-4 pb-2 space-y-2">
           {suggestedPlan.map((activity, idx) => {
             const Icon = ICON_MAP[activity.icon] ?? BookOpen;
-            const accent = ACCENT_MAP[activity.color] ?? "#3dd6b5";
 
             return (
               <motion.button
@@ -234,10 +247,11 @@ function SuggestedSessionModal({
                 {/* Step number */}
                 <span
                   className="w-6 h-6 rounded-full flex items-center justify-center
-                              font-body text-[10px] font-bold flex-shrink-0"
+                              text-[10px] font-bold flex-shrink-0"
                   style={{
-                    background: `${accent}18`,
-                    color: accent,
+                    background: "var(--color-bioluminescent-glow)",
+                    color: "var(--color-bioluminescent)",
+                    fontFamily: "var(--font-sans)",
                   }}
                 >
                   {idx + 1}
@@ -245,23 +259,33 @@ function SuggestedSessionModal({
 
                 {/* Icon */}
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: `${accent}12` }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: "var(--color-bioluminescent-glow)" }}
                 >
-                  <Icon className="w-4 h-4" style={{ color: accent }} />
+                  <Icon
+                    className="w-4 h-4"
+                    style={{ color: "var(--color-bioluminescent)" }}
+                  />
                 </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p
-                    className="font-body text-sm font-medium truncate"
-                    style={{ color: "var(--sand)" }}
+                    className="text-sm font-medium truncate"
+                    style={{
+                      color: "var(--color-text-primary)",
+                      fontFamily: "var(--font-sans)",
+                    }}
                   >
                     {activity.title}
                   </p>
                   <p
-                    className="font-body text-[10px] truncate"
-                    style={{ color: "var(--seafoam)", opacity: 0.45 }}
+                    className="text-[10px] truncate"
+                    style={{
+                      color: "var(--color-text-secondary)",
+                      opacity: 0.45,
+                      fontFamily: "var(--font-sans)",
+                    }}
                   >
                     {activity.reason}
                   </p>
@@ -271,17 +295,24 @@ function SuggestedSessionModal({
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <Clock
                     className="w-3 h-3"
-                    style={{ color: "var(--seafoam)", opacity: 0.3 }}
+                    style={{
+                      color: "var(--color-text-secondary)",
+                      opacity: 0.3,
+                    }}
                   />
                   <span
-                    className="font-body text-[10px]"
-                    style={{ color: "var(--seafoam)", opacity: 0.4 }}
+                    className="text-[10px]"
+                    style={{
+                      color: "var(--color-text-secondary)",
+                      opacity: 0.4,
+                      fontFamily: "var(--font-sans)",
+                    }}
                   >
                     {activity.estimatedMinutes}m
                   </span>
                   <ChevronRight
                     className="w-3 h-3 opacity-0 group-hover/item:opacity-60 transition-opacity"
-                    style={{ color: "var(--seafoam)" }}
+                    style={{ color: "var(--color-text-secondary)" }}
                   />
                 </div>
               </motion.button>
@@ -294,11 +325,15 @@ function SuggestedSessionModal({
           <div className="flex items-center gap-1.5">
             <Clock
               className="w-3.5 h-3.5"
-              style={{ color: "var(--seafoam)", opacity: 0.35 }}
+              style={{ color: "var(--color-text-secondary)", opacity: 0.35 }}
             />
             <span
-              className="font-body text-xs"
-              style={{ color: "var(--seafoam)", opacity: 0.5 }}
+              className="text-xs"
+              style={{
+                color: "var(--color-text-secondary)",
+                opacity: 0.5,
+                fontFamily: "var(--font-sans)",
+              }}
             >
               ~{totalMinutes} min total
             </span>
@@ -310,15 +345,7 @@ function SuggestedSessionModal({
                 onClose();
                 router.push(suggestedPlan[0].href);
               }}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-body text-xs font-semibold
-                          transition-all duration-200
-                          hover:scale-[1.03] active:scale-[0.98]"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(61,214,181,0.2) 0%, rgba(34,211,238,0.15) 100%)",
-                color: "#3dd6b5",
-                border: "1px solid rgba(61,214,181,0.2)",
-              }}
+              className="propel-btn-primary flex items-center gap-1.5 text-xs"
             >
               <Play className="w-3 h-3" />
               Start session
@@ -347,25 +374,10 @@ export function WhatNextFAB({ insights }: WhatNextFABProps) {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.6, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         onClick={() => setOpen(true)}
-        className="fixed bottom-24 right-6 z-[44] flex items-center gap-2
-                    px-4 py-3 rounded-2xl
-                    border border-white/[0.08]
-                    transition-all duration-300
-                    hover:border-white/[0.15] hover:scale-[1.03]
-                    active:scale-[0.97]
-                    shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(14,35,64,0.95) 0%, rgba(20,55,85,0.92) 100%)",
-        }}
+        className="propel-fab fixed bottom-24 right-6 z-[44]"
       >
-        <Compass className="w-4 h-4" style={{ color: "#3dd6b5" }} />
-        <span
-          className="font-body text-xs font-semibold"
-          style={{ color: "var(--sand)" }}
-        >
-          What next?
-        </span>
+        <Compass className="w-4 h-4" />
+        <span>What next?</span>
       </motion.button>
 
       {/* Modal */}

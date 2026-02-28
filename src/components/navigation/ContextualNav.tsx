@@ -66,6 +66,22 @@ const ROUTE_MAP: { pattern: RegExp; config: BreadcrumbRoute }[] = [
     },
   },
   {
+    pattern: /^\/propel\/flashcards\/browser/,
+    config: {
+      parentLabel: "Flashcards",
+      parentHref: "/propel/flashcards",
+      label: "Card Browser",
+    },
+  },
+  {
+    pattern: /^\/propel\/flashcards\/stats/,
+    config: {
+      parentLabel: "Flashcards",
+      parentHref: "/propel/flashcards",
+      label: "Statistics",
+    },
+  },
+  {
     pattern: /^\/propel\/flashcards\/[^/]+\/study/,
     config: {
       parentLabel: "Propel",

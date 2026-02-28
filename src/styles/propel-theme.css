@@ -1,0 +1,580 @@
+/* ==========================================================================
+   FLUENSEA PROPEL THEME — Underwater Atmospheric Component System
+   Design tokens, component styles, and micro-interactions for the Propel
+   training hub, aligned with the landing page's ocean-depth aesthetic.
+   ========================================================================== */
+
+/* ===== Design Tokens ===== */
+.propel-root {
+  /* ── Color Palette ── */
+  --color-text-primary: #f0fdfa;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #4a6580;
+  --color-bioluminescent: #2dd4bf;
+  --color-bioluminescent-glow: rgba(45, 212, 191, 0.1);
+  --color-accent: #0f9b8e;
+  --color-surface: #041824;
+  --color-mid: #052030;
+  --color-bg: #020f14;
+
+  /* ── Border Tokens ── */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-active: rgba(45, 212, 191, 0.3);
+  --border-recommended: rgba(45, 212, 191, 0.12);
+
+  /* ── Glow / Shadow Tokens ── */
+  --glow-soft:
+    0 4px 24px rgba(45, 212, 191, 0.06), 0 0 20px rgba(45, 212, 191, 0.04);
+  --glow-medium:
+    0 8px 40px rgba(45, 212, 191, 0.1), 0 0 32px rgba(45, 212, 191, 0.08);
+  --glow-ambient: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  /* ── Typography Tokens ── */
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Inter", -apple-system, system-ui, sans-serif;
+
+  /* ── Easing Tokens ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Page Title — serif italic hero ===== */
+.propel-title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--color-text-primary);
+  text-shadow: 0 0 60px rgba(45, 212, 191, 0.2);
+  letter-spacing: -0.01em;
+}
+
+/* ===== Subtitle ===== */
+.propel-subtitle {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.02em;
+  opacity: 0.65;
+}
+
+/* ===== Section Eyebrow Label ===== */
+.propel-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-bioluminescent);
+  opacity: 0.6;
+}
+
+/* ===== Activity Card ===== */
+.propel-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  border-radius: 16px;
+  height: 100%;
+  border: 1px solid var(--border-subtle);
+  background: linear-gradient(
+    160deg,
+    var(--color-surface) 0%,
+    var(--color-mid) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--glow-soft);
+  padding: 28px 24px 24px;
+  transition:
+    transform 250ms ease,
+    border-color 250ms ease,
+    box-shadow 250ms ease;
+}
+
+/* Top-edge highlight — light refracting at the water surface */
+.propel-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 16px 16px 0 0;
+  pointer-events: none;
+}
+
+.propel-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-active);
+  box-shadow: var(--glow-medium);
+}
+
+/* Hover glow overlay */
+.propel-card-glow {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at 30% 0%,
+    rgba(45, 212, 191, 0.06) 0%,
+    transparent 60%
+  );
+  transition: opacity 250ms ease;
+}
+
+.propel-card:hover .propel-card-glow {
+  opacity: 1;
+}
+
+/* ===== Icon Container ===== */
+.propel-icon-container {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--color-bioluminescent-glow);
+  transition: background 250ms ease;
+}
+
+.propel-icon-container svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-bioluminescent);
+}
+
+.propel-card:hover .propel-icon-container {
+  background: rgba(45, 212, 191, 0.2);
+}
+
+/* ===== Card Typography ===== */
+.propel-card-title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+.propel-card-title--primary {
+  font-size: 32px;
+}
+
+.propel-card-description {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
+/* ===== Bottom accent line on hover ===== */
+.propel-card-accent-line {
+  position: absolute;
+  bottom: 0;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-bioluminescent),
+    transparent
+  );
+  transition: opacity 250ms ease;
+}
+
+.propel-card:hover .propel-card-accent-line {
+  opacity: 0.3;
+}
+
+/* ===== Badge / Pill Components ===== */
+.propel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  border-radius: 999px;
+  padding: 2px 10px;
+  text-transform: uppercase;
+}
+
+/* Recommended badge */
+.propel-badge--recommended {
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  color: var(--color-bioluminescent);
+}
+
+/* New to you badge */
+.propel-badge--new-to-you {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-text-muted);
+}
+
+/* Overdue badge */
+.propel-badge--overdue {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-text-muted);
+}
+
+/* NEW badge — slightly more saturated with pulse */
+.propel-badge--new {
+  background: rgba(45, 212, 191, 0.16);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  color: var(--color-bioluminescent);
+}
+
+/* Glow dot inside badge */
+.propel-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--color-bioluminescent);
+  box-shadow: 0 0 6px rgba(45, 212, 191, 0.5);
+}
+
+/* Skill tag badges */
+.propel-skill-tag {
+  display: inline-flex;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 2px 10px;
+  transition:
+    border-color 250ms ease,
+    color 250ms ease;
+}
+
+.propel-skill-tag:hover {
+  border-color: var(--border-active);
+  color: var(--color-text-secondary);
+}
+
+/* ===== Primary CTA Button — "Dive in" ===== */
+.propel-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: #060f0f;
+  background: var(--color-bioluminescent);
+  border: none;
+  border-radius: 999px;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition:
+    box-shadow 250ms ease,
+    filter 250ms ease,
+    transform 250ms ease;
+}
+
+.propel-btn-primary:hover {
+  box-shadow: var(--glow-medium);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.propel-btn-primary:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+/* ===== Ghost CTA Button — "Dive in" variant ===== */
+.propel-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-bioluminescent);
+  background: transparent;
+  border: 1px solid var(--border-active);
+  border-radius: 999px;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition:
+    background 250ms ease,
+    box-shadow 250ms ease,
+    transform 250ms ease;
+}
+
+.propel-btn-ghost:hover {
+  background: var(--color-bioluminescent-glow);
+  box-shadow: var(--glow-soft);
+  transform: translateY(-1px);
+}
+
+.propel-btn-ghost:active {
+  transform: translateY(0);
+}
+
+/* ===== "What next?" FAB ===== */
+.propel-fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 1px solid var(--border-active);
+  box-shadow: var(--glow-soft);
+  padding: 12px 20px;
+  cursor: pointer;
+  transition:
+    transform 250ms ease,
+    box-shadow 250ms ease;
+}
+
+.propel-fab svg {
+  color: var(--color-bioluminescent);
+}
+
+.propel-fab span {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.propel-fab:hover {
+  transform: scale(1.03);
+}
+
+/* ===== Last-done label ===== */
+.propel-last-done {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  opacity: 0.35;
+}
+
+/* ===== Filter tab bar ===== */
+.propel-filter-pill {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color 250ms ease,
+    color 250ms ease,
+    background 250ms ease;
+}
+
+.propel-filter-pill:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--color-text-secondary);
+}
+
+.propel-filter-pill--active {
+  border-color: var(--border-recommended);
+  color: var(--color-bioluminescent);
+  background: rgba(45, 212, 191, 0.08);
+}
+
+/* ===== PersonalizationBanner ===== */
+.propel-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--border-recommended);
+  background: linear-gradient(
+    160deg,
+    var(--color-surface) 0%,
+    var(--color-mid) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--glow-soft);
+}
+
+/* Top-edge highlight on banner */
+.propel-banner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+/* ===== Decorative accent rule ===== */
+.propel-accent-rule {
+  height: 1px;
+  width: 64px;
+  background: linear-gradient(90deg, var(--color-accent) 0%, transparent 100%);
+  opacity: 0.35;
+}
+
+/* ===== Section divider ===== */
+.propel-section-divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(13, 148, 136, 0.12) 0%,
+    transparent 50%
+  );
+}
+
+/* ==========================================================================
+   MICRO-INTERACTIONS & MOTION
+   All animations respect prefers-reduced-motion.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ── Page entry stagger ── */
+  @keyframes propel-fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .propel-stagger-hero {
+    animation: propel-fade-in-up 500ms var(--ease-out) 0ms both;
+  }
+
+  .propel-stagger-banner {
+    animation: propel-fade-in-up 500ms var(--ease-out) 150ms both;
+  }
+
+  .propel-stagger-primary {
+    animation: propel-fade-in-up 500ms var(--ease-out) 300ms both;
+  }
+
+  .propel-stagger-secondary {
+    animation: propel-fade-in-up 500ms var(--ease-out) 400ms both;
+  }
+
+  /* ── NEW badge pulse ── */
+  @keyframes propel-badge-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .propel-badge--new {
+    animation: propel-badge-pulse 2s ease-in-out infinite;
+  }
+
+  /* ── FAB glow pulse ── */
+  @keyframes propel-fab-pulse {
+    0%,
+    100% {
+      box-shadow: var(--glow-soft);
+    }
+    50% {
+      box-shadow: var(--glow-medium);
+    }
+  }
+
+  .propel-fab {
+    animation: propel-fab-pulse 3s ease-in-out infinite;
+  }
+
+  /* ── Collapsible expand ── */
+  .propel-expand-enter {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition:
+      max-height 400ms ease,
+      opacity 400ms ease;
+  }
+
+  .propel-expand-enter--active {
+    max-height: 2000px;
+    opacity: 1;
+  }
+}
+
+/* ===== Reduced motion fallback — instant visibility ===== */
+@media (prefers-reduced-motion: reduce) {
+  .propel-stagger-hero,
+  .propel-stagger-banner,
+  .propel-stagger-primary,
+  .propel-stagger-secondary {
+    opacity: 1;
+    transform: none;
+  }
+
+  .propel-badge--new {
+    animation: none;
+    opacity: 1;
+  }
+
+  .propel-fab {
+    animation: none;
+  }
+
+  .propel-card {
+    transition: none;
+  }
+
+  .propel-card:hover {
+    transform: none;
+  }
+}
+
+/* ===== Responsive adjustments ===== */
+@media (max-width: 768px) {
+  .propel-title {
+    font-size: 40px;
+  }
+
+  .propel-card-title--primary {
+    font-size: 26px;
+  }
+
+  .propel-card-title {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .propel-title {
+    font-size: 34px;
+  }
+}

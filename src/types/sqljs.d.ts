@@ -5,6 +5,11 @@ declare module "sql.js" {
 
   interface Database {
     exec(sql: string): QueryExecResult[];
+    run(
+      sql: string,
+      params?: (string | number | null | Uint8Array)[],
+    ): Database;
+    export(): Uint8Array;
     close(): void;
   }
 

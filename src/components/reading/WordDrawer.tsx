@@ -304,7 +304,7 @@ export function WordDrawer({
             )}
           </div>
           {definition?.part_of_speech && (
-            <span className="text-xs text-gray-500 font-body italic">
+            <span className="text-xs text-gray-500 font-body">
               {definition.part_of_speech}
             </span>
           )}
@@ -319,7 +319,7 @@ export function WordDrawer({
               {definition.definition}
             </p>
           ) : (
-            <p className="text-gray-500 font-body text-sm italic">
+            <p className="text-gray-500 font-body text-sm">
               Tap &quot;Hear it&quot; to listen
             </p>
           )}
@@ -328,7 +328,7 @@ export function WordDrawer({
         {/* Example sentence */}
         {exampleSentence && (
           <div className="bg-white/[0.04] rounded-xl p-3 border border-white/5">
-            <p className="text-sm text-gray-400 font-body leading-relaxed italic">
+            <p className="text-sm text-gray-400 font-body leading-relaxed">
               &ldquo;
               {exampleSentence
                 .split(new RegExp(`(${word})`, "gi"))

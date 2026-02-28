@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { cleanGeneratedText } from "@/lib/reading-utils";
+import { cleanGeneratedText, detectSentences } from "@/lib/reading-utils";
 import type { ReadingToken } from "@/lib/reading-utils";
+import { Languages, Loader2 } from "lucide-react";
 
 interface ReadingTextAreaProps {
   tokens: ReadingToken[];
@@ -11,12 +12,24 @@ interface ReadingTextAreaProps {
   highlightedWordIndex: number | null;
   /** Range of indices in the currently-spoken sentence */
   highlightedSentence: { startIndex: number; endIndex: number } | null;
-  /** Callback when user taps/clicks a word */
-  onWordClick: (token: ReadingToken) => void;
+  /** Callback when user taps/clicks a word (rect included for popup positioning) */
+  onWordClick: (token: ReadingToken, rect?: DOMRect) => void;
   /** Font size multiplier (1 = default) */
   fontSize: number;
   /** Index of the currently selected/tapped word (for visual feedback) */
   selectedWordIndex?: number | null;
+  /** Colour‑class resolver from useReadingSession (blue / yellow / white) */
+  getWordClass?: (token: ReadingToken) => string;
+  /** Opacity resolver for learning words (confidence‑based) */
+  getWordOpacity?: (token: ReadingToken) => number | undefined;
+  /** Cached sentence translations keyed by sentence index */
+  sentenceTranslations?: Map<number, string>;
+  /** Indices of sentences currently being translated */
+  translatingIndices?: Set<number>;
+  /** Request a sentence translation */
+  onSentenceTranslate?: (sentenceIndex: number, text: string) => void;
+  /** Whether karaoke highlight syncing is active */
+  karaokeEnabled?: boolean;
 }
 
 /** Punctuation that should have NO space before it */
@@ -34,12 +47,9 @@ const NO_SPACE_BEFORE = new Set([
 ]);
 
 /**
- * Renders the tokenized reading text as tappable word spans
- * with audio-synced highlighting. Uses Cormorant Garamond for
- * an immersive, warm, unhurried reading experience.
- *
- * FIX: per-word underlines (not per-line), inline spans, drop cap,
- * vignette overlay, fade-in animation.
+ * Renders tokenized reading text — immersive, editorial Cormorant Garamond italic.
+ * Colour-coded vocabulary words, karaoke highlights, sentence translation,
+ * decorative gradient drop cap.
  */
 export function ReadingTextArea({
   tokens,
@@ -48,163 +58,233 @@ export function ReadingTextArea({
   onWordClick,
   fontSize,
   selectedWordIndex = null,
+  getWordClass,
+  getWordOpacity,
+  sentenceTranslations,
+  translatingIndices,
+  onSentenceTranslate,
+  karaokeEnabled = true,
 }: ReadingTextAreaProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const highlightedRef = useRef<HTMLSpanElement>(null);
 
-  // Smooth-scroll the currently highlighted word into view
+  // Smooth-scroll the currently highlighted word into view (karaoke)
   useEffect(() => {
-    if (highlightedRef.current) {
+    if (karaokeEnabled && highlightedRef.current) {
       highlightedRef.current.scrollIntoView({
         behavior: "smooth",
         block: "center",
         inline: "nearest",
       });
     }
-  }, [highlightedWordIndex]);
+  }, [highlightedWordIndex, karaokeEnabled]);
 
   const handleWordClick = useCallback(
-    (token: ReadingToken) => {
+    (token: ReadingToken, e: React.MouseEvent) => {
       if (token.punctuation) return;
-      onWordClick(token);
+      const rect = (e.target as HTMLElement).getBoundingClientRect();
+      onWordClick(token, rect);
     },
     [onWordClick],
   );
-
-  // Compute text size class based on fontSize multiplier
-  const textSizeClass =
-    fontSize <= 0.85
-      ? "text-lg md:text-lg"
-      : fontSize <= 1
-        ? "text-lg md:text-xl"
-        : fontSize <= 1.15
-          ? "text-xl md:text-2xl"
-          : "text-2xl md:text-3xl";
 
   // Find first non-punctuation token for drop cap
   const firstWordToken = tokens.find((t) => !t.punctuation);
   const firstWordIndex = firstWordToken?.index ?? -1;
 
+  // ─── Group tokens into sentences ─────────────────────────────────
+
+  const sentenceGroups = useMemo(() => {
+    const sents = detectSentences(tokens);
+    return sents.map((s, idx) => ({
+      tokens: tokens.slice(s.startIndex, s.endIndex + 1),
+      startIndex: s.startIndex,
+      endIndex: s.endIndex,
+      index: idx,
+      text: tokens
+        .slice(s.startIndex, s.endIndex + 1)
+        .map((t) => t.word)
+        .join(" ")
+        .replace(/ ([.,!?;:])/g, "$1"),
+    }));
+  }, [tokens]);
+
   return (
-    <>
-      {/* Vignette overlay */}
-      <div
-        className="pointer-events-none fixed inset-0 bg-gradient-to-b from-[#0a1628] via-transparent to-[#0a1628] opacity-30 z-10"
-        aria-hidden
-      />
+    <div
+      ref={containerRef}
+      className={cn(
+        "font-display not-italic max-w-2xl mx-auto",
+        "px-8 md:px-12",
+        "pt-16 pb-32",
+        "animate-fade-in",
+      )}
+      style={{
+        color: "var(--sand)",
+        fontSize: `${1.3 * fontSize}rem`,
+        lineHeight: "1.95",
+        letterSpacing: "0.01em",
+      }}
+    >
+      {sentenceGroups.map((group) => (
+        <React.Fragment key={group.index}>
+          {group.tokens.map((token, i) => {
+            const isHighlighted =
+              karaokeEnabled && highlightedWordIndex === token.index;
+            const isSelected = selectedWordIndex === token.index;
+            const isInSentence =
+              karaokeEnabled &&
+              highlightedSentence &&
+              token.index >= highlightedSentence.startIndex &&
+              token.index <= highlightedSentence.endIndex;
 
-      <div
-        ref={containerRef}
-        className={cn(
-          "font-display max-w-2xl mx-auto",
-          "px-6 md:px-12",
-          "pt-8 pb-44",
-          "leading-[1.95] tracking-wide",
-          textSizeClass,
-          // Fade-in animation
-          "animate-fade-in",
-        )}
-        style={{ color: "#f0ebe0" }}
-      >
-        {tokens.map((token, i) => {
-          const isHighlighted = highlightedWordIndex === token.index;
-          const isSelected = selectedWordIndex === token.index;
-          const isInSentence =
-            highlightedSentence &&
-            token.index >= highlightedSentence.startIndex &&
-            token.index <= highlightedSentence.endIndex;
+            const displayWord = cleanGeneratedText(token.word);
 
-          // Clean the displayed word (safeguard against residual markdown)
-          const displayWord = cleanGeneratedText(token.word);
+            // Space logic: first token of the whole text gets none
+            const globalFirst = group.index === 0 && i === 0;
+            const needsSpace =
+              !globalFirst &&
+              !NO_SPACE_BEFORE.has(displayWord) &&
+              token.spaceBefore !== false;
 
-          // Determine if we should add a space before this token
-          const needsSpace =
-            i > 0 &&
-            !NO_SPACE_BEFORE.has(displayWord) &&
-            token.spaceBefore !== false;
+            // Colour coding from vocabMap
+            const wordClass = getWordClass?.(token);
+            const opacity = getWordOpacity?.(token);
 
-          // ── Drop cap: first letter of the first word ──
-          if (token.index === firstWordIndex && displayWord.length > 0) {
-            const firstLetter = displayWord[0];
-            const rest = displayWord.slice(1);
+            // ── Drop cap: first letter of the first word ──
+            if (token.index === firstWordIndex && displayWord.length > 0) {
+              const firstLetter = displayWord[0];
+              const rest = displayWord.slice(1);
+              return (
+                <span key={token.index}>
+                  {needsSpace && " "}
+                  <span
+                    ref={isHighlighted ? highlightedRef : undefined}
+                    onClick={(e) => handleWordClick(token, e)}
+                    className="cursor-pointer"
+                  >
+                    <span
+                      className="float-left font-display not-italic leading-[0.85] mr-2"
+                      style={{
+                        fontSize: "5.5rem",
+                        background: "linear-gradient(180deg, #3dd6b5, #1e6b72)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      {firstLetter}
+                    </span>
+                    <span
+                      className={cn(
+                        "transition-colors duration-150 rounded-sm px-[1px]",
+                        wordClass ||
+                          cn(
+                            "cursor-pointer hover:border-b hover:border-current hover:border-dotted",
+                            token.is_new &&
+                              !token.is_known &&
+                              !isHighlighted &&
+                              !isSelected &&
+                              "text-[#7dd3fc]",
+                          ),
+                        isHighlighted && "bg-[#3dd6b5]/15 rounded px-0.5",
+                        isSelected &&
+                          !isHighlighted &&
+                          "bg-[#3dd6b5]/20 rounded px-0.5",
+                      )}
+                      style={opacity !== undefined ? { opacity } : undefined}
+                    >
+                      {rest}
+                    </span>
+                  </span>
+                </span>
+              );
+            }
+
+            // ── Punctuation: plain span, no interaction ──
+            if (token.punctuation) {
+              return (
+                <span
+                  key={token.index}
+                  className={cn(
+                    "text-[var(--seafoam)]/40 transition-colors duration-300",
+                    isInSentence && !isHighlighted && "text-[var(--sand)]/80",
+                  )}
+                >
+                  {needsSpace && " "}
+                  {displayWord}
+                </span>
+              );
+            }
+
+            // ── Regular word ──
             return (
               <span key={token.index}>
                 {needsSpace && " "}
                 <span
                   ref={isHighlighted ? highlightedRef : undefined}
-                  onClick={() => handleWordClick(token)}
-                  className="cursor-pointer"
-                >
-                  <span className="float-left text-7xl leading-[0.85] mr-2 text-teal-400 font-display">
-                    {firstLetter}
-                  </span>
-                  <span
-                    className={cn(
-                      "cursor-pointer transition-colors duration-150",
-                      "hover:bg-white/10 rounded-sm px-[1px]",
-                      token.is_new &&
-                        !token.is_known &&
+                  onClick={(e) => handleWordClick(token, e)}
+                  className={cn(
+                    "transition-colors duration-150 rounded-sm px-[1px] cursor-pointer",
+                    "hover:border-b hover:border-current hover:border-dotted",
+                    wordClass ||
+                      cn(
+                        token.is_new &&
+                          !token.is_known &&
+                          !isHighlighted &&
+                          !isSelected &&
+                          "text-[#7dd3fc]",
                         !isHighlighted &&
-                        !isSelected &&
-                        "border-b-2 border-teal-400/60",
-                      isHighlighted && "bg-teal-400/20",
-                      isSelected && !isHighlighted && "bg-teal-400/30",
-                    )}
-                  >
-                    {rest}
-                  </span>
+                          !isSelected &&
+                          isInSentence &&
+                          "text-[var(--sand)]/80",
+                      ),
+                    isHighlighted && "bg-[#3dd6b5]/15 rounded px-0.5",
+                    isSelected &&
+                      !isHighlighted &&
+                      "bg-[#3dd6b5]/20 rounded px-0.5",
+                  )}
+                  style={opacity !== undefined ? { opacity } : undefined}
+                >
+                  {displayWord}
                 </span>
               </span>
             );
-          }
+          })}
 
-          // ── Punctuation: plain inline span, no interaction ──
-          if (token.punctuation) {
-            return (
-              <span
-                key={token.index}
-                className={cn(
-                  "transition-colors duration-300",
-                  isInSentence && !isHighlighted && "text-white/90",
-                )}
-              >
-                {needsSpace && " "}
-                {displayWord}
-              </span>
-            );
-          }
+          {/* ── Sentence translate button (subtle Languages icon) ── */}
+          {onSentenceTranslate && (
+            <button
+              className={cn(
+                "inline-flex items-center align-baseline ml-1.5 transition-opacity duration-200",
+                sentenceTranslations?.has(group.index)
+                  ? "text-[var(--seafoam)]/50"
+                  : "text-[var(--seafoam)]/30 hover:text-[var(--seafoam)]/70",
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSentenceTranslate(group.index, group.text);
+              }}
+              title="Translate sentence"
+            >
+              <Languages className="w-3.5 h-3.5" />
+            </button>
+          )}
 
-          // ── Regular word ──
-          const isNew = token.is_new && !token.is_known;
-
-          return (
-            <span key={token.index}>
-              {needsSpace && " "}
-              <span
-                ref={isHighlighted ? highlightedRef : undefined}
-                onClick={() => handleWordClick(token)}
-                className={cn(
-                  "cursor-pointer transition-colors duration-150",
-                  "hover:bg-white/10 rounded-sm px-[1px]",
-                  isNew &&
-                    !isHighlighted &&
-                    !isSelected &&
-                    "border-b-2 border-teal-400/60",
-                  isHighlighted && "bg-teal-400/20",
-                  isSelected && !isHighlighted && "bg-teal-400/30",
-                  !isHighlighted &&
-                    !isSelected &&
-                    isInSentence &&
-                    "text-white/90",
-                  "hover:text-white",
-                )}
-              >
-                {displayWord}
-              </span>
+          {/* ── Loading indicator ── */}
+          {translatingIndices?.has(group.index) && (
+            <span className="block mt-1 mb-2 pl-2">
+              <Loader2 className="w-3.5 h-3.5 text-[var(--seafoam)]/40 animate-spin" />
             </span>
-          );
-        })}
-      </div>
-    </>
+          )}
+
+          {/* ── Translation display ── */}
+          {sentenceTranslations?.has(group.index) && (
+            <p className="text-sm font-body text-[var(--seafoam)] opacity-70 mt-1 mb-3 pl-4 border-l-2 border-[#3dd6b5]/20 tracking-wide">
+              {sentenceTranslations.get(group.index)}
+            </p>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
   );
 }

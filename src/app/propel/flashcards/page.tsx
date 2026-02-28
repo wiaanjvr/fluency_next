@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { OceanBackground, DepthSidebar } from "@/components/ocean";
@@ -18,10 +19,34 @@ import {
   DeckCard,
   FlashcardOnboarding,
   useFlashcardOnboarding,
+  TagManager,
+  EnhancedImportModal,
+  EnhancedExportModal,
+  SyncStatusBadge,
+  SyncPanel,
 } from "@/components/flashcards";
-import { Plus, Layers } from "lucide-react";
+import {
+  Plus,
+  Layers,
+  Search,
+  BarChart3,
+  Tags,
+  Download,
+  Upload,
+  RefreshCcw,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Deck, DeckStats, FlashcardLanguage } from "@/types/flashcards";
+import type {
+  Deck,
+  DeckStats,
+  FlashcardLanguage,
+  InsertionOrder,
+  LeechAction,
+  NewGatherOrder,
+  NewSortOrder,
+  ReviewSortOrder,
+  InterleaveMode,
+} from "@/types/flashcards";
 import "@/styles/ocean-theme.css";
 
 // ============================================================================
@@ -50,6 +75,10 @@ function FlashcardsContent({
   const [decks, setDecks] = useState<Deck[]>([]);
   const [deckStats, setDeckStats] = useState<Record<string, DeckStats>>({});
   const [loading, setLoading] = useState(true);
+  const [showTagManager, setShowTagManager] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [showSyncPanel, setShowSyncPanel] = useState(false);
   const { ambientView, setAmbientView } = useAmbientPlayer();
   const showOnboarding = useFlashcardOnboarding();
 
@@ -115,6 +144,29 @@ function FlashcardsContent({
     description: string;
     new_per_day: number;
     review_per_day: number;
+    learning_steps: number[];
+    graduating_interval: number;
+    easy_interval: number;
+    insertion_order: InsertionOrder;
+    max_interval: number;
+    interval_modifier: number;
+    hard_interval_mult: number;
+    easy_bonus: number;
+    relearning_steps: number[];
+    min_interval_after_lapse: number;
+    new_interval_multiplier: number;
+    leech_threshold: number;
+    leech_action: LeechAction;
+    new_gather_order: NewGatherOrder;
+    new_sort_order: NewSortOrder;
+    review_sort_order: ReviewSortOrder;
+    interleave_mode: InterleaveMode;
+    bury_new_siblings: boolean;
+    bury_review_siblings: boolean;
+    show_answer_timer: boolean;
+    answer_timer_limit: number;
+    auto_advance_answer_seconds: number;
+    auto_advance_rate_seconds: number;
   }) => {
     await supabase.from("decks").insert({
       user_id: userId,
@@ -123,6 +175,29 @@ function FlashcardsContent({
       description: data.description || null,
       new_per_day: data.new_per_day,
       review_per_day: data.review_per_day,
+      learning_steps: data.learning_steps,
+      graduating_interval: data.graduating_interval,
+      easy_interval: data.easy_interval,
+      insertion_order: data.insertion_order,
+      max_interval: data.max_interval,
+      interval_modifier: data.interval_modifier,
+      hard_interval_mult: data.hard_interval_mult,
+      easy_bonus: data.easy_bonus,
+      relearning_steps: data.relearning_steps,
+      min_interval_after_lapse: data.min_interval_after_lapse,
+      new_interval_multiplier: data.new_interval_multiplier,
+      leech_threshold: data.leech_threshold,
+      leech_action: data.leech_action,
+      new_gather_order: data.new_gather_order,
+      new_sort_order: data.new_sort_order,
+      review_sort_order: data.review_sort_order,
+      interleave_mode: data.interleave_mode,
+      bury_new_siblings: data.bury_new_siblings,
+      bury_review_siblings: data.bury_review_siblings,
+      show_answer_timer: data.show_answer_timer,
+      answer_timer_limit: data.answer_timer_limit,
+      auto_advance_answer_seconds: data.auto_advance_answer_seconds,
+      auto_advance_rate_seconds: data.auto_advance_rate_seconds,
     });
     await fetchDecks();
   };
@@ -133,6 +208,29 @@ function FlashcardsContent({
     description: string;
     new_per_day: number;
     review_per_day: number;
+    learning_steps: number[];
+    graduating_interval: number;
+    easy_interval: number;
+    insertion_order: InsertionOrder;
+    max_interval: number;
+    interval_modifier: number;
+    hard_interval_mult: number;
+    easy_bonus: number;
+    relearning_steps: number[];
+    min_interval_after_lapse: number;
+    new_interval_multiplier: number;
+    leech_threshold: number;
+    leech_action: LeechAction;
+    new_gather_order: NewGatherOrder;
+    new_sort_order: NewSortOrder;
+    review_sort_order: ReviewSortOrder;
+    interleave_mode: InterleaveMode;
+    bury_new_siblings: boolean;
+    bury_review_siblings: boolean;
+    show_answer_timer: boolean;
+    answer_timer_limit: number;
+    auto_advance_answer_seconds: number;
+    auto_advance_rate_seconds: number;
   }) => {
     if (!editingDeck) return;
     await supabase
@@ -143,6 +241,29 @@ function FlashcardsContent({
         description: data.description || null,
         new_per_day: data.new_per_day,
         review_per_day: data.review_per_day,
+        learning_steps: data.learning_steps,
+        graduating_interval: data.graduating_interval,
+        easy_interval: data.easy_interval,
+        insertion_order: data.insertion_order,
+        max_interval: data.max_interval,
+        interval_modifier: data.interval_modifier,
+        hard_interval_mult: data.hard_interval_mult,
+        easy_bonus: data.easy_bonus,
+        relearning_steps: data.relearning_steps,
+        min_interval_after_lapse: data.min_interval_after_lapse,
+        new_interval_multiplier: data.new_interval_multiplier,
+        leech_threshold: data.leech_threshold,
+        leech_action: data.leech_action,
+        new_gather_order: data.new_gather_order,
+        new_sort_order: data.new_sort_order,
+        review_sort_order: data.review_sort_order,
+        interleave_mode: data.interleave_mode,
+        bury_new_siblings: data.bury_new_siblings,
+        bury_review_siblings: data.bury_review_siblings,
+        show_answer_timer: data.show_answer_timer,
+        answer_timer_limit: data.answer_timer_limit,
+        auto_advance_answer_seconds: data.auto_advance_answer_seconds,
+        auto_advance_rate_seconds: data.auto_advance_rate_seconds,
       })
       .eq("id", editingDeck.id)
       .eq("user_id", userId);
@@ -237,6 +358,73 @@ function FlashcardsContent({
             </button>
           </div>
 
+          {/* Browser & Stats links */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Link
+              href="/propel/flashcards/browser"
+              className={cn(
+                "flex items-center gap-2 rounded-xl py-2 px-4",
+                "border border-white/10 text-white/60 hover:text-white hover:border-white/20",
+                "text-sm transition",
+              )}
+            >
+              <Search className="h-4 w-4" />
+              Card Browser
+            </Link>
+            <Link
+              href="/propel/flashcards/stats"
+              className={cn(
+                "flex items-center gap-2 rounded-xl py-2 px-4",
+                "border border-white/10 text-white/60 hover:text-white hover:border-white/20",
+                "text-sm transition",
+              )}
+            >
+              <BarChart3 className="h-4 w-4" />
+              Statistics
+            </Link>
+            <button
+              onClick={() => setShowTagManager(true)}
+              className={cn(
+                "flex items-center gap-2 rounded-xl py-2 px-4",
+                "border border-white/10 text-white/60 hover:text-white hover:border-white/20",
+                "text-sm transition",
+              )}
+            >
+              <Tags className="h-4 w-4" />
+              Tags
+            </button>
+            <button
+              onClick={() => setShowImport(true)}
+              className={cn(
+                "flex items-center gap-2 rounded-xl py-2 px-4",
+                "border border-white/10 text-white/60 hover:text-white hover:border-white/20",
+                "text-sm transition",
+              )}
+            >
+              <Upload className="h-4 w-4" />
+              Import
+            </button>
+            <button
+              onClick={() => setShowExport(true)}
+              className={cn(
+                "flex items-center gap-2 rounded-xl py-2 px-4",
+                "border border-white/10 text-white/60 hover:text-white hover:border-white/20",
+                "text-sm transition",
+              )}
+            >
+              <Download className="h-4 w-4" />
+              Export
+            </button>
+
+            {/* Sync status badge (compact) */}
+            <div className="ml-auto flex items-center gap-2">
+              <SyncStatusBadge
+                userId={userId}
+                onClick={() => setShowSyncPanel(true)}
+              />
+            </div>
+          </div>
+
           {/* Deck Grid */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
@@ -295,6 +483,45 @@ function FlashcardsContent({
         onClose={() => setEditingDeck(null)}
         onSave={handleEditDeck}
         onDelete={handleDeleteDeck}
+      />
+
+      {/* Tag Manager */}
+      <TagManager
+        open={showTagManager}
+        onClose={() => setShowTagManager(false)}
+        userId={userId}
+        onTagsChanged={() => fetchDecks()}
+      />
+
+      {/* Enhanced Import Modal */}
+      <EnhancedImportModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        userId={userId}
+        decks={decks.map((d) => ({ id: d.id, name: d.name }))}
+        onComplete={() => fetchDecks()}
+      />
+
+      {/* Enhanced Export Modal */}
+      <EnhancedExportModal
+        open={showExport}
+        onClose={() => setShowExport(false)}
+        userId={userId}
+        decks={decks.map((d) => ({
+          id: d.id,
+          name: d.name,
+          card_count:
+            deckStats[d.id]?.newCount +
+              deckStats[d.id]?.learningCount +
+              deckStats[d.id]?.reviewCount || 0,
+        }))}
+      />
+
+      {/* Sync Panel */}
+      <SyncPanel
+        open={showSyncPanel}
+        onClose={() => setShowSyncPanel(false)}
+        userId={userId}
       />
 
       {showOnboarding && decks.length === 0 && (

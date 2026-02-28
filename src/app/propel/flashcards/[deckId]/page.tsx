@@ -14,11 +14,11 @@ import {
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useAmbientPlayer } from "@/contexts/AmbientPlayerContext";
 import {
-  AddCardModal,
   CSVImportModal,
   AnkiImportModal,
   EditDeckModal,
 } from "@/components/flashcards";
+import { CardEditor, CardContent } from "@/components/flashcards/card-editor";
 import {
   ArrowLeft,
   Plus,
@@ -36,6 +36,7 @@ import type {
   FlashcardLanguage,
   CardSchedule,
   CardState,
+  InsertionOrder,
 } from "@/types/flashcards";
 import "@/styles/ocean-theme.css";
 
@@ -256,6 +257,10 @@ function DeckDetailContent({
     description: string;
     new_per_day: number;
     review_per_day: number;
+    learning_steps: number[];
+    graduating_interval: number;
+    easy_interval: number;
+    insertion_order: InsertionOrder;
   }) => {
     await supabase
       .from("decks")
@@ -265,6 +270,10 @@ function DeckDetailContent({
         description: data.description || null,
         new_per_day: data.new_per_day,
         review_per_day: data.review_per_day,
+        learning_steps: data.learning_steps,
+        graduating_interval: data.graduating_interval,
+        easy_interval: data.easy_interval,
+        insertion_order: data.insertion_order,
       })
       .eq("id", deckId)
       .eq("user_id", userId);
@@ -609,10 +618,10 @@ function DeckDetailContent({
                           className="border-b border-white/5 hover:bg-white/[0.02] transition"
                         >
                           <td className="px-4 py-3 text-white max-w-[200px] truncate">
-                            {card.front}
+                            <CardContent html={card.front} />
                           </td>
                           <td className="px-4 py-3 text-white/70 max-w-[200px] truncate">
-                            {card.back}
+                            <CardContent html={card.back} />
                           </td>
                           <td className="px-4 py-3 hidden sm:table-cell">
                             <StateBadge
@@ -662,14 +671,16 @@ function DeckDetailContent({
       </div>
 
       {/* Modals */}
-      <AddCardModal
+      <CardEditor
         open={showAddCard}
         onClose={() => {
           setShowAddCard(false);
           setEditingCard(null);
         }}
-        onSubmit={handleAddCard}
+        userId={userId}
+        currentDeckId={deckId}
         editCard={editingCard}
+        onSaved={fetchDeckData}
       />
       <CSVImportModal
         open={showCSV}

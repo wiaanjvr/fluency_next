@@ -910,8 +910,11 @@ function DashboardPageContent() {
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () =>
+    window.addEventListener("focus", handleVisibilityChange);
+    return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleVisibilityChange);
+    };
   }, [supabase, authChecked]);
 
   if (!authChecked || loading) {

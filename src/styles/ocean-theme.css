@@ -99,6 +99,30 @@
   opacity: 0;
 }
 
+/* ===== Caustic light particle drift (free-reading page) ===== */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-20px) translateX(8px);
+  }
+}
+
+/* ===== Loading bubble rise animation ===== */
+@keyframes bubbleUp {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-12px) scale(1.3);
+    opacity: 0.8;
+  }
+}
+
 /* Staggered delays */
 .ocean-card-animate:nth-child(1) {
   animation-delay: 0.1s;

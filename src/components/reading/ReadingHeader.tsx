@@ -13,12 +13,13 @@ interface ReadingHeaderProps {
   fontSizeIndex: number;
   onCycleFontSize: () => void;
   onNewText: () => void;
+  /** Global known‑word count for the target language */
+  knownWordsCount?: number;
 }
 
 /**
- * Reading header with title, CEFR badge, actions, and scroll progress bar.
- * BookOpen opens a "New Text" confirmation modal.
- * Type icon cycles font size (persisted to localStorage by parent).
+ * Reading header — editorial, glassy bar.
+ * Cormorant title, muted pills, ONE turquoise touch (known words).
  */
 export function ReadingHeader({
   title,
@@ -28,6 +29,7 @@ export function ReadingHeader({
   fontSizeIndex,
   onCycleFontSize,
   onNewText,
+  knownWordsCount,
 }: ReadingHeaderProps) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -89,30 +91,47 @@ export function ReadingHeader({
 
   return (
     <>
-      <div className="sticky top-0 z-40 bg-[#0a1628]/90 backdrop-blur-md border-b border-white/5">
+      <div className="sticky top-0 z-40 backdrop-blur-[20px] bg-[rgba(10,15,30,0.75)] border-b border-white/[0.06]">
         <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-3">
           {/* Left: back arrow */}
           <Link
             href="/propel"
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300"
+            className="flex items-center gap-2 text-[var(--seafoam)] hover:text-[var(--sand)] transition-colors duration-300"
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="sr-only">Back to Propel</span>
           </Link>
 
-          {/* Center: title + level badge + word count */}
-          <div className="flex items-center gap-2 flex-1 min-w-0 justify-center">
+          {/* Center: title + pills + known words */}
+          <div className="flex items-center gap-2.5 flex-1 min-w-0 justify-center">
             {!isLoading && title && (
               <>
-                <h1 className="font-display text-base md:text-lg text-white truncate max-w-[180px] md:max-w-[280px]">
+                <h1 className="font-display text-xl text-[var(--sand)] truncate max-w-[180px] md:max-w-[280px]">
                   {title}
                 </h1>
-                <span className="shrink-0 px-2 py-0.5 text-xs font-body font-medium text-teal-400 bg-teal-400/10 rounded-md border border-teal-400/20">
-                  {wordCount > 0
-                    ? `${wordCount} words · ${cefrLevel}`
-                    : cefrLevel}
+                {/* Word count pill */}
+                {wordCount > 0 && (
+                  <span className="shrink-0 bg-white/[0.06] border border-white/10 rounded-full px-3 py-0.5 text-xs font-body text-[var(--seafoam)]">
+                    {wordCount} words
+                  </span>
+                )}
+                {/* CEFR pill */}
+                <span className="shrink-0 bg-white/[0.06] border border-white/10 rounded-full px-3 py-0.5 text-xs font-body text-[var(--seafoam)]">
+                  {cefrLevel}
                 </span>
               </>
+            )}
+            {/* Known words counter — the ONE turquoise accent */}
+            {knownWordsCount !== undefined && knownWordsCount > 0 && (
+              <div className="flex items-center gap-1.5 text-sm font-body shrink-0">
+                <BookOpen className="w-4 h-4 text-[#3dd6b5]" />
+                <span>
+                  <span className="text-[#3dd6b5] font-semibold">
+                    {knownWordsCount.toLocaleString()}
+                  </span>{" "}
+                  <span className="text-[var(--seafoam)]">known words</span>
+                </span>
+              </div>
             )}
           </div>
 
@@ -122,7 +141,7 @@ export function ReadingHeader({
               onClick={handleBookClick}
               disabled={isLoading}
               className={cn(
-                "p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5",
+                "p-2 rounded-lg text-[var(--seafoam)]/50 hover:text-[var(--seafoam)]",
                 "transition-all duration-300",
                 isLoading && "opacity-30 cursor-not-allowed",
               )}
@@ -134,7 +153,7 @@ export function ReadingHeader({
             <button
               onClick={onCycleFontSize}
               className={cn(
-                "relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5",
+                "relative p-2 rounded-lg text-[var(--seafoam)]/50 hover:text-[var(--seafoam)]",
                 "transition-all duration-300",
               )}
               aria-label={`Font size: ${fontSizeLabels[fontSizeIndex]}`}
@@ -144,7 +163,7 @@ export function ReadingHeader({
               {/* Small dot indicator for current size */}
               <span
                 className={cn(
-                  "absolute bottom-1 right-1 w-1 h-1 rounded-full bg-teal-400/60",
+                  "absolute bottom-1 right-1 w-1 h-1 rounded-full bg-[#3dd6b5]/60",
                   "transition-transform duration-300",
                   fontSizeIndex === 0 && "scale-50",
                   fontSizeIndex === 1 && "scale-75",
@@ -159,7 +178,7 @@ export function ReadingHeader({
         {/* Scroll progress bar */}
         <div className="h-0.5 w-full bg-transparent">
           <div
-            className="h-full bg-teal-400 transition-[width] duration-150 ease-out"
+            className="h-full bg-[#3dd6b5]/60 transition-[width] duration-150 ease-out"
             style={{ width: `${scrollProgress * 100}%` }}
           />
         </div>
@@ -178,16 +197,16 @@ export function ReadingHeader({
           <div
             ref={modalRef}
             className={cn(
-              "relative bg-[#0d2137] border border-white/10 rounded-2xl",
+              "relative bg-[#0d1b2a] border border-white/[0.08] rounded-2xl",
               "p-6 max-w-sm w-full space-y-4",
-              "shadow-[0_8px_40px_rgba(0,0,0,0.5)]",
+              "shadow-[0_8px_40px_rgba(0,0,0,0.6),0_0_0_1px_rgba(61,214,181,0.06)]",
               "animate-in fade-in zoom-in-95 duration-300",
             )}
           >
-            <h3 className="font-display text-xl text-white text-center">
+            <h3 className="font-display text-xl text-[var(--sand)] text-center">
               Start a new text?
             </h3>
-            <p className="text-sm text-gray-400 font-body text-center leading-relaxed">
+            <p className="text-sm text-[var(--seafoam)]/70 font-body text-center leading-relaxed">
               Your progress on this one will be saved.
             </p>
             <div className="flex gap-3 pt-2">
@@ -195,7 +214,7 @@ export function ReadingHeader({
                 onClick={handleKeepReading}
                 className={cn(
                   "flex-1 py-3 rounded-xl font-body text-sm font-medium",
-                  "bg-white/5 text-gray-300 hover:bg-white/10",
+                  "bg-white/[0.04] text-[var(--seafoam)] hover:bg-white/[0.08]",
                   "border border-white/10 transition-all duration-300",
                 )}
               >
@@ -205,8 +224,8 @@ export function ReadingHeader({
                 onClick={handleConfirmNewText}
                 className={cn(
                   "flex-1 py-3 rounded-xl font-body text-sm font-medium",
-                  "bg-teal-400/20 text-teal-400 hover:bg-teal-400/30",
-                  "border border-teal-400/20 transition-all duration-300",
+                  "bg-[#3dd6b5]/10 text-[#3dd6b5] hover:bg-[#3dd6b5]/20",
+                  "border border-[#3dd6b5]/20 transition-all duration-300",
                 )}
               >
                 New Dive

@@ -9,3 +9,28 @@ export {
   FlashcardOnboarding,
   useFlashcardOnboarding,
 } from "./FlashcardOnboarding";
+
+// Tag Manager
+export { TagManager } from "./TagManager";
+
+// Enhanced Import / Export
+export { EnhancedImportModal, EnhancedExportModal } from "./ImportExportModals";
+
+// Sync & Cloud
+export { SyncStatusBadge, SyncPanel } from "./SyncPanel";
+
+// Card Editor (rich text + media)
+export {
+  CardEditor,
+  RichTextEditor,
+  FieldManager,
+  TagsInput,
+  AudioRecorder,
+  MediaDropZone,
+  LaTeXDialog,
+  CardContent,
+  useDuplicateDetection,
+  useMediaUpload,
+  useAudioRecorder,
+  useFileInput,
+} from "./card-editor";

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 // import { Inter } from "next/font/google"; // Not used, font loaded via globals.css
 import "@/styles/globals.css";
+import "katex/dist/katex.min.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { ActiveLanguageProvider } from "@/contexts/ActiveLanguageContext";

@@ -27,7 +27,11 @@ import {
   previewInterval,
   formatInterval,
   buildStudyQueue,
+  leechAction,
+  findSiblingsToBury,
+  getBuriedUntil,
 } from "@/lib/fsrs";
+import type { DeckOptions } from "@/lib/fsrs";
 import { createFlashcardAdapter } from "@/lib/knowledge-graph";
 import {
   ArrowLeft,
@@ -42,8 +46,30 @@ import {
   Plus,
   Flame,
   Info,
+  Clock,
+  Volume2,
 } from "lucide-react";
+import {
+  CardInfoOverlay,
+  StudyMoreMenu,
+  MoreMenuTrigger,
+  buildMoreMenuActions,
+  VoiceCompare,
+  InlineCardEditor,
+} from "@/components/flashcards/study";
+import { useStudyCardActions } from "@/hooks/useStudyCardActions";
+import { useStudyKeyboard } from "@/hooks/useStudyKeyboard";
 import { cn } from "@/lib/utils";
+import {
+  CardContent,
+  TemplateCardContent,
+} from "@/components/flashcards/card-editor";
+import {
+  renderCardTemplate,
+  compareTypeAnswer,
+  CARD_TEMPLATE_CSS,
+  type RenderedCard,
+} from "@/lib/flashcard-template";
 import type {
   Deck,
   ScheduledCard,
@@ -55,6 +81,51 @@ import type {
 import { RATING_TOOLTIPS } from "@/types/flashcards";
 import type { FSRSCard } from "@/lib/fsrs";
 import "@/styles/ocean-theme.css";
+
+// ============================================================================
+// Template-aware card rendering hook
+// ============================================================================
+
+/**
+ * Given a ScheduledCard, attempt to render it through the template engine.
+ * Falls back to legacy front/back HTML if no note_type/fields are present.
+ */
+function useRenderedCard(
+  card: ScheduledCard | null,
+  noteTypes: Map<
+    string,
+    {
+      templates: {
+        name: string;
+        front_template: string;
+        back_template: string;
+      }[];
+      css: string;
+    }
+  >,
+): RenderedCard | null {
+  return useMemo(() => {
+    if (!card) return null;
+    const fc = card.flashcards;
+    if (!fc.note_type_id || !fc.fields) return null;
+
+    const noteType = noteTypes.get(fc.note_type_id);
+    if (!noteType || noteType.templates.length === 0) return null;
+
+    const templateIdx = fc.template_index ?? 0;
+    const template =
+      noteType.templates[Math.min(templateIdx, noteType.templates.length - 1)];
+    if (!template) return null;
+
+    return renderCardTemplate({
+      frontTemplate: template.front_template,
+      backTemplate: template.back_template,
+      fields: fc.fields,
+      css: fc.card_css || noteType.css || "",
+      clozeOrdinal: fc.cloze_ordinal ?? undefined,
+    });
+  }, [card, noteTypes]);
+}
 
 // ============================================================================
 // Study reducer — manages the full session state machine
@@ -224,9 +295,11 @@ const initialStudyState: StudyState = {
 function RatingButtons({
   card,
   onRate,
+  deckOptions,
 }: {
   card: ScheduledCard;
   onRate: (rating: Rating) => void;
+  deckOptions?: DeckOptions;
 }) {
   const fsrsCard = dbRowToFSRSCard(card);
   const now = new Date();
@@ -268,7 +341,7 @@ function RatingButtons({
     <div className="space-y-2">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {ratings.map((r) => {
-          const interval = previewInterval(fsrsCard, r.value, now);
+          const interval = previewInterval(fsrsCard, r.value, now, deckOptions);
           return (
             <button
               key={r.value}
@@ -285,6 +358,9 @@ function RatingButtons({
               <span className="text-[10px] opacity-60">
                 {formatInterval(interval)}
               </span>
+              <kbd className="absolute top-1.5 right-2 text-[9px] opacity-30 font-mono">
+                {r.value}
+              </kbd>
             </button>
           );
         })}
@@ -373,6 +449,51 @@ function ModePicker({
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Answer Timer — visible countdown/up timer on cards
+// ============================================================================
+function AnswerTimer({
+  startTime,
+  limitSeconds,
+  paused,
+}: {
+  startTime: number;
+  limitSeconds: number;
+  paused: boolean;
+}) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (paused) return;
+    const tick = () => {
+      const raw = (Date.now() - startTime) / 1000;
+      setElapsed(limitSeconds > 0 ? Math.min(raw, limitSeconds) : raw);
+    };
+    tick();
+    const interval = setInterval(tick, 100);
+    return () => clearInterval(interval);
+  }, [startTime, limitSeconds, paused]);
+
+  const display =
+    elapsed < 60
+      ? `${elapsed.toFixed(1)}s`
+      : `${Math.floor(elapsed / 60)}:${String(Math.floor(elapsed % 60)).padStart(2, "0")}`;
+
+  const atLimit = limitSeconds > 0 && elapsed >= limitSeconds;
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-1.5 text-xs tabular-nums",
+        atLimit ? "text-amber-400/70" : "text-white/30",
+      )}
+    >
+      <Clock className="h-3 w-3" />
+      <span>{display}</span>
     </div>
   );
 }
@@ -568,11 +689,15 @@ function FlipCard({
   face,
   onShowAnswer,
   onRate,
+  deckOptions,
+  rendered,
 }: {
   card: ScheduledCard;
   face: "front" | "back";
   onShowAnswer: () => void;
   onRate: (rating: Rating) => void;
+  deckOptions?: DeckOptions;
+  rendered?: RenderedCard | null;
 }) {
   const swipe = useSwipe(
     undefined,
@@ -599,9 +724,17 @@ function FlipCard({
               "[backface-visibility:hidden]",
             )}
           >
-            <p className="text-3xl font-bold text-white text-center leading-relaxed">
-              {card.flashcards.front}
-            </p>
+            {rendered ? (
+              <TemplateCardContent
+                rendered={rendered}
+                face="front"
+                className="text-3xl font-bold text-white text-center leading-relaxed"
+              />
+            ) : (
+              <p className="text-3xl font-bold text-white text-center leading-relaxed">
+                <CardContent html={card.flashcards.front} />
+              </p>
+            )}
             {card.flashcards.word_class && (
               <span className="mt-3 text-xs text-white/30 px-2 py-0.5 rounded-full bg-white/5">
                 {card.flashcards.word_class}
@@ -617,25 +750,37 @@ function FlipCard({
               "[backface-visibility:hidden] [transform:rotateY(180deg)]",
             )}
           >
-            <p className="text-2xl font-semibold text-teal-300 text-center">
-              {card.flashcards.back}
-            </p>
-            {card.flashcards.example_sentence && (
-              <div className="mt-4 rounded-xl bg-white/5 p-4 w-full">
-                <p className="text-sm text-white/70 italic text-center">
-                  {card.flashcards.example_sentence}
+            {rendered ? (
+              <TemplateCardContent
+                rendered={rendered}
+                face="back"
+                className="text-2xl font-semibold text-teal-300 text-center"
+              />
+            ) : (
+              <>
+                <p className="text-2xl font-semibold text-teal-300 text-center">
+                  <CardContent html={card.flashcards.back} />
                 </p>
-                {card.flashcards.example_translation && (
-                  <p className="text-xs text-white/40 mt-1 text-center">
-                    {card.flashcards.example_translation}
+                {card.flashcards.example_sentence && (
+                  <div className="mt-4 rounded-xl bg-white/5 p-4 w-full">
+                    <p className="text-sm text-white/70 italic text-center">
+                      <CardContent html={card.flashcards.example_sentence} />
+                    </p>
+                    {card.flashcards.example_translation && (
+                      <p className="text-xs text-white/40 mt-1 text-center">
+                        <CardContent
+                          html={card.flashcards.example_translation}
+                        />
+                      </p>
+                    )}
+                  </div>
+                )}
+                {card.flashcards.grammar_notes && (
+                  <p className="mt-3 text-xs text-white/40 text-center max-w-sm">
+                    {card.flashcards.grammar_notes}
                   </p>
                 )}
-              </div>
-            )}
-            {card.flashcards.grammar_notes && (
-              <p className="mt-3 text-xs text-white/40 text-center max-w-sm">
-                {card.flashcards.grammar_notes}
-              </p>
+              </>
             )}
           </div>
         </div>
@@ -654,7 +799,7 @@ function FlipCard({
           Show Answer
         </button>
       ) : (
-        <RatingButtons card={card} onRate={onRate} />
+        <RatingButtons card={card} onRate={onRate} deckOptions={deckOptions} />
       )}
     </div>
   );
@@ -668,18 +813,34 @@ function TypeCard({
   state,
   dispatch,
   onRate,
+  deckOptions,
+  rendered,
 }: {
   card: ScheduledCard;
   state: StudyState;
   dispatch: React.Dispatch<StudyAction>;
   onRate: (rating: Rating) => void;
+  deckOptions?: DeckOptions;
+  rendered?: RenderedCard | null;
 }) {
+  // Determine the expected answer: use template's typeAnswerValue if available
+  const expectedAnswer = useMemo(() => {
+    if (rendered?.typeAnswerValue) return rendered.typeAnswerValue;
+    return card.flashcards.back.replace(/<[^>]*>/g, "").trim();
+  }, [rendered, card.flashcards.back]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (state.answerState === "idle") {
       dispatch({ type: "CHECK_ANSWER" });
     }
   };
+
+  // Compare answer using the template engine's diff when available
+  const answerComparison = useMemo(() => {
+    if (state.answerState === "idle") return null;
+    return compareTypeAnswer(state.userInput, expectedAnswer);
+  }, [state.answerState, state.userInput, expectedAnswer]);
 
   return (
     <div className="space-y-6">
@@ -690,9 +851,17 @@ function TypeCard({
           "flex flex-col items-center justify-center p-8 min-h-[200px]",
         )}
       >
-        <p className="text-3xl font-bold text-white text-center">
-          {card.flashcards.front}
-        </p>
+        {rendered ? (
+          <TemplateCardContent
+            rendered={rendered}
+            face="front"
+            className="text-3xl font-bold text-white text-center"
+          />
+        ) : (
+          <p className="text-3xl font-bold text-white text-center">
+            <CardContent html={card.flashcards.front} />
+          </p>
+        )}
         {card.flashcards.word_class && (
           <span className="mt-3 text-xs text-white/30 px-2 py-0.5 rounded-full bg-white/5">
             {card.flashcards.word_class}
@@ -708,7 +877,11 @@ function TypeCard({
           onChange={(e) =>
             dispatch({ type: "SET_USER_INPUT", value: e.target.value })
           }
-          placeholder="Type the translation..."
+          placeholder={
+            rendered?.typeAnswerField
+              ? `Type ${rendered.typeAnswerField}...`
+              : "Type the translation..."
+          }
           disabled={state.answerState !== "idle"}
           className={cn(
             "w-full rounded-xl border bg-white/5 px-4 py-3 text-center text-lg",
@@ -737,31 +910,46 @@ function TypeCard({
           </button>
         ) : (
           <div className="space-y-4">
-            {/* Result */}
-            <div
-              className={cn(
-                "flex items-center justify-center gap-2 py-2 rounded-xl",
-                state.answerState === "correct"
-                  ? "bg-teal-500/10 text-teal-300"
-                  : "bg-rose-500/10 text-rose-300",
-              )}
-            >
-              {state.answerState === "correct" ? (
-                <>
-                  <Check className="h-5 w-5" />
-                  <span className="font-medium">Correct!</span>
-                </>
-              ) : (
-                <>
-                  <X className="h-5 w-5" />
-                  <span className="font-medium">
-                    Correct answer: {card.flashcards.back}
-                  </span>
-                </>
-              )}
-            </div>
+            {/* Diff result */}
+            {answerComparison && (
+              <div
+                className={cn(
+                  "py-3 px-4 rounded-xl text-center",
+                  answerComparison.isCorrect
+                    ? "bg-teal-500/10"
+                    : "bg-rose-500/10",
+                )}
+              >
+                <style
+                  dangerouslySetInnerHTML={{ __html: CARD_TEMPLATE_CSS }}
+                />
+                {answerComparison.isCorrect ? (
+                  <div className="flex items-center justify-center gap-2 text-teal-300">
+                    <Check className="h-5 w-5" />
+                    <span className="font-medium">Correct!</span>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center gap-2 text-rose-300">
+                      <X className="h-5 w-5" />
+                      <span className="font-medium">Not quite</span>
+                    </div>
+                    <div
+                      className="text-lg font-mono"
+                      dangerouslySetInnerHTML={{
+                        __html: answerComparison.html,
+                      }}
+                    />
+                    <p className="text-xs text-white/40">
+                      Expected:{" "}
+                      <span className="text-white/60">{expectedAnswer}</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
-            {card.flashcards.example_sentence && (
+            {!rendered && card.flashcards.example_sentence && (
               <div className="rounded-xl bg-white/5 p-3">
                 <p className="text-sm text-white/60 italic text-center">
                   {card.flashcards.example_sentence}
@@ -769,7 +957,11 @@ function TypeCard({
               </div>
             )}
 
-            <RatingButtons card={card} onRate={onRate} />
+            <RatingButtons
+              card={card}
+              onRate={onRate}
+              deckOptions={deckOptions}
+            />
           </div>
         )}
       </form>
@@ -785,11 +977,15 @@ function ChoiceCard({
   state,
   dispatch,
   onRate,
+  deckOptions,
+  rendered,
 }: {
   card: ScheduledCard;
   state: StudyState;
   dispatch: React.Dispatch<StudyAction>;
   onRate: (rating: Rating) => void;
+  deckOptions?: DeckOptions;
+  rendered?: RenderedCard | null;
 }) {
   const answered = state.answerState !== "idle";
   const correct = card.flashcards.back;
@@ -803,9 +999,17 @@ function ChoiceCard({
           "flex flex-col items-center justify-center p-8 min-h-[200px]",
         )}
       >
-        <p className="text-3xl font-bold text-white text-center">
-          {card.flashcards.front}
-        </p>
+        {rendered ? (
+          <TemplateCardContent
+            rendered={rendered}
+            face="front"
+            className="text-3xl font-bold text-white text-center"
+          />
+        ) : (
+          <p className="text-3xl font-bold text-white text-center">
+            <CardContent html={card.flashcards.front} />
+          </p>
+        )}
         {card.flashcards.word_class && (
           <span className="mt-3 text-xs text-white/30 px-2 py-0.5 rounded-full bg-white/5">
             {card.flashcards.word_class}
@@ -878,7 +1082,11 @@ function ChoiceCard({
               </p>
             </div>
           )}
-          <RatingButtons card={card} onRate={onRate} />
+          <RatingButtons
+            card={card}
+            onRate={onRate}
+            deckOptions={deckOptions}
+          />
         </div>
       )}
     </div>
@@ -914,6 +1122,20 @@ function StudyContent({
   const [isNavigating, setIsNavigating] = useState(false);
   const [showModePicker, setShowModePicker] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(streak);
+  // Note types map for template-aware rendering
+  const [noteTypesMap, setNoteTypesMap] = useState<
+    Map<
+      string,
+      {
+        templates: {
+          name: string;
+          front_template: string;
+          back_template: string;
+        }[];
+        css: string;
+      }
+    >
+  >(new Map());
   const [state, dispatch] = useReducer(studyReducer, {
     ...initialStudyState,
     reviewMode:
@@ -935,6 +1157,50 @@ function StudyContent({
 
   // Cache: card_id -> user_words.id (populated on first card review)
   const cardWordMapRef = useRef<Map<string, string>>(new Map());
+
+  // ── Study session action hooks ─────────────────────────────────────────
+  const cardActions = useStudyCardActions(userId, deckId);
+
+  // ── Overlay / menu state ───────────────────────────────────────────────
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showCardInfo, setShowCardInfo] = useState(false);
+  const [cardInfoData, setCardInfoData] = useState<Awaited<
+    ReturnType<typeof cardActions.getCardInfo>
+  > | null>(null);
+  const [cardInfoLoading, setCardInfoLoading] = useState(false);
+  const [showInlineEditor, setShowInlineEditor] = useState(false);
+  const [showVoiceCompare, setShowVoiceCompare] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  // Track flag/mark state locally for immediate UI
+  const [localFlagged, setLocalFlagged] = useState(false);
+  const [localMarked, setLocalMarked] = useState(false);
+  // Toast notifications for card actions
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    if (toastTimeout.current) clearTimeout(toastTimeout.current);
+    setToast(msg);
+    toastTimeout.current = setTimeout(() => setToast(null), 2000);
+  }, []);
+
+  // Sync local flag/mark state when current card changes
+  useEffect(() => {
+    const cur = state.cards[state.currentIndex];
+    if (cur) {
+      setLocalFlagged(cur.flashcards.tags?.includes("flagged") ?? false);
+      setLocalMarked(cur.flashcards.tags?.includes("marked") ?? false);
+    }
+    // Reset overlays when card changes
+    setShowMoreMenu(false);
+    setShowCardInfo(false);
+    setShowInlineEditor(false);
+    setShowVoiceCompare(false);
+    setConfirmDelete(false);
+  }, [state.currentIndex, state.cards]);
+
+  // Audio ref for replaying card audio
+  const cardAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (ambientView === "container") {
@@ -959,6 +1225,34 @@ function StudyContent({
     }
     const deckObj = deckData as Deck;
     setDeck(deckObj);
+
+    // Fetch note types for template rendering
+    const { data: noteTypeData } = await supabase
+      .from("note_types")
+      .select("id, templates, css")
+      .eq("user_id", userId);
+    const ntMap = new Map<
+      string,
+      {
+        templates: {
+          name: string;
+          front_template: string;
+          back_template: string;
+        }[];
+        css: string;
+      }
+    >();
+    for (const nt of noteTypeData || []) {
+      ntMap.set(nt.id, {
+        templates: (nt.templates || []) as {
+          name: string;
+          front_template: string;
+          back_template: string;
+        }[],
+        css: nt.css || "",
+      });
+    }
+    setNoteTypesMap(ntMap);
 
     // Get card IDs for this deck
     const { data: deckCards } = await supabase
@@ -1003,12 +1297,19 @@ function StudyContent({
         todayReviewedIds.has(s.card_id) && s.reps <= 1 && s.state !== "new",
     ).length;
 
-    // Build queue with daily limits and backlog spread
+    // Build queue with daily limits, backlog spread, and insertion order
     const queue = buildStudyQueue(
       allSchedules,
       deckObj.new_per_day,
       deckObj.review_per_day,
       newCardsStudiedToday,
+      deckObj.insertion_order ?? "random",
+      {
+        new_gather_order: deckObj.new_gather_order,
+        new_sort_order: deckObj.new_sort_order,
+        review_sort_order: deckObj.review_sort_order,
+        interleave_mode: deckObj.interleave_mode,
+      },
     );
 
     // Reset session results
@@ -1027,13 +1328,74 @@ function StudyContent({
     const current = state.cards[state.currentIndex];
     if (!current) return;
 
+    const deckOptions: DeckOptions | undefined = deck
+      ? {
+          learning_steps: deck.learning_steps,
+          graduating_interval: deck.graduating_interval,
+          easy_interval: deck.easy_interval,
+          insertion_order: deck.insertion_order,
+          // Reviews
+          max_interval: deck.max_interval,
+          interval_modifier: deck.interval_modifier,
+          hard_interval_mult: deck.hard_interval_mult,
+          easy_bonus: deck.easy_bonus,
+          // Lapses
+          relearning_steps: deck.relearning_steps,
+          min_interval_after_lapse: deck.min_interval_after_lapse,
+          new_interval_multiplier: deck.new_interval_multiplier,
+          // Leeches
+          leech_threshold: deck.leech_threshold,
+          leech_action: deck.leech_action,
+          // Display Order
+          new_gather_order: deck.new_gather_order,
+          new_sort_order: deck.new_sort_order,
+          review_sort_order: deck.review_sort_order,
+          interleave_mode: deck.interleave_mode,
+          // Burying
+          bury_new_siblings: deck.bury_new_siblings,
+          bury_review_siblings: deck.bury_review_siblings,
+          // Timer
+          show_answer_timer: deck.show_answer_timer,
+          answer_timer_limit: deck.answer_timer_limit,
+          // Auto Advance
+          auto_advance_answer_seconds: deck.auto_advance_answer_seconds,
+          auto_advance_rate_seconds: deck.auto_advance_rate_seconds,
+        }
+      : undefined;
+
     const fsrsCard = dbRowToFSRSCard(current);
     const now = new Date();
-    const result = scheduleCard(fsrsCard, rating, now);
+    const result = scheduleCard(fsrsCard, rating, now, deckOptions);
     const dbFields = fsrsCardToDbFields(result.card);
 
-    // Update card_schedules
-    await supabase.from("card_schedules").update(dbFields).eq("id", current.id);
+    // Handle leech detection
+    let leechFields: Record<string, boolean> = {};
+    if (result.justBecameLeech) {
+      const action = deck?.leech_action ?? "tag";
+      leechFields = leechAction(action);
+
+      // If leech action is "tag", add "leech" to the flashcard's tags
+      if (action === "tag") {
+        const { data: fc } = await supabase
+          .from("flashcards")
+          .select("tags")
+          .eq("id", current.card_id)
+          .single();
+        const tags: string[] = fc?.tags ?? [];
+        if (!tags.includes("leech")) {
+          await supabase
+            .from("flashcards")
+            .update({ tags: [...tags, "leech"] })
+            .eq("id", current.card_id);
+        }
+      }
+    }
+
+    // Update card_schedules (with leech fields if applicable)
+    await supabase
+      .from("card_schedules")
+      .update({ ...dbFields, ...leechFields })
+      .eq("id", current.id);
 
     // Log review
     const elapsed = Date.now() - state.cardStartTime;
@@ -1044,6 +1406,23 @@ function StudyContent({
       rating,
       review_time_ms: elapsed,
     });
+
+    // Bury siblings if enabled
+    if (deckOptions?.bury_new_siblings || deckOptions?.bury_review_siblings) {
+      const { newSiblingIds, reviewSiblingIds } = findSiblingsToBury(
+        current,
+        state.cards,
+        deckOptions,
+      );
+      const allToBury = [...newSiblingIds, ...reviewSiblingIds];
+      if (allToBury.length > 0) {
+        const buriedUntil = getBuriedUntil();
+        await supabase
+          .from("card_schedules")
+          .update({ is_buried: true, buried_until: buriedUntil })
+          .in("id", allToBury);
+      }
+    }
 
     // Track for session stats (store cardId alongside result)
     const isCorrect = rating >= 3;
@@ -1114,6 +1493,138 @@ function StudyContent({
     dispatch({ type: "RATE_CARD", rating });
     dispatch({ type: "NEXT_CARD" });
   };
+
+  // ── Card-level action handlers (for More menu + keyboard shortcuts) ────
+  const handleSkipCard = useCallback(() => {
+    dispatch({ type: "NEXT_CARD" });
+  }, []);
+
+  const handleFlagCard = useCallback(async () => {
+    const cur = state.cards[state.currentIndex];
+    if (!cur) return;
+    const nowFlagged = await cardActions.flagCard(cur);
+    setLocalFlagged(nowFlagged);
+    showToast(nowFlagged ? "Card flagged" : "Flag removed");
+  }, [state.cards, state.currentIndex, cardActions, showToast]);
+
+  const handleMarkCard = useCallback(async () => {
+    const cur = state.cards[state.currentIndex];
+    if (!cur) return;
+    const nowMarked = await cardActions.markCard(cur);
+    setLocalMarked(nowMarked);
+    showToast(nowMarked ? "Card marked" : "Mark removed");
+  }, [state.cards, state.currentIndex, cardActions, showToast]);
+
+  const handleSuspendCard = useCallback(async () => {
+    const cur = state.cards[state.currentIndex];
+    if (!cur) return;
+    await cardActions.suspendCard(cur);
+    showToast("Card suspended");
+    handleSkipCard();
+  }, [state.cards, state.currentIndex, cardActions, showToast, handleSkipCard]);
+
+  const handleBuryCard = useCallback(async () => {
+    const cur = state.cards[state.currentIndex];
+    if (!cur) return;
+    await cardActions.buryCard(cur);
+    // Also bury siblings automatically
+    await cardActions.burySiblings(cur, state.cards);
+    showToast("Card buried until tomorrow");
+    handleSkipCard();
+  }, [state.cards, state.currentIndex, cardActions, showToast, handleSkipCard]);
+
+  const handleDeleteCard = useCallback(async () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    const cur = state.cards[state.currentIndex];
+    if (!cur) return;
+    await cardActions.deleteCard(cur);
+    showToast("Card deleted");
+    setConfirmDelete(false);
+    handleSkipCard();
+  }, [
+    confirmDelete,
+    state.cards,
+    state.currentIndex,
+    cardActions,
+    showToast,
+    handleSkipCard,
+  ]);
+
+  const handleOpenCardInfo = useCallback(async () => {
+    const cur = state.cards[state.currentIndex];
+    if (!cur) return;
+    setShowCardInfo(true);
+    setCardInfoLoading(true);
+    try {
+      const data = await cardActions.getCardInfo(cur);
+      setCardInfoData(data);
+    } finally {
+      setCardInfoLoading(false);
+    }
+  }, [state.cards, state.currentIndex, cardActions]);
+
+  const handleEditCard = useCallback(
+    async (updates: { front?: string; back?: string }) => {
+      const cur = state.cards[state.currentIndex];
+      if (!cur) return;
+      await cardActions.editCard(cur, updates);
+      showToast("Card updated");
+    },
+    [state.cards, state.currentIndex, cardActions, showToast],
+  );
+
+  const handleReplayAudio = useCallback(() => {
+    const cur = state.cards[state.currentIndex];
+    if (!cur) return;
+    const audioUrl = cur.flashcards.audio_url;
+    if (audioUrl && cardAudioRef.current) {
+      cardAudioRef.current.src = audioUrl;
+      cardAudioRef.current.currentTime = 0;
+      cardAudioRef.current.play().catch(() => {});
+    } else {
+      // Fallback: use Web Speech API
+      const text = cur.flashcards.front.replace(/<[^>]*>/g, "");
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        const langMap: Record<string, string> = {
+          de: "de-DE",
+          fr: "fr-FR",
+          it: "it-IT",
+        };
+        utterance.lang = langMap[deck?.language ?? "fr"] ?? "fr-FR";
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  }, [state.cards, state.currentIndex, deck?.language]);
+
+  // ── Keyboard shortcuts ─────────────────────────────────────────────────
+  const sessionActive =
+    !loading &&
+    !showModePicker &&
+    !state.sessionComplete &&
+    state.cards.length > 0 &&
+    !showInlineEditor;
+
+  useStudyKeyboard({
+    active: sessionActive,
+    state,
+    dispatch,
+    onRate: handleRate,
+    onShowAnswer: () => dispatch({ type: "SHOW_ANSWER" }),
+    onToggleMore: () => setShowMoreMenu((v) => !v),
+    onToggleInfo: handleOpenCardInfo,
+    onReplayAudio: handleReplayAudio,
+    onFlagCard: handleFlagCard,
+    onMarkCard: handleMarkCard,
+    onEditCard: () => setShowInlineEditor(true),
+    onBuryCard: handleBuryCard,
+    onSuspendCard: handleSuspendCard,
+    onDeleteCard: handleDeleteCard,
+  });
 
   // Update streak when session ends (KG sync now happens per-card in handleRate)
   useEffect(() => {
@@ -1196,9 +1707,102 @@ function StudyContent({
     setShowModePicker(false);
   };
 
+  // Memoize full deckOptions for card components and auto-advance
+  const deckOptions: DeckOptions | undefined = useMemo(() => {
+    if (!deck) return undefined;
+    return {
+      learning_steps: deck.learning_steps,
+      graduating_interval: deck.graduating_interval,
+      easy_interval: deck.easy_interval,
+      insertion_order: deck.insertion_order,
+      max_interval: deck.max_interval,
+      interval_modifier: deck.interval_modifier,
+      hard_interval_mult: deck.hard_interval_mult,
+      easy_bonus: deck.easy_bonus,
+      relearning_steps: deck.relearning_steps,
+      min_interval_after_lapse: deck.min_interval_after_lapse,
+      new_interval_multiplier: deck.new_interval_multiplier,
+      leech_threshold: deck.leech_threshold,
+      leech_action: deck.leech_action,
+      new_gather_order: deck.new_gather_order,
+      new_sort_order: deck.new_sort_order,
+      review_sort_order: deck.review_sort_order,
+      interleave_mode: deck.interleave_mode,
+      bury_new_siblings: deck.bury_new_siblings,
+      bury_review_siblings: deck.bury_review_siblings,
+      show_answer_timer: deck.show_answer_timer,
+      answer_timer_limit: deck.answer_timer_limit,
+      auto_advance_answer_seconds: deck.auto_advance_answer_seconds,
+      auto_advance_rate_seconds: deck.auto_advance_rate_seconds,
+    };
+  }, [deck]);
+
+  // Auto-advance: reveal answer after N seconds (flip mode only)
+  const autoRevealTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (autoRevealTimeout.current) {
+      clearTimeout(autoRevealTimeout.current);
+      autoRevealTimeout.current = null;
+    }
+    const seconds = deckOptions?.auto_advance_answer_seconds ?? 0;
+    if (
+      seconds > 0 &&
+      !showModePicker &&
+      !state.sessionComplete &&
+      state.cardFace === "front" &&
+      state.reviewMode === "flip"
+    ) {
+      autoRevealTimeout.current = setTimeout(() => {
+        dispatch({ type: "SHOW_ANSWER" });
+      }, seconds * 1000);
+    }
+    return () => {
+      if (autoRevealTimeout.current) clearTimeout(autoRevealTimeout.current);
+    };
+  }, [
+    deckOptions?.auto_advance_answer_seconds,
+    state.cardFace,
+    state.currentIndex,
+    state.reviewMode,
+    state.sessionComplete,
+    showModePicker,
+  ]);
+
+  // Auto-advance: rate card after N seconds (after answer is revealed)
+  const autoRateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleRateRef = useRef(handleRate);
+  handleRateRef.current = handleRate;
+  useEffect(() => {
+    if (autoRateTimeout.current) {
+      clearTimeout(autoRateTimeout.current);
+      autoRateTimeout.current = null;
+    }
+    const seconds = deckOptions?.auto_advance_rate_seconds ?? 0;
+    if (
+      seconds > 0 &&
+      !showModePicker &&
+      !state.sessionComplete &&
+      state.cardFace === "back"
+    ) {
+      autoRateTimeout.current = setTimeout(() => {
+        handleRateRef.current(3); // Good
+      }, seconds * 1000);
+    }
+    return () => {
+      if (autoRateTimeout.current) clearTimeout(autoRateTimeout.current);
+    };
+  }, [
+    deckOptions?.auto_advance_rate_seconds,
+    state.cardFace,
+    state.currentIndex,
+    state.sessionComplete,
+    showModePicker,
+  ]);
+
   if (isNavigating) return <LoadingScreen />;
 
   const current = state.cards[state.currentIndex];
+  const renderedCard = useRenderedCard(current ?? null, noteTypesMap);
   const totalCards = state.cards.length;
   const totalWithLearning = totalCards + state.learningQueue.length;
   const progress =
@@ -1289,7 +1893,10 @@ function StudyContent({
             </div>
           ) : current ? (
             <div className="space-y-6">
-              {/* Progress bar */}
+              {/* Hidden audio element for replay */}
+              <audio ref={cardAudioRef} className="hidden" />
+
+              {/* Progress bar + More menu */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs text-white/40">
                   <span>
@@ -1301,6 +1908,22 @@ function StudyContent({
                     )}
                   </span>
                   <span className="flex items-center gap-3">
+                    {/* Answer Timer */}
+                    {deckOptions?.show_answer_timer && (
+                      <AnswerTimer
+                        startTime={state.cardStartTime}
+                        limitSeconds={deckOptions?.answer_timer_limit ?? 60}
+                        paused={state.sessionComplete}
+                      />
+                    )}
+                    {/* Replay audio quick button */}
+                    <button
+                      onClick={handleReplayAudio}
+                      className="text-white/30 hover:text-white/60 transition"
+                      title="Replay audio (R)"
+                    >
+                      <Volume2 className="h-3.5 w-3.5" />
+                    </button>
                     <span className="flex items-center gap-1">
                       <span className="h-1.5 w-1.5 rounded-full bg-teal-400/70" />
                       {state.sessionStats.good + state.sessionStats.easy}
@@ -1309,6 +1932,32 @@ function StudyContent({
                       <span className="h-1.5 w-1.5 rounded-full bg-rose-400/70" />
                       {state.sessionStats.again}
                     </span>
+                    {/* More menu trigger */}
+                    <div className="relative">
+                      <MoreMenuTrigger
+                        onClick={() => setShowMoreMenu((v) => !v)}
+                        isFlagged={localFlagged}
+                        isMarked={localMarked}
+                      />
+                      <StudyMoreMenu
+                        open={showMoreMenu}
+                        onClose={() => setShowMoreMenu(false)}
+                        actions={buildMoreMenuActions({
+                          isFlagged: localFlagged,
+                          isMarked: localMarked,
+                          hasAudio: !!current.flashcards.audio_url,
+                          onEdit: () => setShowInlineEditor(true),
+                          onFlag: handleFlagCard,
+                          onMark: handleMarkCard,
+                          onSuspend: handleSuspendCard,
+                          onBury: handleBuryCard,
+                          onInfo: handleOpenCardInfo,
+                          onDelete: handleDeleteCard,
+                          onReplayAudio: handleReplayAudio,
+                          onRecordVoice: () => setShowVoiceCompare(true),
+                        })}
+                      />
+                    </div>
                   </span>
                 </div>
                 <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
@@ -1319,6 +1968,51 @@ function StudyContent({
                 </div>
               </div>
 
+              {/* Delete confirmation banner */}
+              {confirmDelete && (
+                <div className="flex items-center justify-between rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 animate-in fade-in duration-150">
+                  <span className="text-sm text-rose-300">
+                    Delete this card permanently?
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setConfirmDelete(false)}
+                      className="px-3 py-1.5 rounded-lg text-xs text-white/60 border border-white/10 hover:border-white/20 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDeleteCard}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500 hover:bg-rose-400 text-white transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Inline Card Editor */}
+              {showInlineEditor && (
+                <InlineCardEditor
+                  card={current}
+                  onSave={handleEditCard}
+                  onClose={() => setShowInlineEditor(false)}
+                />
+              )}
+
+              {/* Voice Compare panel */}
+              {showVoiceCompare && (
+                <VoiceCompare
+                  referenceAudioUrl={current.flashcards.audio_url}
+                  referenceText={current.flashcards.front.replace(
+                    /<[^>]*>/g,
+                    "",
+                  )}
+                  lang={deck?.language ?? "fr"}
+                  onClose={() => setShowVoiceCompare(false)}
+                />
+              )}
+
               {/* Card */}
               {state.reviewMode === "flip" && (
                 <FlipCard
@@ -1326,6 +2020,8 @@ function StudyContent({
                   face={state.cardFace}
                   onShowAnswer={() => dispatch({ type: "SHOW_ANSWER" })}
                   onRate={handleRate}
+                  deckOptions={deckOptions}
+                  rendered={renderedCard}
                 />
               )}
 
@@ -1335,6 +2031,8 @@ function StudyContent({
                   state={state}
                   dispatch={dispatch}
                   onRate={handleRate}
+                  deckOptions={deckOptions}
+                  rendered={renderedCard}
                 />
               )}
 
@@ -1344,12 +2042,56 @@ function StudyContent({
                   state={state}
                   dispatch={dispatch}
                   onRate={handleRate}
+                  deckOptions={deckOptions}
+                  rendered={renderedCard}
                 />
               )}
+
+              {/* Keyboard shortcuts hint */}
+              <div className="flex justify-center">
+                <p className="text-[10px] text-white/20 flex items-center gap-1.5">
+                  <kbd className="bg-white/5 rounded px-1 py-0.5 font-mono">
+                    1-4
+                  </kbd>{" "}
+                  rate
+                  <span className="mx-1">·</span>
+                  <kbd className="bg-white/5 rounded px-1 py-0.5 font-mono">
+                    Space
+                  </kbd>{" "}
+                  flip
+                  <span className="mx-1">·</span>
+                  <kbd className="bg-white/5 rounded px-1 py-0.5 font-mono">
+                    .
+                  </kbd>{" "}
+                  more
+                </p>
+              </div>
             </div>
           ) : null}
         </div>
       </div>
+
+      {/* Card Info Overlay (portal-level) */}
+      {showCardInfo && current && (
+        <CardInfoOverlay
+          card={current}
+          data={cardInfoData}
+          loading={cardInfoLoading}
+          onClose={() => {
+            setShowCardInfo(false);
+            setCardInfoData(null);
+          }}
+        />
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="rounded-xl bg-[#0d2137] border border-white/10 px-5 py-2.5 shadow-2xl">
+            <p className="text-sm text-white/70">{toast}</p>
+          </div>
+        </div>
+      )}
     </OceanBackground>
   );
 }
